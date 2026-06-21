@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-06-21
-**Last Updated:** 2026-06-21
+**Last Updated:** 2026-06-21 (Open Questions geschlossen)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — typisierter Supabase-Client, `profiles`-Tabelle mit RLS
@@ -95,9 +95,9 @@
 - Alle Auth-Seiten nutzen Supabase-Formulare mit react-hook-form + Zod-Validierung
 
 ## Open Questions
-- [ ] Soll die AGB-Seite und Datenschutzerklärung als eigene statische Seiten in PROJ-2 existieren, oder reichen externe Links (z.B. auf ein Notion-Dokument) für den MVP?
-- [ ] Wie lang soll der Reset-Link gültig sein? Supabase-Standard ist 1 Stunde — ausreichend?
-- [ ] Soll nach erfolgreichem Signup (vor E-Mail-Bestätigung) bereits die Home-Seite im `pending`-Modus zugänglich sein (mit Banner „Bitte bestätige deine E-Mail"), oder bleibt der Nutzer bis zur Bestätigung auf dem Hinweis-Screen?
+- [x] Soll die AGB-Seite und Datenschutzerklärung als eigene statische Seiten in PROJ-2 existieren, oder reichen externe Links? → **Externe Links mit Platzhalter-URLs für MVP**
+- [x] Wie lang soll der Reset-Link gültig sein? → **1 Stunde (Supabase-Standard) ist ausreichend**
+- [x] Soll nach Signup der `pending`-Nutzer die Home-Seite sehen oder den Hinweis-Screen? → **Hinweis-Screen bis zur Bestätigung — kein Zugriff auf die App**
 
 ## Decision Log
 
@@ -112,6 +112,9 @@
 | Kein Magic Link | Nicht im Konzept vorgesehen; E-Mail/Passwort + OAuth deckt alle Nutzungsfälle ab | 2026-06-21 |
 | Fehlermeldung „E-Mail oder Passwort falsch" (nicht differenziert) | Verhindert User-Enumeration (Angreifer kann nicht herausfinden welche E-Mails registriert sind) | 2026-06-21 |
 | Reset-Bestätigung ohne Unterschied bei registrierter/unregistrierter E-Mail | Verhindert User-Enumeration beim Passwort-Reset-Flow | 2026-06-21 |
+| AGB/Datenschutz als externe Links mit Platzhalter-URLs | Eigene statische Seiten sind für MVP unnötig; externe Links (z.B. Notion) reichen; Platzhalter werden vor Launch ersetzt | 2026-06-21 |
+| Reset-Link-Gültigkeit: 1 Stunde (Supabase-Standard) | Ausreichend für den Nutzungskontext; kürzere Fenster erhöhen Support-Aufwand ohne Sicherheitsgewinn | 2026-06-21 |
+| `pending`-Nutzer bleibt auf Hinweis-Screen bis zur E-Mail-Bestätigung | Kein teilweiser Zugriff auf die App mit unbestätigtem Account — klare UX, keine Sonderfälle in der Auth-Guard-Logik | 2026-06-21 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
