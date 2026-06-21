@@ -16,7 +16,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 
 | Priority | Feature | Status |
 |----------|---------|--------|
-| P0 | Supabase Infrastructure Setup | Roadmap |
+| P0 | Supabase Infrastructure Setup | Approved |
 | P0 | Authentifizierung & User Accounts | Roadmap |
 | P0 | Gruppe & Mitglieder-Management | Roadmap |
 | P0 | Aktivitäts-Vorschläge & Voting | Roadmap |
