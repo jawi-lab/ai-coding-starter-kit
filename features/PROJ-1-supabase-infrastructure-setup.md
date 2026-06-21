@@ -1,6 +1,6 @@
 # PROJ-1: Supabase Infrastructure Setup
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-06-21
 **Last Updated:** 2026-06-21
 
@@ -265,11 +265,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-public-key>
 
 ### Production-Ready Decision
 
-**NOT READY** — 2 High bugs (BUG-1, BUG-2) must be fixed before deployment:
-- Uncommitted `supabase.ts` means a fresh clone/deploy gets a broken null-export client
-- Untracked `database.types.ts` means TypeScript build fails on a fresh clone
-
-Fix: commit both files (`src/lib/supabase.ts` + `src/lib/database.types.ts`), then update `.env.local.example` content (BUG-3, Low). Re-run `/qa` after fixes.
+**APPROVED** — No Critical or High bugs remaining.
+- BUG-1 ✅ Fixed: `supabase.ts` committed (commit 6406065)
+- BUG-2 ✅ Fixed: `database.types.ts` committed (commit 6406065)
+- BUG-3 ⚠️ Open (LOW): `.env.local.example` still has generic content; manually update with ZUSAMMEN-specific placeholders pointing to Supabase Settings → API
 
 ## Deployment
 _To be added by /deploy_
