@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-06-21
-**Last Updated:** 2026-06-21 (Open Questions geschlossen)
+**Last Updated:** 2026-06-21 (OAuth auf später verschoben — nur E-Mail/Passwort für MVP)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — typisierter Supabase-Client, `profiles`-Tabelle mit RLS
@@ -11,15 +11,17 @@
 - Als neuer Nutzer möchte ich mich mit E-Mail, Passwort und Anzeigename registrieren, damit ich einen persönlichen Account erstelle.
 - Als neuer Nutzer möchte ich nach der Registrierung eine Bestätigungs-Mail erhalten und meinen Account per Link aktivieren, damit nur echte E-Mail-Adressen genutzt werden.
 - Als bestehender Nutzer möchte ich mich mit E-Mail und Passwort einloggen, damit ich auf meine Gruppen und Aktivitäten zugreife.
-- Als Nutzer möchte ich mich mit meinem Google-Account einloggen, damit ich keinen separaten Account anlegen muss.
-- Als Nutzer möchte ich mich mit Apple einloggen, damit ich meinen Apple-Account nutzen kann (Pflicht für App Store).
 - Als Nutzer möchte ich mein vergessenes Passwort per E-Mail zurücksetzen, damit ich meinen Account wiederherstellen kann.
 - Als eingeloggter Nutzer möchte ich mich ausloggen können, damit mein Account auf dem Gerät gesichert ist.
 - Als nicht-eingeloggter Nutzer, der eine geschützte Seite aufruft, möchte ich automatisch zur Login-Seite weitergeleitet werden.
 
+> **Platzhalter (deferred):** Google-, Apple- und Facebook-Login sind auf der Login-Seite als deaktivierte Buttons sichtbar ("Demnächst verfügbar") — werden in einem späteren Feature aktiviert, sobald die App veröffentlicht wird.
+
 ## Out of Scope
 - **Account löschen** — deferred to PROJ-8 (Nutzerprofil & Archiv), da Bereinigung von Gruppen/Aktivitäten komplexe Abhängigkeiten zu PROJ-3–7 hat
-- **Facebook OAuth** — aus der Zielgruppe (Freundesgruppen 18–35) kaum relevant; erhöht Setup-Aufwand unverhältnismäßig
+- **Google OAuth** — deferred; Setup als Privatperson erfordert Google Cloud Console + Testnutzer-Verwaltung; wird aktiviert vor App-Store-Release (PROJ-9)
+- **Apple OAuth** — deferred; erfordert Apple Developer Account (99 $/Jahr) + verifizierte Domain; wird aktiviert vor App-Store-Release (PROJ-9, Pflicht für iOS)
+- **Facebook OAuth** — deferred; erfordert Facebook Developer App + Datenschutzerklärung-URL + ggf. Business Verification; wird aktiviert vor App-Store-Release
 - **Profilbild beim Signup** — deferred to PROJ-8; `avatar_url` bleibt beim Signup `null`
 - **Profilbearbeitung (Display-Name ändern, Avatar hochladen)** — deferred to PROJ-8
 - **E-Mail-Adresse oder Passwort ändern** — deferred to PROJ-8
@@ -41,20 +43,13 @@
 - [ ] Angenommen der Nutzer versucht sich mit einer bereits registrierten E-Mail-Adresse zu registrieren, dann wird die Fehlermeldung „Diese E-Mail-Adresse ist bereits registriert" angezeigt
 
 ### Login (E-Mail/Passwort)
-- [ ] Angenommen der Nutzer ist nicht eingeloggt, wenn er `/login` aufruft, dann sieht er ein Formular mit E-Mail und Passwort sowie Buttons für Google- und Apple-Login
+- [ ] Angenommen der Nutzer ist nicht eingeloggt, wenn er `/login` aufruft, dann sieht er ein Formular mit E-Mail und Passwort sowie deaktivierte Platzhalter-Buttons für Google-, Apple- und Facebook-Login mit dem Label „Demnächst verfügbar"
 - [ ] Angenommen der Nutzer gibt korrekte Zugangsdaten eines `active`-Accounts ein, wenn er „Einloggen" klickt, dann wird eine Supabase-Session erstellt und der Nutzer zur Home-Seite weitergeleitet
 - [ ] Angenommen der Nutzer gibt falsche Zugangsdaten ein, dann wird die Fehlermeldung „E-Mail oder Passwort falsch" angezeigt (kein Hinweis welches Feld falsch ist)
 - [ ] Angenommen der Nutzer hat einen `pending`-Account (E-Mail noch nicht bestätigt) und versucht sich einzuloggen, dann sieht er den Hinweis „Bitte bestätige zuerst deine E-Mail-Adresse" mit der Option „Mail erneut senden"
 
-### OAuth — Google
-- [ ] Angenommen der Nutzer klickt „Mit Google einloggen", dann wird er zu Googles OAuth-Flow weitergeleitet
-- [ ] Angenommen der OAuth-Flow ist erfolgreich und der Nutzer hat noch keinen Account, dann wird automatisch ein Supabase-User, ein `profiles`-Eintrag mit `status = 'active'` und dem Google-Anzeigenamen als `display_name` erstellt, und der Nutzer zur Home-Seite weitergeleitet
-- [ ] Angenommen der OAuth-Flow ist erfolgreich und der Nutzer hat bereits einen Account mit dieser E-Mail, dann wird er eingeloggt und zur Home-Seite weitergeleitet (kein doppelter Account)
-
-### OAuth — Apple
-- [ ] Angenommen der Nutzer klickt „Mit Apple einloggen", dann wird er zu Apples Sign-in-with-Apple-Flow weitergeleitet
-- [ ] Angenommen der Apple-OAuth-Flow ist erfolgreich und der Nutzer ist neu, dann wird automatisch ein `profiles`-Eintrag mit `status = 'active'` erstellt; als `display_name` wird der von Apple übermittelte Name verwendet (falls Apple keinen Namen übermittelt, wird der Teil der E-Mail vor `@` genutzt)
-- [ ] Angenommen der Nutzer wählt bei Apple „E-Mail verbergen" (Relay-Adresse), dann funktioniert der Login trotzdem und ein Account wird angelegt
+### OAuth — Google / Apple / Facebook (Platzhalter)
+> Deaktivierte UI-Buttons auf der Login-Seite — keine Funktion in diesem Feature. Werden in einem späteren Feature aktiviert (vor App-Store-Release / PROJ-9).
 
 ### Passwort zurücksetzen
 - [ ] Angenommen der Nutzer klickt auf der Login-Seite „Passwort vergessen", dann wird er zu einem Formular mit einem E-Mail-Feld weitergeleitet
@@ -78,21 +73,18 @@
 ## Edge Cases
 - **Bestätigungs-Link abgelaufen:** Supabase invalidiert Links nach 24 Stunden. Der Nutzer sieht eine Fehlermeldung mit dem Hinweis „Link abgelaufen — neuen anfordern" und einem Button zurück zum Hinweis-Screen.
 - **Link bereits genutzt (bereits bestätigt):** Supabase erkennt doppelte Token-Nutzung. Der Nutzer sieht den Hinweis „Account bereits bestätigt" und wird zum Login weitergeleitet.
-- **Apple übermittelt keinen Namen:** Nur beim ersten Apple-Login übermittelt Apple den Nutzernamen. Bei späteren Logins kommt kein Name. Fallback: E-Mail-Präfix (Teil vor `@`) als `display_name`.
-- **OAuth-Popup geblockt:** Falls der Browser den OAuth-Popup blockiert, soll ein Hinweis erscheinen: „Bitte erlaube Popups für diese Seite."
 - **Netzwerkfehler beim Login/Signup:** Falls Supabase nicht erreichbar ist, wird eine generische Fehlermeldung angezeigt: „Verbindungsfehler — bitte versuche es erneut." Formulardaten bleiben erhalten.
 - **Session abgelaufen während der Nutzung:** Wenn die Supabase-Session während einer aktiven Sitzung abläuft, wird der Nutzer beim nächsten API-Call zur Login-Seite weitergeleitet.
-- **Gleiche E-Mail via E-Mail + OAuth:** Supabase verknüpft automatisch Accounts mit identischer E-Mail (OAuth mit bestehendem E-Mail-Account). Kein manuelles Merging nötig.
-- **`pending`-Status bei OAuth:** OAuth-Accounts erhalten direkt `status = 'active'` — keine E-Mail-Bestätigung nötig, da der OAuth-Provider die E-Mail bereits verifiziert hat.
 
 ## Technical Requirements
 - Alle Auth-Seiten sind öffentlich zugänglich (kein Auth Guard auf `/login`, `/signup`, `/auth/*`)
 - Auth-State wird über den Supabase-Client client-seitig verwaltet (`onAuthStateChange`)
 - Session-Persistenz: Supabase-Standard (JWT in `localStorage`, automatisches Refresh)
 - `profiles`-Tabelle braucht eine neue Spalte `status` (text, NOT NULL, default `'pending'`, check constraint: `'pending' | 'active'`) — Migration in PROJ-2
-- Profile-Erstellung beim Signup: direkt nach Auth-User-Anlage per Client-Call (kein DB-Trigger) mit `status = 'pending'`; nach E-Mail-Bestätigung Update auf `status = 'active'` per Supabase Auth Webhook oder `/auth/callback`-Handler
-- OAuth-Callback-URL: `/auth/callback` — verarbeitet den Supabase-Redirect und leitet zur Home-Seite weiter
-- Alle Auth-Seiten nutzen Supabase-Formulare mit react-hook-form + Zod-Validierung
+- Profile-Erstellung beim Signup: direkt nach Auth-User-Anlage per Client-Call (kein DB-Trigger) mit `status = 'pending'`; nach E-Mail-Bestätigung Update auf `status = 'active'` im `/auth/callback`-Handler
+- E-Mail-Bestätigungs-Callback-URL: `/auth/callback` — verarbeitet den Supabase-Redirect und leitet zur Home-Seite weiter
+- Alle Auth-Seiten nutzen react-hook-form + Zod-Validierung
+- OAuth-Buttons (Google, Apple, Facebook) werden als deaktivierte UI-Elemente gerendert — kein Supabase OAuth Setup nötig
 
 ## Open Questions
 - [x] Soll die AGB-Seite und Datenschutzerklärung als eigene statische Seiten in PROJ-2 existieren, oder reichen externe Links? → **Externe Links mit Platzhalter-URLs für MVP**
@@ -110,6 +102,7 @@
 | Account-Löschung auf PROJ-8 verschoben | Bereinigung von Gruppen/Aktivitäten/Votes erfordert Kenntniss von PROJ-3–7; zu komplex für PROJ-2 | 2026-06-21 |
 | Nach Login immer zur Home-Seite (kein „Redirect back") | Static Export hat keine serverseitige Redirect-Logik; Client-seitiges Merken der ursprünglichen URL erhöht Komplexität unverhältnismäßig | 2026-06-21 |
 | Kein Magic Link | Nicht im Konzept vorgesehen; E-Mail/Passwort + OAuth deckt alle Nutzungsfälle ab | 2026-06-21 |
+| Google / Apple / Facebook OAuth als deaktivierte Platzhalter im MVP | Privattest-Phase erfordert kein OAuth; Setup (Google Cloud Console, Apple Developer Account, Facebook Developer App) ist zu aufwändig ohne Veröffentlichungsabsicht; OAuth wird vor App-Store-Release (PROJ-9) aktiviert | 2026-06-21 |
 | Fehlermeldung „E-Mail oder Passwort falsch" (nicht differenziert) | Verhindert User-Enumeration (Angreifer kann nicht herausfinden welche E-Mails registriert sind) | 2026-06-21 |
 | Reset-Bestätigung ohne Unterschied bei registrierter/unregistrierter E-Mail | Verhindert User-Enumeration beim Passwort-Reset-Flow | 2026-06-21 |
 | AGB/Datenschutz als externe Links mit Platzhalter-URLs | Eigene statische Seiten sind für MVP unnötig; externe Links (z.B. Notion) reichen; Platzhalter werden vor Launch ersetzt | 2026-06-21 |
@@ -154,8 +147,9 @@ App Layout (src/app/layout.tsx)
     │   │   │   ├── PasswordInput       (shadcn/ui Input)
     │   │   │   ├── Fehler-Alert        (shadcn/ui Alert)
     │   │   │   ├── SubmitButton        (shadcn/ui Button)
-    │   │   │   ├── OAuthButton         "Mit Google einloggen"
-    │   │   │   └── OAuthButton         "Mit Apple einloggen"
+    │   │   │   ├── OAuthButton         "Mit Google einloggen"   ← deaktiviert, Platzhalter
+    │   │   │   ├── OAuthButton         "Mit Apple einloggen"    ← deaktiviert, Platzhalter
+    │   │   │   └── OAuthButton         "Mit Facebook einloggen" ← deaktiviert, Platzhalter
     │   │   └── Links: "Passwort vergessen" / "Registrieren"
     │   │
     │   ├── /signup                     Registrierungs-Seite
@@ -233,11 +227,6 @@ Gespeichert in: **Browser `localStorage`** (Supabase Standard — automatisch, k
 5. Nutzer klickt Link in der Mail → landet auf `/auth/callback`
 6. Callback-Handler: tauscht Token gegen Session → aktualisiert `profiles.status` auf `'active'` → leitet zur Home-Seite weiter
 
-#### OAuth (Google / Apple)
-1. Nutzer klickt OAuth-Button → Supabase leitet zum Provider weiter
-2. Provider leitet zurück zu `/auth/callback`
-3. Callback-Handler: tauscht Code gegen Session → falls neuer Nutzer: legt `profiles`-Eintrag mit `status = 'active'` an → leitet zur Home-Seite weiter
-
 #### Passwort zurücksetzen
 1. Nutzer gibt E-Mail auf `/forgot-password` ein → Supabase sendet Reset-Mail
 2. Nutzer klickt Link → landet auf `/auth/callback?type=recovery`
@@ -283,9 +272,9 @@ src/
 | Entscheidung | Begründung |
 |---|---|
 | `AuthProvider` in `layout.tsx` statt Middleware | Static Export hat keine Server-Middleware; client-seitige Session-Verwaltung ist der einzige Weg |
-| Einheitlicher `/auth/callback`-Handler für alle Flows | Supabase erwartet eine einzige Redirect-URL; alle Token-Typen (OAuth, E-Mail, Reset) werden hier verarbeitet |
+| `/auth/callback` nur für E-Mail-Verify + Passwort-Reset (kein OAuth) | OAuth ist deferred; Handler vereinfacht sich auf zwei Token-Typen: `email` und `recovery` |
 | `profiles.status` per Client-Call setzen (kein DB-Trigger) | Kein Server-Side-Code verfügbar (Static Export); Client ruft `supabase.from('profiles').update()` direkt auf |
-| OAuth-Provider-Setup im Supabase Dashboard (nicht im Code) | Google + Apple OAuth-Credentials gehören nicht ins Repository; kein neues Paket nötig |
+| OAuth-Buttons als deaktivierte Platzhalter (kein Supabase-Setup) | Privattest-Phase erfordert kein OAuth; Provider-Setup erfolgt erst vor App-Store-Release (PROJ-9) |
 | Kein separates `@supabase/auth-helpers-nextjs` | Die Bibliothek setzt SSR voraus; Static Export ist inkompatibel — `@supabase/supabase-js` direkt reicht aus |
 
 ---
@@ -307,11 +296,11 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 
 | Einstellung | Wert |
 |---|---|
-| Email Confirmations | ON |
+| Email Confirmations | ON (Standard) |
 | Site URL | `http://localhost:3000` (lokal) / Production-URL (vor Launch) |
-| Redirect URL Allowlist | `http://localhost:3000/auth/callback`, Production-URL/auth/callback |
-| Google OAuth | Client ID + Client Secret aus Google Cloud Console |
-| Apple OAuth | Services ID, Key ID, Private Key aus Apple Developer Portal |
+| Redirect URL Allowlist | `http://localhost:3000/auth/callback` |
+
+> Google, Apple und Facebook OAuth werden erst konfiguriert, wenn die App veröffentlicht wird.
 
 ## QA Test Results
 _To be added by /qa_
