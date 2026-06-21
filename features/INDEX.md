@@ -13,9 +13,18 @@
 
 ## Features
 
-| ID | Feature | Status | Spec | Created |
-|----|---------|--------|------|---------|
+| ID | Feature | Priority | Dependencies | Status | Spec | Created |
+|----|---------|----------|--------------|--------|------|---------|
+| PROJ-1 | Supabase Infrastructure Setup | P0 | None | Roadmap | — | 2026-06-21 |
+| PROJ-2 | Authentifizierung & User Accounts | P0 | PROJ-1 | Roadmap | — | 2026-06-21 |
+| PROJ-3 | Gruppe & Mitglieder-Management | P0 | PROJ-1, PROJ-2 | Roadmap | — | 2026-06-21 |
+| PROJ-4 | Aktivitäts-Vorschläge & Voting | P0 | PROJ-3 | Roadmap | — | 2026-06-21 |
+| PROJ-5 | Kanban-Board | P0 | PROJ-4 | Roadmap | — | 2026-06-21 |
+| PROJ-6 | Aktivitäts-Detail | P0 | PROJ-5 | Roadmap | — | 2026-06-21 |
+| PROJ-7 | Terminfindung & Kalender-Export | P0 | PROJ-5 | Roadmap | — | 2026-06-21 |
+| PROJ-8 | Nutzerprofil & Archiv | P0 | PROJ-2, PROJ-6 | Roadmap | — | 2026-06-21 |
+| PROJ-9 | Capacitor Native Apps (iOS + Android) | P1 | PROJ-1..PROJ-8 | Roadmap | — | 2026-06-21 |
+| PROJ-10 | Push-Benachrichtigungen (FCM/APNs) | P1 | PROJ-9 | Roadmap | — | 2026-06-21 |
+| PROJ-11 | OTA-Updates via Capgo | P2 | PROJ-9 | Roadmap | — | 2026-06-21 |
 
-<!-- Add features above this line -->
-
-## Next Available ID: PROJ-1
+## Next Available ID: PROJ-12
