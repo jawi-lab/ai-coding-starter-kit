@@ -1,8 +1,8 @@
 # PROJ-2: Authentifizierung & User Accounts
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-06-21
-**Last Updated:** 2026-06-21 (OAuth auf später verschoben — nur E-Mail/Passwort für MVP)
+**Last Updated:** 2026-06-21 — Backend vollständig implementiert; bereit für QA
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — typisierter Supabase-Client, `profiles`-Tabelle mit RLS
@@ -301,6 +301,52 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 | Redirect URL Allowlist | `http://localhost:3000/auth/callback` |
 
 > Google, Apple und Facebook OAuth werden erst konfiguriert, wenn die App veröffentlicht wird.
+
+## Implementation Notes (Frontend)
+
+**Erstellt von /frontend — 2026-06-21**
+
+### Neue Dateien
+- `src/contexts/AuthContext.tsx` — `AuthProvider` + `useAuth` Hook; lauscht auf `onAuthStateChange`, lädt `profiles`-Eintrag nach Login
+- `src/components/auth/AuthLayout.tsx` — geteiltes Layout-Wrapper für alle Auth-Seiten (zentrierte Card, ZUSAMMEN Wordmark)
+- `src/components/auth/AuthGuard.tsx` — schützt `/` und zukünftige Routen; leitet auf `/login` bzw. `/signup/pending` weiter
+- `src/components/auth/OAuthButton.tsx` — deaktivierte Platzhalter-Buttons für Google / Apple / Facebook
+- `src/components/auth/LoginForm.tsx` — E-Mail + Passwort Login; behandelt „Email not confirmed"-Fall mit Resend-Option
+- `src/components/auth/SignupForm.tsx` — Registrierung mit Anzeigename, E-Mail, Passwort, AGB-Checkbox; legt `profiles`-Eintrag an
+- `src/components/auth/EmailPendingScreen.tsx` — Hinweis-Screen nach Signup mit Resend-Button
+- `src/components/auth/ForgotPasswordForm.tsx` — sendet Reset-Link; zeigt Erfolgs-Meldung ohne User-Enumeration
+- `src/components/auth/ResetPasswordForm.tsx` — setzt neues Passwort nach Redirect vom Reset-Link
+- `src/app/login/page.tsx`, `src/app/signup/page.tsx`, `src/app/signup/pending/page.tsx`
+- `src/app/forgot-password/page.tsx`, `src/app/reset-password/page.tsx`, `src/app/auth/callback/page.tsx`
+
+### Geänderte Dateien
+- `src/app/page.tsx` — Home-Seite jetzt mit `AuthGuard` + Begrüßung mit `profile.display_name`
+- `src/app/layout.tsx` — Archivo-Font via `next/font/google`, `AuthProvider` als Wrapper, `lang="de"`
+- `src/app/globals.css` — vollständige ZUSAMMEN Design-Tokens (Terracotta, Navy, Gold, Warm Cream) + shadcn-Mapping
+- `tailwind.config.ts` — ZUSAMMEN Farb-Tokens (`bg-bg`, `text-ink`, `border-line` etc.), Archivo-Font, erweiterte Border-Radius
+
+### Abweichungen vom Spec
+- `profiles.status`-Spalte existiert in der DB noch nicht — `AuthContext.Profile` typisiert `status` als optional; `auth/callback` sendet das Update trotzdem ab (wird wirksam nach der Backend-Migration in PROJ-2)
+- `database.types.ts` enthält `status` noch nicht — TypeScript-Cast in `auth/callback/page.tsx` überbrückt das bis zur Migration
+
+### Nächster Schritt
+`/qa` ausführen, um das Feature gegen die Acceptance Criteria zu testen.
+
+## Implementation Notes (Backend)
+
+**Erstellt von /backend — 2026-06-21**
+
+### Datenbank-Migration
+- Migration `add_profiles_status` auf Supabase angewendet: `profiles.status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active'))`
+- Bestehende RLS-Policies aus PROJ-1 unverändert — alle drei Policies (`profiles_insert_own`, `profiles_select_authenticated`, `profiles_update_own`) funktionieren korrekt für den Auth-Flow
+
+### TypeScript-Updates
+- `src/lib/database.types.ts` — `status: 'pending' | 'active'` in Row / Insert / Update ergänzt (aus `generate_typescript_types` generiert, Typ auf Union-Type narrowed)
+- `src/contexts/AuthContext.tsx` — `status` in lokalem `Profile`-Typ von optional (`status?`) auf required (`status`) geändert; `as Profile | null`-Cast entfernt
+- `src/app/auth/callback/page.tsx` — `as Record<string, unknown>`-Cast bei `.update({ status: 'active' })` entfernt
+
+### Build-Verifikation
+- `npm run build` erfolgreich — keine TypeScript-Fehler, alle 9 Routen statisch generiert
 
 ## QA Test Results
 _To be added by /qa_
