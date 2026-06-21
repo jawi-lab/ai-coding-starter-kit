@@ -120,13 +120,198 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| _To be added by /architecture_ | | |
+| `AuthProvider` in `layout.tsx` statt Middleware | Static Export hat keine Server-Middleware; Supabase-Session-Listener client-seitig ist der einzige kompatible Ansatz | 2026-06-21 |
+| Einheitlicher `/auth/callback` für OAuth + E-Mail-Verify + Password-Reset | Supabase erwartet eine einzige Redirect-URL; alle Token-Typen werden im gleichen Handler unterschieden (URL-Parameter `type`) | 2026-06-21 |
+| `profiles.status` per Client-Call (kein DB-Trigger) | Static Export = kein Server-Side-Code; Client setzt `status = 'active'` direkt nach erfolgreicher Token-Verifikation im `/auth/callback` | 2026-06-21 |
+| Kein `@supabase/auth-helpers-nextjs` / `@supabase/ssr` | Beide Pakete setzen SSR oder Middleware voraus — inkompatibel mit `output: 'export'`; `supabase-js` direkt reicht aus | 2026-06-21 |
+| `@hookform/resolvers` als einzige neue Abhängigkeit | Verbindet Zod-Schemas mit react-hook-form; ohne dieses Paket ist Zod-Validierung in Formularen nicht möglich | 2026-06-21 |
+| OAuth-Provider-Credentials nur im Supabase Dashboard (nicht im Code) | Google + Apple Client Secrets dürfen nie ins Repository; Supabase verwaltet den OAuth-Handshake serverseitig | 2026-06-21 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+> Genehmigt: _ausstehend_
+
+### Überblick
+
+PROJ-2 baut vollständig auf dem Supabase Auth Service auf. Keine eigene Session-Logik, keine Server-Komponenten (Static Export). Alle Seiten sind Client-Components. Eine zentrale `AuthProvider`-Komponente lauscht auf Session-Änderungen und stellt den Auth-State der gesamten App bereit.
+
+---
+
+### Komponenten-Struktur (visueller Baum)
+
+```
+App Layout (src/app/layout.tsx)
+└── AuthProvider                        (React Context — verwaltet Session global)
+    │
+    ├── Öffentliche Routen (kein Guard)
+    │   │
+    │   ├── /login                      Login-Seite
+    │   │   ├── LoginForm
+    │   │   │   ├── EmailInput          (shadcn/ui Input)
+    │   │   │   ├── PasswordInput       (shadcn/ui Input)
+    │   │   │   ├── Fehler-Alert        (shadcn/ui Alert)
+    │   │   │   ├── SubmitButton        (shadcn/ui Button)
+    │   │   │   ├── OAuthButton         "Mit Google einloggen"
+    │   │   │   └── OAuthButton         "Mit Apple einloggen"
+    │   │   └── Links: "Passwort vergessen" / "Registrieren"
+    │   │
+    │   ├── /signup                     Registrierungs-Seite
+    │   │   ├── SignupForm
+    │   │   │   ├── EmailInput
+    │   │   │   ├── PasswordInput       (mit Stärke-Hinweis: min. 8 Zeichen)
+    │   │   │   ├── DisplayNameInput
+    │   │   │   ├── AGBCheckbox         (shadcn/ui Checkbox)
+    │   │   │   ├── Fehler-Alert
+    │   │   │   └── SubmitButton
+    │   │   └── Link: "Bereits registriert? Einloggen"
+    │   │
+    │   ├── /signup/pending             E-Mail-Bestätigungs-Hinweis-Screen
+    │   │   └── EmailPendingScreen
+    │   │       ├── Hinweis-Text        ("Bestätigungs-Mail an [E-Mail] gesendet")
+    │   │       ├── Button              "Mail erneut senden"
+    │   │       └── Link                "Andere E-Mail-Adresse verwenden"
+    │   │
+    │   ├── /forgot-password            Passwort-Reset-Anfrage
+    │   │   └── ForgotPasswordForm
+    │   │       ├── EmailInput
+    │   │       ├── Erfolgs-Meldung     ("Falls diese Adresse registriert ist…")
+    │   │       └── SubmitButton
+    │   │
+    │   ├── /reset-password             Neues Passwort setzen
+    │   │   └── ResetPasswordForm
+    │   │       ├── NewPasswordInput
+    │   │       ├── ConfirmPasswordInput
+    │   │       ├── Fehler-Alert
+    │   │       └── SubmitButton
+    │   │
+    │   └── /auth/callback              OAuth + E-Mail-Verifikation + Passwort-Reset Handler
+    │       └── CallbackHandler         (kein sichtbares UI — nur Spinner)
+    │                                   Liest Token aus URL → tauscht gegen Session →
+    │                                   leitet weiter (Home oder /reset-password)
+    │
+    └── Geschützte Routen (AuthGuard-Layout)
+        └── /                           Home-Seite (Platzhalter für PROJ-3+)
+```
+
+---
+
+### Datenschicht
+
+#### Erweiterung der `profiles`-Tabelle (Migration in PROJ-2)
+
+Die bestehende `profiles`-Tabelle aus PROJ-1 erhält eine neue Spalte:
+
+| Spalte | Typ | Pflicht | Standard | Erlaubte Werte | Beschreibung |
+|--------|-----|---------|----------|----------------|-------------|
+| `status` | Text | Ja | `pending` | `pending`, `active` | E-Mail nicht bestätigt vs. bestätigt |
+
+#### Auth-Zustand (Context)
+
+Der globale Auth-State, der in der gesamten App zur Verfügung steht:
+
+| Feld | Beschreibung |
+|------|-------------|
+| `user` | Supabase User-Objekt oder `null` (nicht eingeloggt) |
+| `session` | Supabase Session (JWT) oder `null` |
+| `profile` | Profil-Eintrag aus der `profiles`-Tabelle oder `null` |
+| `loading` | `true` während die Session beim App-Start geladen wird |
+
+Gespeichert in: **Browser `localStorage`** (Supabase Standard — automatisch, kein eigener Code nötig)
+
+---
+
+### Auth-Flüsse (Schritt für Schritt)
+
+#### E-Mail-Registrierung
+1. Nutzer füllt `/signup`-Formular aus → Client ruft Supabase Auth auf
+2. Supabase legt Auth-User an + sendet Bestätigungs-Mail
+3. App legt sofort einen `profiles`-Eintrag mit `status = 'pending'` an
+4. Nutzer wird zu `/signup/pending` weitergeleitet
+5. Nutzer klickt Link in der Mail → landet auf `/auth/callback`
+6. Callback-Handler: tauscht Token gegen Session → aktualisiert `profiles.status` auf `'active'` → leitet zur Home-Seite weiter
+
+#### OAuth (Google / Apple)
+1. Nutzer klickt OAuth-Button → Supabase leitet zum Provider weiter
+2. Provider leitet zurück zu `/auth/callback`
+3. Callback-Handler: tauscht Code gegen Session → falls neuer Nutzer: legt `profiles`-Eintrag mit `status = 'active'` an → leitet zur Home-Seite weiter
+
+#### Passwort zurücksetzen
+1. Nutzer gibt E-Mail auf `/forgot-password` ein → Supabase sendet Reset-Mail
+2. Nutzer klickt Link → landet auf `/auth/callback?type=recovery`
+3. Callback-Handler erkennt `type=recovery` → tauscht Token → leitet zu `/reset-password` weiter
+4. Nutzer setzt neues Passwort → wird eingeloggt → Home-Seite
+
+#### Auth Guard
+- `AuthGuard`-Layout prüft beim Rendern: `loading` → Lade-Spinner; `user === null` → `/login`; `profile.status === 'pending'` → `/signup/pending`; sonst → Seite anzeigen
+- Eingeloggter Nutzer auf `/login` oder `/signup` → automatisch zur Home-Seite
+
+---
+
+### Neue Dateien (erstellt von /frontend + /backend)
+
+```
+src/
+  app/
+    login/                  page.tsx
+    signup/
+      page.tsx
+      pending/              page.tsx
+    forgot-password/        page.tsx
+    reset-password/         page.tsx
+    auth/
+      callback/             page.tsx
+  components/
+    auth/
+      LoginForm.tsx
+      SignupForm.tsx
+      EmailPendingScreen.tsx
+      ForgotPasswordForm.tsx
+      ResetPasswordForm.tsx
+      OAuthButton.tsx
+      AuthGuard.tsx          (Layout-Wrapper für geschützte Routen)
+  contexts/
+    AuthContext.tsx          (Provider + useAuth Hook)
+```
+
+---
+
+### Technische Entscheidungen
+
+| Entscheidung | Begründung |
+|---|---|
+| `AuthProvider` in `layout.tsx` statt Middleware | Static Export hat keine Server-Middleware; client-seitige Session-Verwaltung ist der einzige Weg |
+| Einheitlicher `/auth/callback`-Handler für alle Flows | Supabase erwartet eine einzige Redirect-URL; alle Token-Typen (OAuth, E-Mail, Reset) werden hier verarbeitet |
+| `profiles.status` per Client-Call setzen (kein DB-Trigger) | Kein Server-Side-Code verfügbar (Static Export); Client ruft `supabase.from('profiles').update()` direkt auf |
+| OAuth-Provider-Setup im Supabase Dashboard (nicht im Code) | Google + Apple OAuth-Credentials gehören nicht ins Repository; kein neues Paket nötig |
+| Kein separates `@supabase/auth-helpers-nextjs` | Die Bibliothek setzt SSR voraus; Static Export ist inkompatibel — `@supabase/supabase-js` direkt reicht aus |
+
+---
+
+### Abhängigkeiten
+
+| Paket | Zweck | Status |
+|-------|-------|--------|
+| `@supabase/supabase-js` | Auth-Calls, Session-Management, Datenbankzugriff | Bereits installiert |
+| `react-hook-form` | Formular-State + Submission-Handling | Bereits installiert |
+| `zod` | Schema-Validierung für Formulare | Bereits installiert |
+| `@hookform/resolvers` | Verbindet Zod-Schemas mit react-hook-form | **Neu — muss installiert werden** |
+
+---
+
+### Supabase-Konfiguration (manuell im Dashboard)
+
+Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig, nicht im Code):
+
+| Einstellung | Wert |
+|---|---|
+| Email Confirmations | ON |
+| Site URL | `http://localhost:3000` (lokal) / Production-URL (vor Launch) |
+| Redirect URL Allowlist | `http://localhost:3000/auth/callback`, Production-URL/auth/callback |
+| Google OAuth | Client ID + Client Secret aus Google Cloud Console |
+| Apple OAuth | Services ID, Key ID, Private Key aus Apple Developer Portal |
 
 ## QA Test Results
 _To be added by /qa_
