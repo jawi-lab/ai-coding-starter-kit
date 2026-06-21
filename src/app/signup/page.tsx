@@ -6,13 +6,12 @@ import { AuthLayout } from '@/components/auth/AuthLayout'
 import { SignupForm } from '@/components/auth/SignupForm'
 
 export default function SignupPage() {
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
 
   useEffect(() => {
-    if (!loading && user) {
-      window.location.href = '/'
-    }
-  }, [user, loading])
+    if (loading || !user) return
+    window.location.href = profile?.status === 'pending' ? '/signup/pending' : '/'
+  }, [user, profile, loading])
 
   if (loading || user) return null
 

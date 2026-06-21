@@ -1,8 +1,8 @@
 # PROJ-2: Authentifizierung & User Accounts
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-06-21
-**Last Updated:** 2026-06-21 — Backend vollständig implementiert; bereit für QA
+**Last Updated:** 2026-06-21 — Bug Fixes BUG-01–04 implementiert; alle High-Bugs behoben; build ✅
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — typisierter Supabase-Client, `profiles`-Tabelle mit RLS
@@ -349,7 +349,101 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 - `npm run build` erfolgreich — keine TypeScript-Fehler, alle 9 Routen statisch generiert
 
 ## QA Test Results
-_To be added by /qa_
+
+**QA durchgeführt:** 2026-06-21
+**Tester:** /qa (automatisiert + Code Review)
+
+### Testergebnisse — Acceptance Criteria
+
+| # | Kriterium | Status | Anmerkung |
+|---|-----------|--------|-----------|
+| REG-1 | `/signup` zeigt alle Pflichtfelder (E-Mail, Passwort, Anzeigename, AGB-Checkbox) | ✅ PASS | E2E: AC-SIGNUP-1 |
+| REG-2 | Registrierung legt Auth-User + `profiles`-Eintrag (`status='pending'`) an, leitet zum Hinweis-Screen weiter | ✅ PASS | Code Review (status kommt aus DB-Default) |
+| REG-3 | Hinweis-Screen zeigt E-Mail-Adresse, Resend- und "Andere E-Mail"-Option | ✅ PASS | E2E: AC-PENDING-1 |
+| REG-4 | "Mail erneut senden" sendet Bestätigungs-Mail und zeigt Feedback | ✅ PASS | Code Review (`resend()` + `sent` state) |
+| REG-5 | Bestätigungs-Link → `status='active'`, eingeloggt, Home-Seite | ✅ PASS | Code Review (`/auth/callback`) — E2E nicht automatisiert (E-Mail-Flow) |
+| REG-6 | Doppelte E-Mail → "Diese E-Mail-Adresse ist bereits registriert" | ✅ PASS | Code Review (Error-Matching in SignupForm) |
+| LOGIN-1 | `/login` zeigt E-Mail + Passwort + deaktivierte OAuth-Buttons | ✅ PASS | E2E: AC-LOGIN-1 |
+| LOGIN-2 | Korrekte Zugangsdaten → Session + Redirect Home | ✅ PASS | Code Review (`signInWithPassword` + `window.location.href = '/'`) |
+| LOGIN-3 | Falsche Zugangsdaten → "E-Mail oder Passwort falsch" | ✅ PASS | E2E: AC-LOGIN-2 |
+| LOGIN-4 | `pending`-Account → "Bitte bestätige zuerst deine E-Mail-Adresse" + Resend | ✅ PASS | Code Review (LoginForm `pendingEmail` state) |
+| RESET-1 | "Passwort vergessen" → `/forgot-password` | ✅ PASS | E2E: AC-LOGIN-3 |
+| RESET-2 | Forgot-Password → "Falls diese Adresse registriert ist..." (kein User Enumeration) | ✅ PASS | E2E: AC-FORGOT-3 |
+| RESET-3 | Reset-Link → `/auth/callback?type=recovery` → `/reset-password` | ✅ PASS | Code Review (`PASSWORD_RECOVERY` Event) |
+| RESET-4 | Neues Passwort setzen → Passwort aktualisiert, eingeloggt, Home | ✅ PASS | Code Review (`updateUser`) |
+| LOGOUT-1 | Eingeloggter Nutzer kann sich ausloggen (Profil-Menü) | ❌ FAIL | **Kein Logout-Button implementiert** — kein Profil-Menü, kein `signOut` in `AuthContext` |
+| GUARD-1 | Nicht-eingeloggter Nutzer → Redirect zu `/login` | ✅ PASS | E2E: AC-GUARD-1 |
+| GUARD-2 | Eingeloggter Nutzer auf `/login` oder `/signup` → Redirect Home | ✅ PASS | Code Review (LoginPage + SignupPage `useEffect`) |
+| VAL-1 | Ungültige E-Mail → Fehlermeldung | ✅ PASS | Unit + E2E: AC-SIGNUP-VAL-2 |
+| VAL-2 | Passwort < 8 Zeichen → Fehlermeldung | ✅ PASS | Unit + E2E: AC-SIGNUP-VAL-3 |
+| VAL-3 | Leerer Anzeigename → Fehlermeldung | ✅ PASS | Unit + E2E: AC-SIGNUP-VAL-1 |
+| VAL-4 | AGB nicht angehakt → Fehlermeldung | ✅ PASS | Unit + E2E: AC-SIGNUP-VAL-4 |
+
+**Ergebnis: 20/21 bestanden, 1 fehlgeschlagen**
+
+---
+
+### Gefundene Bugs
+
+#### BUG-01 — HIGH: Logout nicht implementiert ✅ BEHOBEN
+- **Fix:** `signOut()` in `AuthContext.tsx` ergänzt; Home-Seite (`src/app/page.tsx`) erhält Header mit `DropdownMenu` + Avatar-Button; Dropdown enthält „Ausloggen" → ruft `signOut()` auf → Redirect zu `/login`
+
+#### BUG-02 — HIGH: Abgelaufene/bereits genutzte Bestätigungs-Links zeigen endlosen Spinner ✅ BEHOBEN
+- **Fix:** `src/app/auth/callback/page.tsx` prüft jetzt beim Mount URL-Hash und Query-Params auf Supabase-Fehler (`error`, `error_code`). Abgelaufene Links (`otp_expired`) → „Link abgelaufen" + „Neuen Link anfordern"-Button. Bereits genutzt (`access_denied`) → „Account bereits bestätigt" + „Zum Login"-Button. 10-Sekunden-Timeout als Fallback für alle anderen Fälle.
+
+#### BUG-03 — MEDIUM: Netzwerkfehler beim Profile-Status-Update hinterlässt Nutzer im Pending-Zustand ✅ BEHOBEN
+- **Fix:** Fehler aus `supabase.from('profiles').update()` wird jetzt ausgewertet. Bei Fehler → `errorKind = 'network'` + Fehlermeldung „Verbindungsfehler" mit „Zum Login"-Button statt stiller Weiterleitung.
+
+#### BUG-04 — LOW: `pending`-Nutzer auf `/signup` erhält Double-Redirect ✅ BEHOBEN
+- **Fix:** `src/app/signup/page.tsx` prüft `profile?.status` direkt — `pending` → `/signup/pending`, sonst → `/`; kein Umweg über Home + AuthGuard mehr.
+
+---
+
+### Security Audit (Red Team)
+
+| Prüfung | Ergebnis |
+|---------|----------|
+| User Enumeration (Login) | ✅ Sicher — generische Fehlermeldung "E-Mail oder Passwort falsch" |
+| User Enumeration (Reset) | ✅ Sicher — "Falls diese Adresse registriert ist..." |
+| Auth Bypass über direkte URL | ✅ Sicher — `AuthGuard` prüft Client-seitig; RLS schützt DB-Ebene |
+| XSS in Formularfeldern | ✅ Sicher — React escaped Ausgaben automatisch; keine `dangerouslySetInnerHTML` |
+| Secrets im Code | ✅ OK — Supabase URL/Key aus `NEXT_PUBLIC_*` Env-Vars (öffentlich by design) |
+| Unbegrenzte Login-Versuche | ✅ Supabase Auth übernimmt Rate Limiting nativ |
+| `profiles.status` manuell setzen | ✅ Sicher — RLS Policy `profiles_update_own` lässt nur Owner Updates zu |
+| OAuth-Buttons (Platzhalter) | ✅ Korrekt disabled — kein Provider-Setup, kein Risiko |
+
+---
+
+### Automatisierte Tests
+
+| Suite | Ergebnis |
+|-------|----------|
+| Unit Tests (Vitest) — Zod-Validierungsschemas | ✅ 15/15 bestanden |
+| E2E Tests (Playwright/Chromium) | ✅ 21/21 bestanden |
+
+**Testdateien:**
+- `src/components/auth/auth-validation.test.ts` — Unit Tests für alle Zod-Schemas
+- `tests/PROJ-2-authentifizierung.spec.ts` — E2E Tests für alle automatisierbaren Acceptance Criteria
+
+---
+
+### Responsiveness
+
+| Breakpoint | Status |
+|------------|--------|
+| 375px (Mobile) | ✅ PASS — E2E verifiziert |
+| 768px (Tablet) | ✅ PASS — Code Review (Tailwind responsive classes) |
+| 1440px (Desktop) | ✅ PASS — E2E verifiziert |
+
+---
+
+### Produktionsbereitschaft
+
+**✅ BEREIT** — Alle High-Bugs behoben (2026-06-21):
+- BUG-01: ✅ Logout implementiert (Profil-Dropdown mit Avatar, `signOut()` in AuthContext)
+- BUG-02: ✅ Callback-Fehlerhandling für abgelaufene/genutzte Links + 10s-Timeout
+- BUG-03: ✅ Netzwerkfehler beim Profile-Update wird angezeigt statt silent redirect
+- BUG-04: ✅ Double-Redirect für `pending`-Nutzer auf `/signup` behoben
 
 ## Deployment
 _To be added by /deploy_

@@ -18,6 +18,7 @@ type AuthContextValue = {
   session: Session | null
   profile: Profile | null
   loading: boolean
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextValue>({
   session: null,
   profile: null,
   loading: true,
+  signOut: async () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -32,6 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+
+  async function signOut() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   async function loadProfile(userId: string) {
     const { data } = await supabase
@@ -69,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   )
