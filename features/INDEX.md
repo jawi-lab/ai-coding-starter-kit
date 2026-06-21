@@ -15,7 +15,7 @@
 
 | ID | Feature | Priority | Dependencies | Status | Spec | Created |
 |----|---------|----------|--------------|--------|------|---------|
-| PROJ-1 | Supabase Infrastructure Setup | P0 | None | Roadmap | — | 2026-06-21 |
+| PROJ-1 | Supabase Infrastructure Setup | P0 | None | Architected | [spec](PROJ-1-supabase-infrastructure-setup.md) | 2026-06-21 |
 | PROJ-2 | Authentifizierung & User Accounts | P0 | PROJ-1 | Roadmap | — | 2026-06-21 |
 | PROJ-3 | Gruppe & Mitglieder-Management | P0 | PROJ-1, PROJ-2 | Roadmap | — | 2026-06-21 |
 | PROJ-4 | Aktivitäts-Vorschläge & Voting | P0 | PROJ-3 | Roadmap | — | 2026-06-21 |
