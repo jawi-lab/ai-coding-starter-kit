@@ -1,6 +1,6 @@
 # PROJ-1: Supabase Infrastructure Setup
 
-## Status: Architected
+## Status: In Review
 **Created:** 2026-06-21
 **Last Updated:** 2026-06-21
 
@@ -148,8 +148,128 @@ Infrastruktur-Schicht
 4. `avatars`-Bucket + Storage Policies anlegen
 5. TypeScript-Typen generieren → `database.types.ts`
 
+## Implementation Notes (2026-06-21)
+
+**What was built:**
+- `src/lib/supabase.ts` — activated with hard-fail env-var validation + `createClient<Database>()` typed client
+- `src/lib/database.types.ts` — auto-generated via Supabase MCP (`generate_typescript_types`)
+- `.env.local.example` — **must be created manually** (blocked by `.env*` deny pattern in `.claude/settings.json`); content: two lines, `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` pointing to Supabase project Settings → API
+- Migration `create_profiles_table` applied to project `fogldssdmqgeffpuhvxd` (eu-central-1)
+- `avatars` storage bucket created (public, 5 MB limit, image MIME types only) with four Storage RLS policies (public read, own-folder upload/update/delete)
+
+**Deviations from spec:**
+- None
+
+**TypeScript compilation:** Clean (`tsc --noEmit` passes with zero errors)
+
 ## QA Test Results
-_To be added by /qa_
+
+**QA Date:** 2026-06-21
+**QA Engineer:** /qa skill
+**Status:** In Review — NOT READY (2 High bugs must be fixed)
+
+### Acceptance Criteria Results
+
+| # | Criterion | Result | Notes |
+|---|-----------|--------|-------|
+| 1 | Typed `SupabaseClient<Database>` available when env vars set | ✅ PASS | `createClient<Database>()` confirmed in source |
+| 2 | Throws `Missing env var: NEXT_PUBLIC_SUPABASE_URL` when URL missing | ✅ PASS | Verified by unit test + source review |
+| 3 | Throws `Missing env var: NEXT_PUBLIC_SUPABASE_ANON_KEY` when key missing | ✅ PASS | Verified by unit test + source review |
+| 4 | `.env.local.example` present with all variables + hint where to find values | ⚠️ PARTIAL | File exists in HEAD but (a) deleted from working tree, (b) generic content — says "Optional", no Supabase Settings link |
+| 5 | `supabase gen types typescript` generates valid `database.types.ts` | ✅ PASS | File generated via Supabase MCP; correct TypeScript |
+| 6 | TypeScript autocomplete on `supabase.from('profiles').select()` | ✅ PASS | `tsc --noEmit` passes with zero errors |
+| 7 | `profiles` table columns: id, display_name, avatar_url, created_at, updated_at | ✅ PASS | Verified via Supabase MCP `list_tables` — all columns + types correct |
+| 8 | Unauthenticated users get no data from `profiles` | ✅ PASS | SELECT policy: `(auth.uid() IS NOT NULL)` confirmed |
+| 9 | Authenticated users can read their own + other profiles | ✅ PASS | SELECT policy applies to all `auth.uid() IS NOT NULL` |
+| 10 | UPDATE on another user's profile is rejected by RLS | ✅ PASS | UPDATE policy: `qual=(auth.uid()=id)` + `with_check=(auth.uid()=id)` |
+| 11 | Unauthenticated users can read avatars (public bucket) | ✅ PASS | Bucket `public: true`; `avatars_public_read` SELECT policy |
+| 12 | Authenticated user can upload only to `{user_id}/` path | ✅ PASS | `avatars_user_upload` enforces `(storage.foldername(name))[1] = (auth.uid())::text` |
+| 13 | Upload to another user's path is rejected | ✅ PASS | Same policy, own-folder check rejects cross-user writes |
+
+**Result: 12/13 PASS, 1 PARTIAL**
+
+### Bugs Found
+
+#### BUG-1 — HIGH: `src/lib/supabase.ts` implementation not committed to git
+
+**Description:** The working-tree version of `supabase.ts` (hard-fail validation + typed client) differs from HEAD. HEAD still contains the old template with a commented-out client and `export const supabase = null`.
+
+**Steps to reproduce:**
+1. Clone the repo fresh
+2. Open `src/lib/supabase.ts`
+3. Observe: file still has `null` export with commented-out code — no hard-fail validation
+
+**Impact:** A fresh clone of the project gets a broken `supabase.ts` that exports `null` instead of a typed client.
+
+**Fix:** `git add src/lib/supabase.ts && git commit`
+
+---
+
+#### BUG-2 — HIGH: `src/lib/database.types.ts` not tracked in git
+
+**Description:** `database.types.ts` is an untracked file (`??` in git status). It exists locally but is absent from HEAD. `supabase.ts` imports from `./database.types` — a fresh clone fails TypeScript compilation with a module-not-found error.
+
+**Steps to reproduce:**
+1. Clone the repo fresh
+2. Run `npm run build` or `npx tsc --noEmit`
+3. Observe: `Cannot find module './database.types'` error
+
+**Fix:** `git add src/lib/database.types.ts && git commit`
+
+---
+
+#### BUG-3 — LOW: `.env.local.example` content is generic template
+
+**Description:** The file in HEAD still has the starter-kit placeholder content: comments say "Optional — remove if not using backend", and values say `your_supabase_url_here` with no pointer to the Supabase dashboard. Includes unrelated commented vars (STRIPE, SMTP).
+
+**Expected content per spec:** Two variables with a note pointing to "Supabase project Settings → API".
+
+**Fix:** Update `.env.local.example` with ZUSAMMEN-specific content (must be done manually due to `.env*` permission restriction in `.claude/settings.json`):
+```
+# ZUSAMMEN — Environment Variables
+# Get values from: Supabase Dashboard → Project Settings → API
+
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-public-key>
+```
+
+**Note:** File is also deleted from the current working tree (` D` git status) — needs to be both restored/updated AND committed.
+
+---
+
+### Security Audit
+
+**Verdict: CLEAN — no security issues found**
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| RLS enabled on `profiles` | ✅ | `rowsecurity: true` confirmed via pg_tables |
+| Unauthenticated SELECT blocked | ✅ | `(auth.uid() IS NOT NULL)` policy |
+| INSERT restricted to own row | ✅ | `with_check: (auth.uid() = id)` |
+| UPDATE restricted to own row (both qual + with_check) | ✅ | Prevents privilege escalation via id change |
+| No secrets hardcoded in source | ✅ | Only `process.env.*` references |
+| `NEXT_PUBLIC_` prefix correct | ✅ | Anon key is safe to expose client-side |
+| Storage upload restricted to own folder | ✅ | `(storage.foldername(name))[1] = (auth.uid())::text` |
+| Cross-user storage writes blocked | ✅ | Own-folder policy enforced on INSERT + UPDATE + DELETE |
+| Avatar bucket intentionally public | ✅ | Documented decision; avatars are used in `<img>` tags |
+| FK to `auth.users.id` prevents orphan profiles | ✅ | `profiles_id_fkey` constraint confirmed |
+
+### Automated Tests
+
+**Unit Tests (Vitest):** `src/lib/supabase.test.ts` — 3/3 PASS
+- `throws with correct message when NEXT_PUBLIC_SUPABASE_URL is missing` ✅
+- `throws with correct message when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing` ✅
+- `exports a typed supabase client when both env vars are set` ✅
+
+**E2E Tests (Playwright):** N/A — PROJ-1 is pure infrastructure with no UI. No browser flows to test.
+
+### Production-Ready Decision
+
+**NOT READY** — 2 High bugs (BUG-1, BUG-2) must be fixed before deployment:
+- Uncommitted `supabase.ts` means a fresh clone/deploy gets a broken null-export client
+- Untracked `database.types.ts` means TypeScript build fails on a fresh clone
+
+Fix: commit both files (`src/lib/supabase.ts` + `src/lib/database.types.ts`), then update `.env.local.example` content (BUG-3, Low). Re-run `/qa` after fixes.
 
 ## Deployment
 _To be added by /deploy_
