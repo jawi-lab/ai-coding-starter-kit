@@ -1,8 +1,9 @@
 # PROJ-4: Aktivitäts-Vorschläge & Voting
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
+**Deployed:** 2026-06-22
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, RLS, Storage
@@ -441,4 +442,8 @@ Each `ProposalCard` manages `displayVoted`/`displayVotes` local state. On vote c
 No Critical or High bugs. All 25 acceptance criteria pass. Security audit clean. Both Low bugs are safe in production and can be addressed in a future maintenance pass.
 
 ## Deployment
-_To be added by /deploy_
+
+- **Deployed:** 2026-06-22
+- **Production URL:** https://ai-coding-starter-kit.vercel.app
+- **Platform:** Vercel (auto-deploy via GitHub push to main)
+- **Commits deployed:** c8a8b72 → f6a2b5b (docs, backend, QA, status update)
