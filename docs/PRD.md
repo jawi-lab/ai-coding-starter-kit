@@ -19,13 +19,14 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | P0 | Supabase Infrastructure Setup | Approved |
 | P0 | Authentifizierung & User Accounts | Planned |
 | P0 | Gruppe & Mitglieder-Management | Planned |
-| P0 | Aktivitäts-Vorschläge & Voting | Roadmap |
+| P0 | Aktivitäts-Vorschläge & Voting | Planned |
 | P0 | Kanban-Board | Roadmap |
 | P0 | Aktivitäts-Detail | Roadmap |
 | P0 | Terminfindung & Kalender-Export | Roadmap |
 | P0 | Nutzerprofil & Archiv | Roadmap |
 | P1 | Capacitor Native Apps (iOS + Android) | Roadmap |
 | P1 | Push-Benachrichtigungen | Roadmap |
+| P1 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | Roadmap |
 | P2 | OTA-Updates (Capgo) | Roadmap |
 
 ## Success Metrics
