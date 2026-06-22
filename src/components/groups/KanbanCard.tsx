@@ -17,6 +17,7 @@ interface KanbanCardProps {
   onMoveToPlanning: (activity: ActivityWithInitiator) => void
   onConfirmFinishPlanning: (activity: ActivityWithInitiator) => void
   onConfirmComplete: (activity: ActivityWithInitiator) => void
+  onOpenDetail?: (activity: ActivityWithInitiator) => void
 }
 
 function formatDateRange(start: string | null, end: string | null): string | null {
@@ -35,13 +36,17 @@ export function KanbanCard({
   onMoveToPlanning,
   onConfirmFinishPlanning,
   onConfirmComplete,
+  onOpenDetail,
 }: KanbanCardProps) {
   const canManage = activity.status !== 'abgeschlossen' && (isAdmin || activity.initiator_id === currentUserId)
   const coverSrc = activity.og_image_url || PLACEHOLDER_IMAGE
   const dateRange = formatDateRange(activity.start_date, activity.end_date)
 
   return (
-    <div className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm">
+    <div
+      className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform"
+      onClick={() => onOpenDetail?.(activity)}
+    >
       {/* Cover image */}
       <div className="relative w-full h-[100px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,7 +60,7 @@ export function KanbanCard({
 
         {/* Action menu — top right corner over image */}
         {canManage && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2" onClick={e => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button

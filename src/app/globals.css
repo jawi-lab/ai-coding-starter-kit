@@ -120,3 +120,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Tiptap editor styles ── */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 24px;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--ink-3);
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-editor .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-editor .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-editor .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+.tiptap-mention {
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

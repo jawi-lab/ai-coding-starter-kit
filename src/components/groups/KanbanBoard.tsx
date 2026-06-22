@@ -16,6 +16,7 @@ interface KanbanBoardProps {
   groupId: string
   currentUserId: string
   isAdmin: boolean
+  onOpenDetail?: (activity: ActivityWithInitiator) => void
 }
 
 type DialogState =
@@ -24,7 +25,7 @@ type DialogState =
   | { type: 'complete'; activity: ActivityWithInitiator }
   | null
 
-export function KanbanBoard({ groupId, currentUserId, isAdmin }: KanbanBoardProps) {
+export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: KanbanBoardProps) {
   const { activities, loading, error } = useKanbanActivities(groupId)
   const { updateStatus, loading: updating } = useUpdateActivityStatus()
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -90,6 +91,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin }: KanbanBoardProp
       setDialog({ type: 'finish-planning', activity: a }),
     onConfirmComplete: (a: ActivityWithInitiator) =>
       setDialog({ type: 'complete', activity: a }),
+    onOpenDetail,
   }
 
   if (error) {

@@ -12,6 +12,7 @@ import { ProposalFormSheet } from './ProposalFormSheet'
 import { DeleteProposalDialog } from './DeleteProposalDialog'
 import { ResetVotesDialog } from './ResetVotesDialog'
 import { KanbanBoard } from './KanbanBoard'
+import { ActivityDetailSheet } from './ActivityDetailSheet'
 import { useActivityProposals } from '@/hooks/useActivityProposals'
 import { useVote } from '@/hooks/useVote'
 import { useDeleteProposal } from '@/hooks/useDeleteProposal'
@@ -53,6 +54,9 @@ export function GroupMainSheet({
   const [editProposal, setEditProposal] = useState<ActivityWithInitiator | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ActivityWithInitiator | null>(null)
   const [resetTarget, setResetTarget] = useState<ActivityWithInitiator | null>(null)
+
+  // Activity detail
+  const [detailActivityId, setDetailActivityId] = useState<string | null>(null)
 
   const groupId = group?.id ?? ''
   const { proposals, myVotedIds, loading, error, filterByCategory, refetch } =
@@ -221,6 +225,7 @@ export function GroupMainSheet({
                         onEdit={setEditProposal}
                         onDelete={setDeleteTarget}
                         onReset={setResetTarget}
+                        onOpenDetail={(p) => setDetailActivityId(p.id)}
                       />
                     ))}
                   </div>
@@ -250,6 +255,7 @@ export function GroupMainSheet({
                 groupId={groupId}
                 currentUserId={user?.id ?? ''}
                 isAdmin={isAdmin}
+                onOpenDetail={(a) => setDetailActivityId(a.id)}
               />
             </div>
           )}
@@ -306,6 +312,16 @@ export function GroupMainSheet({
         proposalName={resetTarget?.name ?? ''}
         onCancel={() => setResetTarget(null)}
         onConfirm={handleReset}
+      />
+
+      {/* Activity Detail Sheet */}
+      <ActivityDetailSheet
+        activityId={detailActivityId}
+        groupId={groupId}
+        currentUserId={user?.id ?? ''}
+        isAdmin={isAdmin}
+        onClose={() => setDetailActivityId(null)}
+        onActivityUpdated={() => refetch()}
       />
     </>
   )

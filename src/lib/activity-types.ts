@@ -1,3 +1,5 @@
+import type { Json } from './database.types'
+
 export type DurationCategory = 'spontan' | 'wochenende' | 'laengerer_zeitraum'
 export type ActivityStatus =
   | 'vorschlag'
@@ -34,6 +36,7 @@ export interface Activity {
   url: string | null
   description: string | null
   og_image_url: string | null
+  location: string | null
   status: ActivityStatus
   start_date: string | null
   end_date: string | null
@@ -64,6 +67,64 @@ export interface UpdateActivityInput {
   url?: string | null
   description?: string | null
   og_image_url?: string | null
+  location?: string | null
+}
+
+// PROJ-6: Activity Detail types
+
+export interface ActivityComment {
+  id: string
+  activity_id: string
+  user_id: string
+  content: Json // Tiptap JSON
+  mentioned_user_ids: string[]
+  created_at: string
+  author: {
+    id: string
+    display_name: string
+    avatar_url: string | null
+  }
+}
+
+export interface ActivityResponsibility {
+  id: string
+  activity_id: string
+  label: string
+  assigned_user_id: string
+  created_by: string
+  created_at: string
+  assigned_user: {
+    id: string
+    display_name: string
+    avatar_url: string | null
+  }
+}
+
+export interface ActivityPhoto {
+  id: string
+  activity_id: string
+  user_id: string
+  storage_path: string
+  created_at: string
+}
+
+export interface CreateCommentInput {
+  activity_id: string
+  content: Json
+  mentioned_user_ids: string[]
+}
+
+export interface CreateResponsibilityInput {
+  activity_id: string
+  label: string
+  assigned_user_id: string
+}
+
+export interface UpdateActivityDetailInput {
+  name: string
+  description?: string | null
+  location?: string | null
+  url?: string | null
 }
 
 export const DURATION_CATEGORY_LABELS: Record<DurationCategory, string> = {

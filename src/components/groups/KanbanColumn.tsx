@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   onMoveToPlanning: (activity: ActivityWithInitiator) => void
   onConfirmFinishPlanning: (activity: ActivityWithInitiator) => void
   onConfirmComplete: (activity: ActivityWithInitiator) => void
+  onOpenDetail?: (activity: ActivityWithInitiator) => void
 }
 
 export function KanbanColumn({
@@ -23,6 +24,7 @@ export function KanbanColumn({
   onMoveToPlanning,
   onConfirmFinishPlanning,
   onConfirmComplete,
+  onOpenDetail,
 }: KanbanColumnProps) {
   return (
     <div className="flex flex-col min-h-0">
@@ -54,6 +56,7 @@ export function KanbanColumn({
               onMoveToPlanning={onMoveToPlanning}
               onConfirmFinishPlanning={onConfirmFinishPlanning}
               onConfirmComplete={onConfirmComplete}
+              onOpenDetail={onOpenDetail}
             />
           ))}
         </div>

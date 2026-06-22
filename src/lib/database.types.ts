@@ -23,6 +23,7 @@ export type Database = {
           group_id: string
           id: string
           initiator_id: string
+          location: string | null
           name: string
           og_image_url: string | null
           required_votes: number
@@ -37,6 +38,7 @@ export type Database = {
           group_id: string
           id?: string
           initiator_id: string
+          location?: string | null
           name: string
           og_image_url?: string | null
           required_votes: number
@@ -51,6 +53,7 @@ export type Database = {
           group_id?: string
           id?: string
           initiator_id?: string
+          location?: string | null
           name?: string
           og_image_url?: string | null
           required_votes?: number
@@ -103,6 +106,136 @@ export type Database = {
           },
           {
             foreignKeyName: "activity_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_comments: {
+        Row: {
+          id: string
+          activity_id: string
+          user_id: string
+          content: Json
+          mentioned_user_ids: string[]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: string
+          user_id: string
+          content: Json
+          mentioned_user_ids?: string[]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: string
+          user_id?: string
+          content?: Json
+          mentioned_user_ids?: string[]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_comments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_responsibilities: {
+        Row: {
+          id: string
+          activity_id: string
+          label: string
+          assigned_user_id: string
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: string
+          label: string
+          assigned_user_id: string
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: string
+          label?: string
+          assigned_user_id?: string
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_responsibilities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_responsibilities_assigned_user_id_fkey"
+            columns: ["assigned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_responsibilities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_photos: {
+        Row: {
+          id: string
+          activity_id: string
+          user_id: string
+          storage_path: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: string
+          user_id: string
+          storage_path: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: string
+          user_id?: string
+          storage_path?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_photos_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_photos_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

@@ -26,6 +26,7 @@ interface ProposalCardProps {
   onEdit: (proposal: ActivityWithInitiator) => void
   onDelete: (proposal: ActivityWithInitiator) => void
   onReset: (proposal: ActivityWithInitiator) => void
+  onOpenDetail?: (proposal: ActivityWithInitiator) => void
 }
 
 export function ProposalCard({
@@ -38,6 +39,7 @@ export function ProposalCard({
   onEdit,
   onDelete,
   onReset,
+  onOpenDetail,
 }: ProposalCardProps) {
   const [displayVoted, setDisplayVoted] = useState(hasVoted)
   const [displayVotes, setDisplayVotes] = useState(proposal.current_votes)
@@ -67,7 +69,10 @@ export function ProposalCard({
   }
 
   return (
-    <div className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm flex items-stretch gap-0">
+    <div
+      className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm flex items-stretch gap-0 cursor-pointer active:scale-[0.99] transition-transform"
+      onClick={() => onOpenDetail?.(proposal)}
+    >
       {/* Cover image */}
       <div className="w-[72px] flex-shrink-0 relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,6 +98,7 @@ export function ProposalCard({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
+                  onClick={e => e.stopPropagation()}
                   className="flex-shrink-0 h-7 w-7 rounded-[8px] flex items-center justify-center
                              text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
                   aria-label="Aktionen"
@@ -159,7 +165,7 @@ export function ProposalCard({
 
           {/* Vote button */}
           <button
-            onClick={handleVote}
+            onClick={e => { e.stopPropagation(); handleVote() }}
             disabled={isPending}
             aria-label={displayVoted ? 'Vote entfernen' : 'Upvoten'}
             className={`flex-shrink-0 h-8 w-8 rounded-[10px] flex items-center justify-center transition-all
