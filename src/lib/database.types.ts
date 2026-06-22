@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          current_votes: number
+          description: string | null
+          duration_category: string
+          group_id: string
+          id: string
+          initiator_id: string
+          name: string
+          og_image_url: string | null
+          required_votes: number
+          status: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_votes?: number
+          description?: string | null
+          duration_category: string
+          group_id: string
+          id?: string
+          initiator_id: string
+          name: string
+          og_image_url?: string | null
+          required_votes: number
+          status?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_votes?: number
+          description?: string | null
+          duration_category?: string
+          group_id?: string
+          id?: string
+          initiator_id?: string
+          name?: string
+          og_image_url?: string | null
+          required_votes?: number
+          status?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_initiator_id_fkey"
+            columns: ["initiator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_votes: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_votes_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           id: string
@@ -102,6 +198,10 @@ export type Database = {
       is_group_admin: {
         Args: { gid: string }
         Returns: boolean
+      }
+      reset_activity_votes: {
+        Args: { p_activity_id: string }
+        Returns: undefined
       }
     }
     Enums: {

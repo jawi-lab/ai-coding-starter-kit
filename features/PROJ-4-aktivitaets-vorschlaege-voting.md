@@ -1,6 +1,6 @@
 # PROJ-4: Aktivitäts-Vorschläge & Voting
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
 
@@ -278,6 +278,35 @@ Keine neuen Pakete erforderlich:
 - Supabase Realtime ist in `@supabase/supabase-js` bereits enthalten
 - Formularvalidierung via `react-hook-form` + `zod` bereits installiert
 - og:image-Parsing in der Edge Function via native Deno-APIs (kein externes Paket nötig)
+
+## Implementation Notes (Backend)
+
+### DB Migration: `create_activities_and_voting`
+- Tables `activities` and `activity_votes` created with CHECK constraints (no enums, consistent with PROJ-3 pattern)
+- `REPLICA IDENTITY FULL` + `supabase_realtime` publication added for Realtime support
+- Trigger `trg_activity_votes_count` (SECURITY DEFINER): updates `current_votes` and auto-promotes `vorschlag` → `zu_planen` atomically
+- RPC `reset_activity_votes` (SECURITY DEFINER): transactional reset with inline permission check (initiator or admin)
+- RLS covers all 4 operations on both tables; observers can vote but cannot create
+
+### Edge Function: `fetch-og-image` (v1, ACTIVE)
+- 6-second timeout, CORS headers, falls back to public-domain Unsplash placeholder
+- Regex handles both meta-tag attribute orderings
+- `verify_jwt: true` — only authenticated users can call it
+
+### TypeScript
+- `database.types.ts` regenerated with `activities`, `activity_votes`, `reset_activity_votes` RPC
+- `src/lib/activity-types.ts` — domain types, `DurationCategory`, `ActivityStatus`, `CreateActivityInput`, `UpdateActivityInput`, label maps
+
+### Hooks (`src/hooks/`)
+| File | Purpose |
+|------|---------|
+| `useActivityProposals.ts` | Fetch proposals + Realtime subscription + client-side filter |
+| `useVote.ts` | Toggle vote with optimistic update + rollback |
+| `useCreateProposal.ts` | Insert new activity |
+| `useEditProposal.ts` | Patch existing proposal (status=vorschlag guard) |
+| `useDeleteProposal.ts` | Delete proposal (cascades votes via FK) |
+| `useResetVotes.ts` | Calls `reset_activity_votes` RPC |
+| `useOgImage.ts` | Debounced (600 ms) Edge Function call for og:image |
 
 ## QA Test Results
 _To be added by /qa_
