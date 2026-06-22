@@ -1,6 +1,6 @@
 # PROJ-5: Kanban-Board
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
 
@@ -266,7 +266,7 @@ Initiator / Admin → ⋯ → "Planung abschließen" / "Als abgeschlossen markie
 ## QA Test Results
 
 **QA Date:** 2026-06-22
-**Status:** In Review — 2 Medium bugs found, no Critical/High
+**Status:** Approved — alle 4 Bugs gefixt, kein Critical/High offen
 
 ### Automated Tests
 
