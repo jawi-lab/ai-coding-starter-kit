@@ -2,7 +2,7 @@
 
 ## Status: Approved
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22 (QA by /qa — Approved, no Critical/High bugs)
+**Last Updated:** 2026-06-22 (QA bugs fixed — all 4 bugs resolved)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS
@@ -359,38 +359,27 @@ activities (ergänzt):
 | XSS: TiptapRenderer uses React DOM (auto-escaping, no dangerouslySetInnerHTML) | ✅ |
 | Image URLs in comments are Supabase Storage public URLs only (verified by prefix check) | ✅ |
 
-### Bugs Found
+### Bugs Found & Fixed
 
 #### Medium
 
-**BUG-6-M1: Comment delete button invisible on touch devices**
-- **Severity:** Medium
-- **Steps:** Open detail sheet on a mobile device or touch screen. Scroll to a comment you authored.
-- **Expected:** Delete icon is visible (or accessible via long-press / swipe)
-- **Actual:** The Trash icon has `opacity-0 group-hover:opacity-100` — hover does not fire on touch, so the button is never visible on mobile
-- **File:** [ActivityDetailSheet.tsx:883](src/components/groups/ActivityDetailSheet.tsx#L883)
-- **Fix:** Make the delete icon always visible on mobile (e.g. `opacity-0 group-hover:opacity-100 md:opacity-0 sm:opacity-100`)
+**BUG-6-M1: Comment delete button invisible on touch devices** ✅ FIXED
+- **Fix:** `opacity-0 group-hover:opacity-100` → `opacity-100 md:opacity-0 md:group-hover:opacity-100` — always visible on mobile, hover-reveal on desktop
+- **File:** [ActivityDetailSheet.tsx](src/components/groups/ActivityDetailSheet.tsx)
 
 #### Low
 
-**BUG-6-L1: Edit button hidden for abgeschlossen activities (spec deviation)**
-- **Severity:** Low
-- **Steps:** Open a completed (abgeschlossen) activity as admin.
-- **Expected (per spec):** Admin/initiator sees edit icon regardless of status
-- **Actual:** `canEdit` guard includes `status !== 'abgeschlossen'`; edit icon is hidden
-- **Note:** May be intentional per Decision Log ("nach Abschluss soll der Zustand unveränderlich sein")
-- **File:** [ActivityDetailSheet.tsx:349](src/components/groups/ActivityDetailSheet.tsx#L349)
+**BUG-6-L1: Edit button hidden for abgeschlossen activities** ✅ FIXED
+- **Fix:** Removed `status !== 'abgeschlossen'` guard from `canEdit` — admin/initiator can now edit activity details at any status
+- **File:** [ActivityDetailSheet.tsx](src/components/groups/ActivityDetailSheet.tsx)
 
-**BUG-6-L2: deletePhoto deletes from Storage before DB (consistency risk)**
-- **Severity:** Low
-- **Description:** Storage file is removed first; if the subsequent DB deletion fails, the DB record persists pointing to a non-existent file, resulting in a broken image in the UI.
-- **File:** [useActivityPhotos.ts:88-104](src/hooks/useActivityPhotos.ts#L88)
-- **Fix:** Delete the DB record first, then remove from Storage
+**BUG-6-L2: deletePhoto deleted Storage before DB** ✅ FIXED
+- **Fix:** Swapped order — DB record deleted first, then Storage cleanup; orphaned storage files are safer than broken DB references
+- **File:** [useActivityPhotos.ts](src/hooks/useActivityPhotos.ts)
 
-**BUG-6-L3: No loading skeleton for Responsibilities and Photos sections**
-- **Severity:** Low
-- **Description:** Comments section has a skeleton loader; Responsibilities and Photos sections appear abruptly without a loading state during initial fetch
-- **Files:** [ActivityDetailSheet.tsx](src/components/groups/ActivityDetailSheet.tsx), [useActivityResponsibilities.ts](src/hooks/useActivityResponsibilities.ts), [useActivityPhotos.ts](src/hooks/useActivityPhotos.ts)
+**BUG-6-L3: No loading skeletons for Responsibilities and Photos** ✅ FIXED
+- **Fix:** Destructured `loading` from both hooks; added 2-item skeleton list for Verantwortlichkeiten and 3-tile skeleton grid for Erinnerungsfotos
+- **File:** [ActivityDetailSheet.tsx](src/components/groups/ActivityDetailSheet.tsx)
 
 ### Pre-existing Regressions (not caused by PROJ-6)
 
@@ -400,7 +389,7 @@ activities (ergänzt):
 
 **READY FOR DEPLOYMENT** ✅
 
-No Critical or High bugs. All 35 acceptance criteria pass. 3 low-severity bugs and 1 medium-severity bug (mobile UX) documented above — recommend fixing BUG-6-M1 before or shortly after deploy.
+All 4 QA bugs fixed. No open bugs remain.
 
 ## Deployment
 _To be added by /deploy_
