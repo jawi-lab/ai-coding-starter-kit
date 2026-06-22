@@ -1,8 +1,53 @@
 # PROJ-3: Gruppe & Mitglieder-Management
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
+
+## Implementation Notes (Backend)
+Datenbankschema, RLS-Policies, RPC-Funktion und Edge Function vollständig deployed.
+
+**Datenbank-Migration** (`create_groups_and_members`):
+- `groups` Tabelle mit RLS (SELECT/INSERT/UPDATE/DELETE policies)
+- `group_members` Tabelle mit RLS (SELECT/INSERT/UPDATE/DELETE policies)
+- Indexes auf `invite_code`, `user_id`, `group_id`, `(group_id, role)`
+- Helper-Funktionen: `is_group_member(uuid)`, `is_group_admin(uuid)`
+- RPC `join_group_by_invite_code(p_invite_code text)` — SECURITY DEFINER, damit nicht-Mitglieder Gruppen per Code finden können, ohne alle Gruppen sehen zu dürfen
+
+**Edge Function** `generate-invite-code` deployed (v1, JWT required)
+
+**Frontend-Änderungen:**
+- `src/hooks/useGroups.ts` — `joinGroup` nutzt jetzt `supabase.rpc('join_group_by_invite_code')` statt direkter Tabellen-Abfrage (nötig wegen RLS: Nicht-Mitglieder dürfen `groups` nicht per SELECT lesen)
+- `src/lib/database.types.ts` — Typen für `join_group_by_invite_code`, `is_group_member`, `is_group_admin` ergänzt
+
+**Technische Entscheidung:** `joinGroup` über RPC statt direkter Client-Queries, da RLS auf `groups` (SELECT only for members) verhindert, dass Nicht-Mitglieder Gruppen per Einladungs-Code finden.
+
+## Implementation Notes (Frontend)
+Frontend UI vollständig implementiert. Alle Komponenten und Seiten sind erstellt.
+
+**Neue Dateien:**
+- `src/lib/group-types.ts` — Typ-Definitionen (Group, GroupMember, GroupWithMeta, GroupRole)
+- `src/hooks/useGroups.ts` — Gruppen-Liste, createGroup, joinGroup
+- `src/hooks/useGroupDetail.ts` — Gruppendetails + Realtime-Subscription + alle Admin-Operationen
+- `src/components/groups/CreateGroupForm.tsx` — Gruppe erstellen (inline Validierung)
+- `src/components/groups/JoinGroupForm.tsx` — Gruppe beitreten per Code
+- `src/components/groups/OnboardingScreen.tsx` — Onboarding-Screen (erstellen / beitreten)
+- `src/components/groups/GroupCard.tsx` — Gruppen-Karte in der Übersicht
+- `src/components/groups/InviteCodeCard.tsx` — Code-Anzeige, Copy, Neu generieren
+- `src/components/groups/MemberRow.tsx` — Mitglieder-Zeile mit Admin-Dropdown
+- `src/components/groups/MemberList.tsx` — Mitgliederliste sortiert nach Rolle
+- `src/components/groups/LeaveGroupDialog.tsx` — Verlassen (einfach / Admin-Transfer)
+- `src/components/groups/DeleteGroupDialog.tsx` — Gruppe löschen (mit Bestätigung)
+- `src/components/groups/GroupDetailSheet.tsx` — Sheet mit allen Gruppendetails
+- `src/app/onboarding/page.tsx` — Onboarding-Seite
+- `src/app/groups/page.tsx` — Gruppen-Übersicht + Detail-Sheet + Gruppe-hinzufügen-Sheet
+- `supabase/functions/generate-invite-code/index.ts` — Edge Function für Code-Generierung
+- `supabase/functions/_shared/cors.ts` — CORS-Header für Edge Functions
+
+**Geänderte Dateien:**
+- `src/app/page.tsx` — Root-Redirect: groups vorhanden → /groups, sonst → /onboarding
+- `src/lib/database.types.ts` — Typen für groups und group_members ergänzt
+- `tsconfig.json` — supabase/ aus TypeScript-Compilation ausgeschlossen
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, RLS, Storage

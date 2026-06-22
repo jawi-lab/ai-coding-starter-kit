@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      groups: {
+        Row: {
+          id: string
+          name: string
+          invite_code: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          invite_code?: string | null
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          invite_code?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          user_id: string
+          role: 'admin' | 'editor' | 'observer'
+          joined_at: string
+        }
+        Insert: {
+          group_id: string
+          user_id: string
+          role?: 'admin' | 'editor' | 'observer'
+          joined_at?: string
+        }
+        Update: {
+          group_id?: string
+          user_id?: string
+          role?: 'admin' | 'editor' | 'observer'
+          joined_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,7 +91,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      join_group_by_invite_code: {
+        Args: { p_invite_code: string }
+        Returns: Json
+      }
+      is_group_member: {
+        Args: { gid: string }
+        Returns: boolean
+      }
+      is_group_admin: {
+        Args: { gid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
