@@ -1,8 +1,15 @@
 # PROJ-5: Kanban-Board
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
+
+## Deployment
+- **Production URL:** https://ai-coding-starter-kit-ebon.vercel.app
+- **Deployed:** 2026-06-22
+- **Vercel Project:** ai-coding-starter-kit (ja-wi / jawi-lab)
+- **Deployment ID:** dpl_4EBJK1HYXhpygoTmS8oowFHHkUVV
+- **Note:** Vercel is connected to GitHub (jawi-lab/ai-coding-starter-kit). Pushing to `main` triggers auto-deploy. No CLI deploy needed.
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, RLS
