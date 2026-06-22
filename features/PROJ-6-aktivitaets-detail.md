@@ -1,8 +1,8 @@
 # PROJ-6: Aktivitäts-Detail
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22 (Rich-Text-Kommentare + Inline-Bilder ergänzt)
+**Last Updated:** 2026-06-22 (Tech Design by /architecture)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS
@@ -129,12 +129,138 @@ _Alle offenen Fragen geklärt._
 | Kommentar-Soft-Limit: 5.000 Zeichen | Jira-Style-Editor lädt zu ausführlicheren Einträgen ein; 5.000 Zeichen decken auch längere Planungsabsprachen ab, ohne Spam-Risiko | 2026-06-22 |
 
 ### Technical Decisions
-_To be added by /architecture_
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Sheet-in-Sheet (kein eigenes Page-Routing) | Konsistent mit GroupDetailSheet-Muster (PROJ-3); kein Seitenwechsel auf Mobile, Kontext bleibt sichtbar | 2026-06-22 |
+| Zustand `detailActivity` in GroupMainSheet | Einziger State-Owner für beide Zugangspunkte (ProposalCard + KanbanCard); beide rufen denselben Callback auf | 2026-06-22 |
+| Bearbeiten-Formular inline (kein extra Sheet) | Verhindert dreifach geschachtelte Sheets; Felder ersetzen Info-Sektionen im Feed — sauberer auf Mobile | 2026-06-22 |
+| Bilder vor dem Senden hochladen | URL muss im Tiptap-JSON eingebettet sein bevor Kommentar gespeichert wird; Upload-on-insert ist Standardmuster für Rich-Text-Editoren | 2026-06-22 |
+| Mitgliederliste als Prop (nicht erneut laden) | GroupMainSheet hat Mitglieder bereits geladen; doppelter DB-Abruf wäre unnötig | 2026-06-22 |
+| Supabase Realtime für Kommentare | Konsistent mit PROJ-5 (Kanban Realtime); Gruppenabsprachen sollen live erscheinen ohne Reload | 2026-06-22 |
+| Tiptap npm-Pakete: @tiptap/react, starter-kit, extension-mention, extension-image, extension-placeholder | Einzige React-Bibliothek mit nativen Mention + Image Extensions; Ausgabe als JSON für strukturierte Speicherung | 2026-06-22 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Komponentenstruktur
+
+```
+GroupMainSheet (bestehend)
+└── ActivityDetailSheet  ← neu, Sheet über dem GroupMainSheet
+    │
+    ├── Sheet-Header
+    │   ├── Schließen-Button
+    │   └── Stift-Icon (nur Admin / Initiator, solange nicht abgeschlossen)
+    │
+    └── Scrollbarer Feed
+        │
+        ├── Hero-Bereich
+        │   ├── Cover-Bild (og_image_url oder Platzhalterbild, 200 px hoch)
+        │   ├── Name der Aktivität
+        │   ├── Status-Badge
+        │   ├── Zeitraum (wenn gesetzt)
+        │   └── Initiator-Name
+        │
+        ├── Bearbeiten-Formular (nur sichtbar wenn Stift-Icon geklickt)
+        │   ├── Name (Pflichtfeld)
+        │   ├── Beschreibung (optional)
+        │   ├── Ort (optional)
+        │   └── Link / URL (optional)
+        │
+        ├── Info-Sektionen (ausgeblendet während Bearbeitung)
+        │   ├── Beschreibung (wenn vorhanden)
+        │   ├── Ort (wenn vorhanden)
+        │   └── URL als klickbarer Link (wenn vorhanden)
+        │
+        ├── Verantwortlichkeiten-Sektion
+        │   (nur sichtbar ab Status in_planung)
+        │   ├── Verantwortlichkeiten-Liste
+        │   │   └── Eintrag: Avatar + Name + Label + Löschen-Icon
+        │   └── „Verantwortlichkeit hinzufügen"-Inline-Formular
+        │       ├── Label-Eingabefeld (Freitext)
+        │       └── Mitglieds-Dropdown
+        │
+        ├── Foto-Galerie-Sektion
+        │   (nur sichtbar wenn Status = abgeschlossen)
+        │   ├── Fotos-Grid
+        │   │   └── Foto-Kachel + Löschen-Icon (für Uploader / Admin)
+        │   ├── „Foto hinzufügen"-Button
+        │   └── Leerzustand: „Noch keine Erinnerungsfotos…"
+        │
+        └── Kommentar-Sektion
+            ├── Kommentar-Liste (chronologisch, älteste oben)
+            │   └── Kommentar-Eintrag: Avatar + Name + Zeitstempel +
+            │       formatierter Tiptap-Inhalt + Löschen-Icon
+            └── Leerzustand: „Noch keine Kommentare…"
+
+Fixierter Bereich am unteren Rand (immer sichtbar)
+└── Rich-Text-Editor (Tiptap)
+    ├── Toolbar: Fett | Kursiv | Unsortierte Liste | Sortierte Liste | Bild einfügen
+    ├── Textfeld mit @-Autocomplete-Dropdown (Gruppenmitglieder)
+    └── Senden-Button (deaktiviert wenn leer)
+```
+
+### Datenmodell
+
+**Neue Tabellen:**
+
+```
+activity_comments:
+  - id                   eindeutige ID
+  - activity_id          verknüpft mit Aktivität
+  - user_id              wer hat kommentiert
+  - content              Tiptap-JSON (formatierter Inhalt inkl. @-Mentions + Bilder)
+  - mentioned_user_ids   Liste der erwähnten Nutzer-IDs (für PROJ-12)
+  - created_at
+
+activity_responsibilities:
+  - id
+  - activity_id
+  - label                z.B. „Ticketkauf" (Freitext)
+  - assigned_user_id     wem die Aufgabe zugewiesen ist
+  - created_by           wer sie erstellt hat
+  - created_at
+
+activity_photos:
+  - id
+  - activity_id
+  - user_id              Uploader
+  - storage_path         Pfad in Supabase Storage
+  - created_at
+```
+
+**Änderung an bestehender Tabelle:**
+```
+activities (ergänzt):
+  + location   optionaler Freitext-Ort (z.B. „Biergarten Englischer Garten")
+```
+
+**Supabase Storage — 2 neue Buckets:**
+
+| Bucket | Zweck | Größenlimit |
+|--------|-------|-------------|
+| `activity-comment-images` | Inline-Bilder in Kommentaren | 5 MB/Datei |
+| `activity-photos` | Erinnerungsfotos (nur ab `abgeschlossen`) | 5 MB/Datei |
+
+### Neue Custom Hooks
+
+| Hook | Aufgabe |
+|---|---|
+| `useActivityDetail(activityId)` | Lädt Aktivitätsdaten; löst Reload nach Edit aus |
+| `useActivityComments(activityId)` | Lädt Kommentare + Supabase-Realtime-Subscription |
+| `useActivityResponsibilities(activityId)` | Lädt Verantwortlichkeiten |
+| `useActivityPhotos(activityId)` | Lädt Galerie-Fotos |
+
+### Neue npm-Pakete
+
+| Paket | Zweck |
+|---|---|
+| `@tiptap/react` | React-Wrapper für den Editor |
+| `@tiptap/starter-kit` | Basisfunktionen (Fett, Kursiv, Listen) |
+| `@tiptap/extension-mention` | @-Mentions mit Autocomplete-Dropdown |
+| `@tiptap/extension-image` | Inline-Bilder im Editor-Inhalt |
+| `@tiptap/extension-placeholder` | Platzhaltertext im leeren Editor |
 
 ## QA Test Results
 _To be added by /qa_

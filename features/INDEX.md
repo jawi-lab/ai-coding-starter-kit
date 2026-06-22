@@ -20,7 +20,7 @@
 | PROJ-3 | Gruppe & Mitglieder-Management | P0 | PROJ-1, PROJ-2 | Deployed | [spec](PROJ-3-gruppe-mitglieder-management.md) | 2026-06-21 |
 | PROJ-4 | Aktivitäts-Vorschläge & Voting | P0 | PROJ-3 | Deployed | [spec](PROJ-4-aktivitaets-vorschlaege-voting.md) | 2026-06-21 |
 | PROJ-5 | Kanban-Board | P0 | PROJ-4 | Deployed | [spec](PROJ-5-kanban-board.md) | 2026-06-21 |
-| PROJ-6 | Aktivitäts-Detail | P0 | PROJ-5 | Planned | [spec](PROJ-6-aktivitaets-detail.md) | 2026-06-21 |
+| PROJ-6 | Aktivitäts-Detail | P0 | PROJ-5 | Architected | [spec](PROJ-6-aktivitaets-detail.md) | 2026-06-21 |
 | PROJ-7 | Terminfindung & Kalender-Export | P0 | PROJ-5 | Roadmap | — | 2026-06-21 |
 | PROJ-8 | Nutzerprofil & Archiv | P0 | PROJ-2, PROJ-6 | Roadmap | — | 2026-06-21 |
 | PROJ-9 | Capacitor Native Apps (iOS + Android) | P1 | PROJ-1..PROJ-8 | Roadmap | — | 2026-06-21 |
