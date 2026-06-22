@@ -1,8 +1,8 @@
 # PROJ-2: Authentifizierung & User Accounts
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-21
-**Last Updated:** 2026-06-21 — Bug Fixes BUG-01–04 implementiert; alle High-Bugs behoben; build ✅
+**Last Updated:** 2026-06-22 — Deployed to production: https://qt-voting-app.vercel.app
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — typisierter Supabase-Client, `profiles`-Tabelle mit RLS
@@ -446,4 +446,20 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 - BUG-04: ✅ Double-Redirect für `pending`-Nutzer auf `/signup` behoben
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-06-22
+**Production URL:** https://qt-voting-app.vercel.app
+**Vercel Project:** ja-wi/qt-voting-app
+**Git Tag:** v1.0.0-PROJ-2
+
+### Deployment Notes
+- Vercel Projekt via Dashboard mit GitHub-Repo `jawi-lab/ai-coding-starter-kit` (branch: main) verknüpft
+- Env vars `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel gesetzt (Production + Preview + Development)
+- Supabase Auth URL Configuration: `https://qt-voting-app.vercel.app/auth/callback` zur Redirect-Allowlist hinzufügen (manuell im Supabase Dashboard)
+- Alle 9 Routen statisch generiert (`output: 'export'` kompatibel)
+
+### Post-Deployment Checklist
+- [x] Production URL lädt korrekt (Login-Screen sichtbar)
+- [x] Alle Env Vars gesetzt
+- [ ] Supabase Redirect URL für Production gesetzt (manuell)
+- [ ] Auth-Flow in Production getestet (Signup, Login, Logout)
