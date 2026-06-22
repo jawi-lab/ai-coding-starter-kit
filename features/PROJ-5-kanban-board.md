@@ -264,7 +264,113 @@ Initiator / Admin → ⋯ → "Planung abschließen" / "Als abgeschlossen markie
 - `reset_activity_votes` RPC läuft als SECURITY DEFINER — nicht betroffen
 
 ## QA Test Results
-_To be added by /qa_
+
+**QA Date:** 2026-06-22
+**Status:** In Review — 2 Medium bugs found, no Critical/High
+
+### Automated Tests
+
+| Suite | Count | Result |
+|-------|-------|--------|
+| Vitest unit tests (all features) | 67 tests | ✅ All pass |
+| `useKanbanActivities.test.ts` (new) | 7 tests | ✅ All pass |
+| `useUpdateActivityStatus.test.ts` (new) | 6 tests | ✅ All pass |
+| Playwright E2E `PROJ-5-kanban-board.spec.ts` | 15 tests | ✅ 1 pass, 14 skipped (no credentials in CI) |
+| Production build (`npm run build`) | — | ✅ Zero TypeScript/compile errors |
+
+### Acceptance Criteria
+
+| AC | Description | Result |
+|----|-------------|--------|
+| Board-AC1 | Aktivitäten aller vier Kanban-Status werden im Planung-Tab angezeigt | ✅ Pass |
+| Board-AC2 | Mobile < 768px: Tab-basiertes Layout (shadcn Tabs, 4 Columns) | ✅ Pass |
+| Board-AC3 | Desktop ≥ 768px: 4-Spalten CSS Grid | ✅ Pass |
+| Board-AC4 | Karte zeigt Bild, Name (line-clamp-2), Initiator, Zeitraum (wenn gesetzt) | ✅ Pass |
+| Board-AC5 | Leere Spalte zeigt „Noch keine Aktivitäten hier" (gestrichelter Rahmen) | ✅ Pass |
+| Board-AC6 | Realtime-Update bei Statuswechsel anderer Nutzer (Supabase Realtime) | ✅ Pass (code verified, filter `group_id=eq.X`) |
+| ZuPlanen-AC1 | Admin/Initiator sieht ⋯-Menü mit „In Planung verschieben" | ✅ Pass |
+| ZuPlanen-AC2 | „In Planung verschieben" öffnet Dialog mit DateRange-Picker | ✅ Pass |
+| ZuPlanen-AC3 | Gültiger Zeitraum → Status `in_planung`, Karte wandert in Spalte | ✅ Pass |
+| ZuPlanen-AC4 | Ungültiger Zeitraum (Start > Ende oder Start in Vergangenheit) → Validierungsfehler | ✅ Pass |
+| ZuPlanen-AC5 | Redakteur/Beobachter sieht kein ⋯-Menü | ✅ Pass (`canManage = isAdmin \|\| initiator_id === currentUserId`) |
+| InPlanung-AC1 | ⋯ → „Planung abschließen" öffnet ConfirmDialog mit Warnhinweis | ✅ Pass |
+| InPlanung-AC2 | Bestätigung → Status `planung_abgeschlossen` | ✅ Pass |
+| InPlanung-AC3 | Abbrechen → Aktivität bleibt in „In Planung" | ✅ Pass |
+| PlanungAbg-AC1 | ⋯ → „Als abgeschlossen markieren" öffnet ConfirmDialog | ✅ Pass |
+| PlanungAbg-AC2 | Bestätigung → Status `abgeschlossen` | ✅ Pass |
+| PlanungAbg-AC3 | Abbrechen → Aktivität bleibt unverändert | ✅ Pass |
+| Error-AC1 | API-Fehler → Toast erscheint, Dialog bleibt offen, Karte wandert nicht | ✅ Pass (toast.error bei err, setDialog(null) nur bei Erfolg) |
+
+### Security Audit
+
+| Check | Result |
+|-------|--------|
+| Auth guard: /groups unauthenticated → redirect /login | ✅ Confirmed |
+| RLS: UPDATE auf `activities` nur für Initiator oder Admin | ✅ DB-Migration verifiziert |
+| `abgeschlossen` als Terminalzustand: RLS USING-Clause blockiert weitere Updates | ✅ Korrekt |
+| `vorschlag → zu_planen`-Übergang via SECURITY DEFINER Trigger (nicht RLS) | ✅ Unberührt |
+| Realtime-Channel gefiltert nach `group_id` — kein Datenleck zwischen Gruppen | ✅ `filter: group_id=eq.${groupId}` |
+| XSS: Alle Aktivitätsnamen/Initiator-Namen via React gerendert (auto-escaped) | ✅ Kein `dangerouslySetInnerHTML` |
+| Supabase JS Client: parametrisierte Queries, kein SQL Injection möglich | ✅ |
+
+### Bugs Found
+
+#### BUG-5-01 — Medium: Leeres ⋯-Aktionsmenü auf `abgeschlossen`-Karten
+**Steps to reproduce:**
+1. Als Admin eine Aktivität in den Status `abgeschlossen` bringen
+2. Das ⋯-Symbol auf der Karte (oben rechts) anklicken
+
+**Expected:** Menü wird nicht angezeigt (kein Icon), da keine Aktionen für abgeschlossene Aktivitäten verfügbar sind  
+**Actual:** ⋯-Button ist sichtbar und öffnet ein leeres Dropdown-Menü ohne Einträge  
+**Root Cause:** `canManage`-Check in `KanbanCard.tsx` ist `true` für Initiator/Admin unabhängig vom Status; alle drei `DropdownMenuItem`-Conditionals (`zu_planen`, `in_planung`, `planung_abgeschlossen`) sind `false` für `abgeschlossen`  
+**File:** [src/components/groups/KanbanCard.tsx](src/components/groups/KanbanCard.tsx) — `canManage && <DropdownMenu>`-Block  
+**Fix:** `canManage` um `activity.status !== 'abgeschlossen'` erweitern, oder den Trigger erst rendern wenn mindestens ein Menü-Item aktiv ist
+
+#### BUG-5-02 — Medium: Datumsauswahl in `MoveToPlanningDialog` nicht zurückgesetzt nach „Abbrechen"
+**Steps to reproduce:**
+1. ⋯ → „In Planung verschieben" öffnen
+2. Zeitraum auswählen (Start + End-Datum)
+3. „Abbrechen" klicken (NICHT Escape oder außen klicken)
+4. Dialog erneut für eine andere Aktivität öffnen
+
+**Expected:** DateRange-Picker ist zurückgesetzt auf „Zeitraum auswählen"  
+**Actual:** Zuvor ausgewählter Zeitraum der vorherigen Aktivität ist noch sichtbar  
+**Root Cause:** Der „Abbrechen"-Button ruft direkt `onCancel()` auf. Da es ein controlled Dialog ist, ändert der Parent den `open`-Prop auf `false`, ohne `onOpenChange` via Radix zu triggern. Die `handleOpenChange`-Methode (die den State zurücksetzt) wird nur bei Escape/Outside-Click ausgeführt, nicht beim Abbrechen-Button  
+**File:** [src/components/groups/MoveToPlanningDialog.tsx:66-72](src/components/groups/MoveToPlanningDialog.tsx) — `handleOpenChange` und Abbrechen-Button  
+**Fix:** State-Reset im `onClick={onCancel}`-Handler des Abbrechen-Buttons hinzufügen, oder im `onOpenChange` des Dialogs auf eine key-basierte Remount-Lösung setzen
+
+#### BUG-5-03 — Low: `formatDateRange` nutzt UTC-Parsing — potentiell falscher Tag in UTC−X-Zeitzonen
+**Severity:** Low (App primär für deutsche Nutzer in UTC+1/+2, Fehler tritt dort nicht auf)  
+**Root Cause:** `new Date("2026-08-01")` parsed ISO-Datumsstrings als UTC-Mitternacht; in UTC-negativen Zeitzonen wird dadurch der Vortag angezeigt  
+**File:** [src/components/groups/KanbanCard.tsx:24](src/components/groups/KanbanCard.tsx) — `formatDateRange`  
+**Fix:** `new Date(d + 'T00:00:00')` statt `new Date(d)` für lokale Zeitzone
+
+#### BUG-5-04 — Low: PROJ-4 E2E-Test `AC-MAIN-3` ist veraltet nach PROJ-5
+**Context:** `tests/PROJ-4-aktivitaets-vorschlaege.spec.ts:84` erwartet, dass der „Planung"-Tab disabled ist — PROJ-5 hat ihn aktiviert  
+**Impact:** Test besteht aktuell nur, weil er wegen fehlender `TEST_USER_EMAIL`/`TEST_USER_PASSWORD`-Credentials geskippt wird; mit Credentials würde er failen  
+**Fix:** Test `AC-MAIN-3` anpassen: nur `archivBtn` als disabled prüfen, `planungBtn` als enabled prüfen
+
+### Edge Cases
+
+| Edge Case | Result |
+|-----------|--------|
+| Alle 4 Spalten leer (Board komplett leer) | ✅ Jede Spalte zeigt gestrichelten Empty State |
+| Sehr langer Aktivitätsname | ✅ `line-clamp-2` in KanbanCard.tsx |
+| Kein `og_image_url` | ✅ `PLACEHOLDER_IMAGE` (Unsplash) als Fallback |
+| Gleichzeitiger Statuswechsel durch zwei Admins | ✅ Realtime synchronisiert; letzter DB-Write gewinnt |
+| Start = Ende (eintägiger Zeitraum) | ✅ Erlaubt (Start ≤ Ende-Bedingung erfüllt) |
+
+### Responsive Testing
+
+| Viewport | Layout | Result |
+|----------|--------|--------|
+| 375px (Mobile) | shadcn Tabs (1 Spalte sichtbar) | ✅ `md:hidden` korrekt |
+| 768px (Tablet) | 4-Spalten-Grid (md Breakpoint) | ✅ `hidden md:grid` korrekt |
+| 1440px (Desktop) | 4-Spalten-Grid | ✅ Kein Tab-Bar sichtbar |
+
+### Production-Ready: CONDITIONAL YES
+
+Keine Critical- oder High-Bugs vorhanden. Die zwei Medium-Bugs (BUG-5-01, BUG-5-02) sind reine UX-Probleme ohne Datenverlust oder Sicherheitsrisiko. Deployment möglich — empfohlen: Bugs vor Release fixen für polierte UX.
 
 ## Deployment
 _To be added by /deploy_
