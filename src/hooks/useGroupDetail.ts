@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Group, GroupMember, GroupRole } from '@/lib/group-types'
-
-const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
-function generateCode(): string {
-  return Array.from({ length: 6 }, () =>
-    INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)]
-  ).join('')
-}
+import { generateInviteCode } from '@/lib/group-types'
 
 export function useGroupDetail(groupId: string | null) {
   const { user } = useAuth()
@@ -122,7 +115,7 @@ export function useGroupDetail(groupId: string | null) {
     }
 
     // Client-side fallback
-    let code = generateCode()
+    let code = generateInviteCode()
     for (let i = 0; i < 5; i++) {
       const { error } = await supabase.from('groups').update({ invite_code: code }).eq('id', groupId)
       if (!error) {
@@ -131,7 +124,7 @@ export function useGroupDetail(groupId: string | null) {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((error as any)?.code === '23505') {
-        code = generateCode()
+        code = generateInviteCode()
       } else {
         return { code: null, error: error.message }
       }
@@ -182,7 +175,7 @@ export function useGroupDetail(groupId: string | null) {
 
   async function deleteGroup(): Promise<{ error: string | null }> {
     if (!groupId) return { error: 'Keine Gruppe ausgewählt' }
-    await supabase.from('group_members').delete().eq('group_id', groupId)
+    // group_members.group_id has ON DELETE CASCADE — deleting the group cascades to members
     const { error } = await supabase.from('groups').delete().eq('id', groupId)
     return { error: error?.message ?? null }
   }

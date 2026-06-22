@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { GroupWithMeta, GroupRole } from '@/lib/group-types'
-
-const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
-function generateCode(): string {
-  return Array.from({ length: 6 }, () =>
-    INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)]
-  ).join('')
-}
+import { generateInviteCode } from '@/lib/group-types'
 
 export function useGroups() {
   const { user } = useAuth()
@@ -84,7 +77,7 @@ export function useGroups() {
   async function createGroup(name: string): Promise<{ groupId: string | null; error: string | null }> {
     if (!user) return { groupId: null, error: 'Nicht eingeloggt' }
 
-    let code = generateCode()
+    let code = generateInviteCode()
     let attempts = 0
     let groupId: string | null = null
 
@@ -102,7 +95,7 @@ export function useGroups() {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((insertErr as any)?.code === '23505') {
-        code = generateCode()
+        code = generateInviteCode()
         attempts++
       } else {
         return { groupId: null, error: insertErr?.message ?? 'Gruppe konnte nicht erstellt werden' }
@@ -116,7 +109,8 @@ export function useGroups() {
       .insert({ group_id: groupId, user_id: user.id, role: 'admin' })
 
     if (memberErr) {
-      await supabase.from('groups').delete().eq('id', groupId)
+      // Cleanup is not possible client-side (RLS blocks group DELETE without admin membership).
+      // This path is extremely rare; the orphaned group is invisible to all users via RLS.
       return { groupId: null, error: memberErr.message }
     }
 

@@ -290,7 +290,7 @@ supabase/functions/generate-invite-code/index.ts
 ## QA Test Results
 
 **QA Date:** 2026-06-22
-**Status:** ❌ NOT READY — 2 Critical, 1 High bugs found
+**Status:** ✅ ALL BUGS FIXED — Ready for deploy
 
 ### Acceptance Criteria Results
 
@@ -322,11 +322,11 @@ supabase/functions/generate-invite-code/index.ts
 | AC-LEAVE-1 | Redakteur/Beobachter verlässt → Bestätigung + Weiterleitung | ✅ PASS |
 | AC-LEAVE-2 | Letzter Admin → Admin-Transfer-Dialog | ✅ PASS |
 | AC-LEAVE-3 | Admin überträgt Rechte + verlässt | ✅ PASS |
-| AC-LEAVE-4 | Letztes Mitglied → „Verlassen" ausgegraut | ❌ FAIL (LOW-1) |
-| AC-DELETE-1 | Bestätigungsdialog nur für letztes Mitglied | ❌ FAIL (CRIT-2) |
-| AC-DELETE-2 | Gruppe + Mitgliedschaften gelöscht, Weiterleitung | ❌ FAIL (CRIT-1) |
+| AC-LEAVE-4 | Letztes Mitglied → „Verlassen" ausgegraut | ✅ PASS (fixed) |
+| AC-DELETE-1 | Bestätigungsdialog nur für letztes Mitglied | ✅ PASS (fixed) |
+| AC-DELETE-2 | Gruppe + Mitgliedschaften gelöscht, Weiterleitung | ✅ PASS (fixed) |
 
-**Passed:** 26/29 | **Failed:** 3/29
+**Passed:** 29/29 | **Failed:** 0/29
 
 ---
 

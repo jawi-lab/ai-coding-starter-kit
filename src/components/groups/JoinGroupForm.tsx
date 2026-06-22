@@ -62,7 +62,7 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
           placeholder="z. B. XJHF42"
           value={code}
           onChange={(e) => {
-            setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))
+            setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/[OI01]/g, '').slice(0, 6))
             if (error) setError(null)
           }}
           maxLength={6}

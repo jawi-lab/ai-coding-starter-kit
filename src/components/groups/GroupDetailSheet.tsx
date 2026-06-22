@@ -196,8 +196,20 @@ export function GroupDetailSheet({
         {/* Footer actions */}
         {myRole && (
           <div className="px-5 py-4 border-t border-line flex gap-2 flex-shrink-0 bg-bg">
-            {isLastMember ? (
-              // Last member: only delete
+            <LeaveGroupDialog
+              myRole={myRole}
+              isLastMember={isLastMember}
+              isLastAdmin={isLastAdmin}
+              members={members}
+              currentUserId={user?.id ?? ''}
+              onLeave={leaveGroup}
+              onTransferAdminAndLeave={transferAdminAndLeave}
+              onSuccess={() => {
+                onClose()
+                onGroupLeft()
+              }}
+            />
+            {isLastMember && (
               <DeleteGroupDialog
                 onDelete={deleteGroup}
                 onSuccess={() => {
@@ -205,31 +217,6 @@ export function GroupDetailSheet({
                   onGroupDeleted()
                 }}
               />
-            ) : (
-              <>
-                <LeaveGroupDialog
-                  myRole={myRole}
-                  isLastMember={isLastMember}
-                  isLastAdmin={isLastAdmin}
-                  members={members}
-                  currentUserId={user?.id ?? ''}
-                  onLeave={leaveGroup}
-                  onTransferAdminAndLeave={transferAdminAndLeave}
-                  onSuccess={() => {
-                    onClose()
-                    onGroupLeft()
-                  }}
-                />
-                {isAdmin && (
-                  <DeleteGroupDialog
-                    onDelete={deleteGroup}
-                    onSuccess={() => {
-                      onClose()
-                      onGroupDeleted()
-                    }}
-                  />
-                )}
-              </>
             )}
           </div>
         )}

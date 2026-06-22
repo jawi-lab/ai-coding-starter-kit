@@ -58,8 +58,15 @@ describe('JoinGroupForm — Validation', () => {
   it('converts input to uppercase and strips non-alphanumeric chars', () => {
     render(<JoinGroupForm />)
     const input = screen.getByRole('textbox')
-    typeInto(input, 'abc!@#123')
-    expect(input).toHaveValue('ABC123')
+    typeInto(input, 'abc!@#23')
+    expect(input).toHaveValue('ABC23')
+  })
+
+  it('strips O, 0, I, 1 to prevent visual confusion with valid code chars', () => {
+    render(<JoinGroupForm />)
+    const input = screen.getByRole('textbox')
+    typeInto(input, 'A0B1CI')
+    expect(input).toHaveValue('ABC')
   })
 
   it('truncates input at 6 characters', () => {

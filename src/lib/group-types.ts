@@ -1,5 +1,14 @@
 export type GroupRole = 'admin' | 'editor' | 'observer'
 
+// 6-char alphanumeric, excluding O/0/I/1 to avoid visual confusion
+const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+export function generateInviteCode(): string {
+  return Array.from({ length: 6 }, () =>
+    INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)]
+  ).join('')
+}
+
 export const ROLE_LABELS: Record<GroupRole, string> = {
   admin: 'Admin',
   editor: 'Redakteur',
