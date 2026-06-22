@@ -1,6 +1,6 @@
 # PROJ-3: Gruppe & Mitglieder-Management
 
-## Status: In Progress
+## Status: Deployed
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
 
@@ -410,4 +410,8 @@ supabase/functions/generate-invite-code/index.ts
 | Admin kann Gruppe mit anderen Mitgliedern löschen | ❌ UI zeigt Button (CRIT-2), DB RLS scheitert erst nach Datenverlust |
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-06-22
+**Production URL:** https://ai-coding-starter-kit.vercel.app
+**Vercel Deployment:** https://ai-coding-starter-e63uub9bc-ja-wi.vercel.app
+**Git Tag:** v1.1.0-PROJ-3
