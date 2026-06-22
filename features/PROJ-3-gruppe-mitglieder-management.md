@@ -288,7 +288,126 @@ supabase/functions/generate-invite-code/index.ts
 ```
 
 ## QA Test Results
-_To be added by /qa_
+
+**QA Date:** 2026-06-22
+**Status:** ❌ NOT READY — 2 Critical, 1 High bugs found
+
+### Acceptance Criteria Results
+
+| ID | Criterion | Result |
+|----|-----------|--------|
+| AC-ONBOARD-1 | Neue Nutzer ohne Gruppe → /onboarding | ✅ PASS |
+| AC-ONBOARD-2 | Nutzer mit Gruppen → /groups | ✅ PASS |
+| AC-CREATE-1 | Gruppe erstellen, Admin werden, Weiterleitung | ✅ PASS |
+| AC-CREATE-2 | Einladungs-Code wird bei Erstellung generiert | ✅ PASS |
+| AC-CREATE-VAL-1 | Leerer Name → „Gruppenname ist erforderlich" | ✅ PASS (Unit Test) |
+| AC-CREATE-VAL-2 | Name > 50 Zeichen → Fehlermeldung | ✅ PASS (Unit Test) |
+| AC-JOIN-1 | Gültiger Code → Beitritt als Redakteur | ✅ PASS |
+| AC-JOIN-VAL-1 | Ungültiger Code → Fehlermeldung | ✅ PASS (Unit Test) |
+| AC-JOIN-VAL-2 | Bereits Mitglied → Fehlermeldung | ✅ PASS (Unit Test) |
+| AC-JOIN-VAL-3 | Leerer Code → Fehlermeldung | ✅ PASS (Unit Test) |
+| AC-OVERVIEW-1 | Gruppen-Liste mit Mitgliederzahl | ✅ PASS |
+| AC-OVERVIEW-2 | Klick auf Gruppe → Detail-Sheet | ✅ PASS |
+| AC-OVERVIEW-3 | „Gruppe hinzufügen" Button vorhanden | ✅ PASS |
+| AC-DETAIL-1 | Gruppenname, Code, Mitgliederliste sichtbar | ✅ PASS |
+| AC-DETAIL-2 | Admin sieht Extra-Steuerelemente | ✅ PASS |
+| AC-NAME-1 | Gruppenname inline bearbeitbar (Enter/Button) | ✅ PASS |
+| AC-NAME-2 | Validierung beim Speichern (leer / zu lang) | ✅ PASS |
+| AC-REGEN-1 | Bestätigungsdialog mit Hinweis auf Ungültigkeit | ✅ PASS |
+| AC-REGEN-2 | Neuer Code generiert, alter ungültig | ✅ PASS |
+| AC-ROLE-1 | Rolle ändert sich sofort inkl. Badge | ✅ PASS |
+| AC-ROLE-2 | Admin kann eigene Rolle nicht ändern (ausgegraut) | ✅ PASS |
+| AC-REMOVE-1 | Bestätigungsdialog mit Name des Mitglieds | ✅ PASS |
+| AC-REMOVE-2 | Mitglied wird aus Liste entfernt | ✅ PASS |
+| AC-LEAVE-1 | Redakteur/Beobachter verlässt → Bestätigung + Weiterleitung | ✅ PASS |
+| AC-LEAVE-2 | Letzter Admin → Admin-Transfer-Dialog | ✅ PASS |
+| AC-LEAVE-3 | Admin überträgt Rechte + verlässt | ✅ PASS |
+| AC-LEAVE-4 | Letztes Mitglied → „Verlassen" ausgegraut | ❌ FAIL (LOW-1) |
+| AC-DELETE-1 | Bestätigungsdialog nur für letztes Mitglied | ❌ FAIL (CRIT-2) |
+| AC-DELETE-2 | Gruppe + Mitgliedschaften gelöscht, Weiterleitung | ❌ FAIL (CRIT-1) |
+
+**Passed:** 26/29 | **Failed:** 3/29
+
+---
+
+### Bugs Found
+
+#### 🔴 CRITICAL
+
+**CRIT-1: `deleteGroup()` erstellt eine Zombie-Gruppe (Daten-Korruption)**
+- **Datei:** [src/hooks/useGroupDetail.ts:183-188](src/hooks/useGroupDetail.ts#L183-L188)
+- **Root Cause:** Die Funktion löscht zuerst die `group_members`-Zeilen und danach die Gruppe. Nach dem ersten Schritt ist der User kein Mitglied mehr → `is_group_admin()` gibt false zurück → die RLS-Policy `last_admin_delete_group` (requires `is_group_admin AND count = 1`) schlägt fehl → der GROUP-DELETE wird blockiert.
+- **DB-Schema-Kontext:** `group_members.group_id → groups.id` hat `ON DELETE CASCADE`. Die korrekte Reihenfolge wäre: erst `groups.delete()` → Cascade löscht automatisch alle `group_members`.
+- **Auswirkung:** Die Gruppe existiert dauerhaft mit 0 Mitgliedern in der DB. Kein User kann sie jemals wieder sehen oder löschen (Ghost Group / Orphan Record).
+- **Steps to Reproduce:** 1. Admin ist das einzige Mitglied 2. Klickt „Gruppe löschen" → bestätigt 3. Sheet schließt sich (UI sieht erfolgreich aus) 4. Die Gruppe ist weiterhin in der DB und blockiert Speicher / invite_code-Eindeutigkeit.
+- **Fix:** In `deleteGroup()` nur `supabase.from('groups').delete().eq('id', groupId)` aufrufen — CASCADE löscht `group_members` automatisch.
+
+**CRIT-2: „Gruppe löschen" Button für ALLE Admins sichtbar (nicht nur letztem Mitglied)**
+- **Datei:** [src/components/groups/GroupDetailSheet.tsx:223-229](src/components/groups/GroupDetailSheet.tsx#L223-L229)
+- **Root Cause:** Die Bedingung ist `{isAdmin && <DeleteGroupDialog />}` statt `{isLastMember && <DeleteGroupDialog />}`. Ein Admin mit anderen Mitgliedern sieht den Delete-Button.
+- **Auswirkung:** Wenn ein Admin (mit z.B. 5 weiteren Mitgliedern) auf „Gruppe löschen" klickt: Step 1 löscht ALLE Mitglieder erfolgreich (Admin-RLS erlaubt das). Step 2 (Gruppendelete) schlägt fehl → Zombie-Gruppe + alle Mitglieder unkontrolliert entfernt. Datenverlust für andere Nutzer.
+- **Steps to Reproduce:** 1. Admin einer Gruppe mit ≥2 Mitgliedern öffnet Detail-Sheet 2. Sieht den „Gruppe löschen"-Button 3. Bestätigt → alle Mitglieder werden entfernt, Gruppe bleibt als Zombie.
+- **Fix:** Bedingung ändern: `{isLastMember && <DeleteGroupDialog />}` (konsistent mit der `isLastMember`-Variante im oberen Branch).
+
+---
+
+#### 🟠 HIGH
+
+**HIGH-1: Rollback in `createGroup` schlägt fehl — Zombie-Gruppe bei member-INSERT-Fehler**
+- **Datei:** [src/hooks/useGroups.ts:114-121](src/hooks/useGroups.ts#L114-L121)
+- **Root Cause:** Wenn der `group_members`-INSERT fehlschlägt, versucht der Code `groups.delete()` als Cleanup. Aber da der User nie als Admin eingetragen war, schlägt die RLS-Policy (`is_group_admin` returns false AND member count ≠ 1) fehl. Die Gruppe bleibt verwaist.
+- **Auswirkung:** Sehr selten in der Praxis (member INSERT sollte nie scheitern für aktive Nutzer), aber mögliche Zombie-Gruppe ohne Mitglieder.
+- **Fix:** Gruppe-INSERT und member-INSERT in einer DB-Transaktion oder als RPC kapseln, alternativ `createGroup` als SECURITY DEFINER RPC implementieren.
+
+---
+
+#### 🟡 MEDIUM
+
+**MED-1: `generateCode()` in zwei Hooks dupliziert**
+- **Dateien:** [src/hooks/useGroups.ts:8-13](src/hooks/useGroups.ts#L8-L13) und [src/hooks/useGroupDetail.ts:8-13](src/hooks/useGroupDetail.ts#L8-L13)
+- **Auswirkung:** Wartungs-Risiko. Änderung am Charset muss an zwei Stellen gemacht werden.
+- **Fix:** In `src/lib/group-types.ts` oder `src/lib/invite-code.ts` als exportierte Funktion extrahieren.
+
+---
+
+#### 🟢 LOW
+
+**LOW-1: „Gruppe verlassen" Button wird versteckt statt ausgegraut bei isLastMember**
+- **Datei:** [src/components/groups/GroupDetailSheet.tsx:199-205](src/components/groups/GroupDetailSheet.tsx#L199-L205)
+- **Spec-Anforderung:** Button soll sichtbar aber `disabled` sein.
+- **Aktuelles Verhalten:** Button fehlt komplett; nur „Gruppe löschen" ist sichtbar.
+- **Auswirkung:** Geringe UX-Abweichung; Funktionalität korrekt.
+
+**LOW-2: JoinGroupForm akzeptiert O, 0, I, 1 im Input**
+- **Datei:** [src/components/groups/JoinGroupForm.tsx:65](src/components/groups/JoinGroupForm.tsx#L65)
+- **Spec:** Invite Codes enthalten nie O, 0, I, 1 (Verwechslungs-Prävention).
+- **Aktuelles Verhalten:** Sanitizer entfernt nur `[^A-Z0-9]`, lässt diese Zeichen durch.
+- **Auswirkung:** User tippt z.B. „0ABCDE" → bekommt Fehlermeldung statt sofortigem UI-Hinweis. API korrekt (RPC gibt invalid_code zurück).
+
+**LOW-3: Vitest pickt PROJ-2 Playwright-Spec auf**
+- **Datei:** [vitest.config.ts](vitest.config.ts) + [tests/PROJ-2-authentifizierung.spec.ts](tests/PROJ-2-authentifizierung.spec.ts)
+- **Ursache:** `vitest.config.ts` hat keine `exclude`-Regel für `tests/`-Verzeichnis.
+- **Auswirkung:** `npm test` zeigt 1 failed suite (pre-existing, seit PROJ-2).
+- **Fix:** `test: { exclude: ['tests/**'] }` in `vitest.config.ts` hinzufügen.
+
+---
+
+### Test Coverage Summary
+
+- **Unit Tests:** 17 Tests in 2 Dateien ([CreateGroupForm.test.tsx](src/components/groups/CreateGroupForm.test.tsx), [JoinGroupForm.test.tsx](src/components/groups/JoinGroupForm.test.tsx)) — alle ✅
+- **E2E Tests:** [tests/PROJ-3-gruppe-mitglieder.spec.ts](tests/PROJ-3-gruppe-mitglieder.spec.ts) — Auth-Guard Tests ✅ (2/2 auf Chromium); restliche Tests mit `test.skip` bis Credentials konfiguriert (`TEST_USER_EMAIL`, `TEST_USER_PASSWORD`)
+
+### Security Audit
+
+| Check | Result |
+|-------|--------|
+| RLS verhindert Zugriff auf fremde Gruppen | ✅ Korrekt (is_group_member guard) |
+| Nur Admins können Namen/Code ändern | ✅ RLS UPDATE policy korrekt |
+| Admin kann eigene Rolle nicht selbst ändern | ✅ `user_id <> auth.uid()` in UPDATE policy |
+| Nicht-Mitglied kann nicht via invite_code SELECT direkt | ✅ RPC SECURITY DEFINER korrekt |
+| XSS via Gruppenname/Code | ✅ React escaping verhindert das |
+| Pending-User kann nicht beitreten | ✅ RLS INSERT policy prüft `status = 'active'` |
+| Admin kann Gruppe mit anderen Mitgliedern löschen | ❌ UI zeigt Button (CRIT-2), DB RLS scheitert erst nach Datenverlust |
 
 ## Deployment
 _To be added by /deploy_
