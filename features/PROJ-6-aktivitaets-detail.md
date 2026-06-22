@@ -1,8 +1,8 @@
 # PROJ-6: Aktivitäts-Detail
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22 (QA bugs fixed — all 4 bugs resolved)
+**Last Updated:** 2026-06-22 (Deployed to production)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS
@@ -392,4 +392,9 @@ activities (ergänzt):
 All 4 QA bugs fixed. No open bugs remain.
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://ai-coding-starter-kit-ebon.vercel.app
+- **Deployed:** 2026-06-22
+- **Git tag:** v1.6.0-PROJ-6
+- **Commit:** `feat(PROJ-6): Implement Aktivitäts-Detail — hooks, types, and component updates`
+- **Trigger:** Push to `main` → Vercel GitHub auto-deploy
