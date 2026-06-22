@@ -6,7 +6,7 @@ import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useGroups } from '@/hooks/useGroups'
 import { useAuth } from '@/contexts/AuthContext'
 import { GroupCard } from '@/components/groups/GroupCard'
-import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
+import { GroupMainSheet } from '@/components/groups/GroupMainSheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +34,7 @@ function GroupsContent() {
   const { groups, loading, refetch } = useGroups()
 
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
+  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null
   const [addSheetOpen, setAddSheetOpen] = useState(false)
 
   // Open group from query param (e.g., after creation/join)
@@ -148,9 +149,9 @@ function GroupsContent() {
         )}
       </main>
 
-      {/* Group Detail Sheet */}
-      <GroupDetailSheet
-        groupId={activeGroupId}
+      {/* Group Main Sheet */}
+      <GroupMainSheet
+        group={activeGroup}
         onClose={() => setActiveGroupId(null)}
         onGroupLeft={handleGroupLeft}
         onGroupDeleted={handleGroupDeleted}
