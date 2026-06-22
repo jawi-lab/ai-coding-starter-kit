@@ -81,7 +81,7 @@ test.describe('GroupMainSheet — Shell', () => {
     await expect(page.getByText('Vorschläge')).toBeVisible({ timeout: 3000 })
   })
 
-  test('AC-MAIN-3: GroupMainSheet shows "Planung" and "Archiv" tabs as disabled', async ({ page }) => {
+  test('AC-MAIN-3: "Planung" tab is enabled (PROJ-5), "Archiv" tab remains disabled', async ({ page }) => {
     if (page.url().includes('onboarding')) {
       test.skip(true, 'User has no groups')
       return
@@ -91,7 +91,7 @@ test.describe('GroupMainSheet — Shell', () => {
 
     const planungBtn = page.getByRole('button', { name: 'Planung' })
     const archivBtn = page.getByRole('button', { name: 'Archiv' })
-    await expect(planungBtn).toBeDisabled({ timeout: 3000 })
+    await expect(planungBtn).not.toBeDisabled({ timeout: 3000 })
     await expect(archivBtn).toBeDisabled({ timeout: 3000 })
   })
 

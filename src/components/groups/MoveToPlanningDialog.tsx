@@ -140,7 +140,11 @@ export function MoveToPlanningDialog({
         <DialogFooter className="flex gap-2 flex-row justify-end mt-1">
           <Button
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              setDateRange(undefined)
+              setValidationError(null)
+              onCancel()
+            }}
             disabled={loading}
             className="border-line text-ink-2 rounded-[12px] hover:bg-surface-2"
           >
