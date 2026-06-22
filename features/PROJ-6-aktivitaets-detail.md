@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22
+**Last Updated:** 2026-06-22 (Rich-Text-Kommentare + Inline-Bilder ergänzt)
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS
@@ -14,7 +14,7 @@
 ## User Stories
 - Als Gruppenmitglied möchte ich durch Tippen auf eine Aktivitätskarte (Vorschlags-Tab oder Kanban) eine Detailansicht öffnen, damit ich alle Informationen auf einen Blick sehe.
 - Als Initiator oder Admin möchte ich Name, Beschreibung, Ort und Link einer Aktivität bearbeiten, damit die Gruppe immer aktuelle Infos hat.
-- Als Gruppenmitglied möchte ich Kommentare schreiben und andere Mitglieder mit @ erwähnen, damit wir uns direkt zur Aktivität abstimmen können.
+- Als Gruppenmitglied möchte ich Kommentare mit formatiertem Text (fett, kursiv, Listen) und inline eingefügten Bildern schreiben sowie andere Mitglieder mit @ erwähnen, damit Absprachen strukturiert und anschaulich sind.
 - Als Gruppenmitglied möchte ich ab Status `in_planung` Verantwortlichkeiten hinzufügen und jemandem aus der Gruppe zuweisen, damit klar ist, wer was organisiert.
 - Als Gruppenmitglied möchte ich nach Abschluss bis zu 5 Erinnerungsfotos hochladen, damit wir eine gemeinsame Galerie der Aktivität haben.
 
@@ -24,8 +24,9 @@
 - Archivierung der Aktivität und Fotos im Nutzerprofil → PROJ-8
 - Kommentar bearbeiten (nur löschen ist vorgesehen)
 - Reaktionen / Emojis auf Kommentare
-- Video-Upload (nur Bilder)
-- Bild-Upload vor Status `abgeschlossen`
+- Video-Anhänge in Kommentaren (nur Bilder)
+- Video-Upload in die Erinnerungsfotos-Galerie (nur Bilder)
+- Bilder in der Erinnerungsfotos-Galerie vor Status `abgeschlossen` (Kommentar-Bilder sind statusunabhängig immer erlaubt)
 - Unteraufgaben mit Erledigt-Status auf Verantwortlichkeiten (nur Label + Person)
 - Statuswechsel aus der Detailansicht heraus (bleibt Aufgabe des Kanban-Boards, PROJ-5)
 
@@ -56,11 +57,15 @@
 - [ ] Angenommen er tippt auf Löschen, dann erscheint ein Bestätigungsdialog; nach Bestätigung wird der Eintrag entfernt.
 
 ### Kommentare
-- [ ] Angenommen der Nutzer ist Gruppenmitglied, dann sieht er unten im Sheet ein Kommentar-Eingabefeld und die chronologisch sortierte Kommentarliste (älteste oben).
-- [ ] Angenommen der Nutzer gibt einen Kommentar ein und tippt Senden, dann erscheint der Kommentar sofort in der Liste mit seinem Avatar, Namen und Zeitstempel.
-- [ ] Angenommen der Nutzer tippt `@` im Kommentarfeld, dann öffnet sich ein Autocomplete-Dropdown mit den Mitgliedern der Gruppe; er wählt ein Mitglied und der Name wird als @-Mention im Text eingebettet.
+- [ ] Angenommen der Nutzer ist Gruppenmitglied, dann sieht er unten im Sheet einen Rich-Text-Editor (Tiptap) als Eingabefeld und die chronologisch sortierte Kommentarliste (älteste oben).
+- [ ] Angenommen der Nutzer schreibt Text im Editor, dann stehen ihm eine Toolbar mit Formatierungsoptionen zur Verfügung: **Fett**, *Kursiv*, ungeordnete Liste, geordnete Liste.
+- [ ] Angenommen der Nutzer tippt `@` im Editor, dann öffnet sich ein Autocomplete-Dropdown mit den Mitgliedern der Gruppe; er wählt ein Mitglied und der Name wird als hervorgehobener @-Mention im Text eingebettet (gespeichert als Tiptap-Mention-Node mit user_id).
+- [ ] Angenommen der Nutzer fügt ein Bild ein (via Einfügen-Button in der Toolbar oder Paste aus der Zwischenablage), dann wird das Bild zu Supabase Storage hochgeladen und inline im Kommentar angezeigt (max. 5 MB pro Bild).
+- [ ] Angenommen der Nutzer versucht ein Bild > 5 MB einzufügen, dann erscheint eine Fehlermeldung „Datei zu groß (max. 5 MB)" und das Bild wird nicht hochgeladen.
+- [ ] Angenommen der Nutzer klickt „Senden" (oder Cmd/Ctrl+Enter), dann wird der Kommentar gespeichert (Tiptap-JSON als `content`, `mentioned_user_ids` als uuid[]) und erscheint sofort in der Liste mit Avatar, Name und Zeitstempel.
+- [ ] Angenommen der Editor ist leer (kein Text, kein Bild), dann ist der Senden-Button deaktiviert.
 - [ ] Angenommen ein anderes Mitglied schreibt einen Kommentar, während das Sheet offen ist, dann erscheint der neue Kommentar automatisch ohne Reload (Supabase Realtime).
-- [ ] Angenommen der Nutzer ist Verfasser eines Kommentars oder Admin, dann sieht er ein Löschen-Icon am Kommentar; nach Bestätigung wird der Kommentar entfernt.
+- [ ] Angenommen der Nutzer ist Verfasser eines Kommentars oder Admin, dann sieht er ein Löschen-Icon am Kommentar; nach Bestätigung wird der Kommentar inkl. aller zugehörigen Bilder aus Storage entfernt.
 - [ ] Angenommen es gibt noch keine Kommentare, dann wird der Text „Noch keine Kommentare – schreib den ersten!" angezeigt.
 
 ### Foto-Galerie (nur Status `abgeschlossen`)
@@ -81,21 +86,26 @@
 - **Viele Kommentare:** Liste scrollt innerhalb des Feeds; Eingabefeld bleibt am unteren Rand fixiert, sodass der Nutzer immer tippen kann.
 - **Mitglied verlässt Gruppe:** Sein Avatar/Name in Kommentaren und Verantwortlichkeiten bleibt sichtbar (gelöschter Account: „Ehemaliges Mitglied"); er erscheint nicht mehr im @-Autocomplete-Dropdown.
 - **Gleichzeitiger Kommentar von zwei Mitgliedern:** Realtime synchronisiert; beide Kommentare erscheinen in Chronologie.
-- **Foto-Upload > 5 MB:** Client-seitige Validierung zeigt Fehlermeldung „Datei zu groß (max. 5 MB)" bevor Upload startet.
+- **Bild-Paste in Kommentar aus Clipboard:** Wird wie ein Datei-Upload behandelt — gleiche 5-MB-Grenze gilt.
+- **Kommentar löschen mit mehreren Bildern:** Alle zugehörigen Bilder werden aus Supabase Storage entfernt, bevor der DB-Eintrag gelöscht wird.
+- **Foto-Upload (Galerie) > 5 MB:** Client-seitige Validierung zeigt Fehlermeldung „Datei zu groß (max. 5 MB)" bevor Upload startet.
 - **Kein og_image_url:** Platzhalterbild (wie in PROJ-4/5) als Hero-Bild.
 - **Aktivität im Status `vorschlag`:** Verantwortlichkeiten- und Foto-Sektionen werden ausgeblendet; Kommentare und Basis-Infos sind sichtbar.
 - **@-Mention für Mitglied ohne Profilbild:** Nur Name wird im Autocomplete angezeigt; kein Avatar-Slot nötig.
 
 ## Technical Requirements
+- **Tiptap** als Rich-Text-Editor im Kommentar-Eingabefeld (Extensions: StarterKit, Mention, Image)
+- Kommentar-Content wird als **Tiptap-JSON** (jsonb) gespeichert; zusätzlich `mentioned_user_ids uuid[]` für PROJ-12-Abfragen
 - Supabase Realtime auf `activity_comments` (gefiltert nach `activity_id`) für Live-Kommentare
-- Supabase Storage Bucket `activity-photos` (Bilder pro Aktivität/Mitglied, max. 5 MB/Datei)
+- Supabase Storage Bucket `activity-photos` — Erinnerungsfotos (max. 5 MB/Datei, nur Status `abgeschlossen`)
+- Supabase Storage Bucket `activity-comment-images` — Inline-Bilder in Kommentaren (max. 5 MB/Datei, statusunabhängig)
 - RLS auf allen neuen Tabellen: nur Gruppenmitglieder dürfen lesen/schreiben
 - Neues Feld `location` (text, nullable) auf `activities`-Tabelle
 - Neue Tabellen: `activity_comments`, `activity_responsibilities`, `activity_photos`
+- Kommentare: Soft-Limit 5.000 Zeichen (DB-CHECK auf serialisierten Text-Inhalt)
 
 ## Open Questions
-- [ ] Sollen @-Mentions als strukturierte Referenzen gespeichert werden (z.B. JSON-Array mit user_ids) oder als reiner Text mit @Name? Empfehlung: strukturiert (content_text + mentions_array), um spätere PROJ-12-Benachrichtigungen zu ermöglichen.
-- [ ] Maximale Kommentarlänge? (Empfehlung: 1000 Zeichen — ausreichend für Absprachen, verhindert Spam)
+_Alle offenen Fragen geklärt._
 
 ## Decision Log
 
@@ -113,6 +123,10 @@
 | @-Mention-Benachrichtigungen nach PROJ-12 verschoben | Benachrichtigungs-Infrastruktur (Push, E-Mail, In-App) ist Aufgabe von PROJ-12; PROJ-6 implementiert nur das UI und die Datenspeicherung | 2026-06-22 |
 | Detailansicht von beiden Zugangspunkten erreichbar (Vorschläge-Tab + Kanban) | Einheitlicher Einstiegspunkt; Nutzer sollen Details auch bei Vorschlägen sehen können (Beschreibung, URL, Kommentare) | 2026-06-22 |
 | `location` als optionaler Freitext | Nicht alle Aktivitäten haben einen Ort (z.B. Online-Events); Freitext ist flexibler als strukturierte Adresse für MVP | 2026-06-22 |
+| Tiptap Rich-Text-Editor für Kommentare (Jira-like) | Nutzer wollen formatierte Texte und Inline-Bilder in Kommentaren — plain Textarea wäre zu einschränkend; Tiptap ist das Standard-Tool dafür in React-Apps (Linear, Loom, etc.) | 2026-06-22 |
+| @-Mentions gespeichert als Tiptap-JSON + `mentioned_user_ids uuid[]` | Tiptap-JSON enthält den Mention-Node nativ (uuid als Attribut); zusätzliche uuid[]-Spalte ermöglicht schnelle DB-Abfrage für PROJ-12-Benachrichtigungen ohne JSON-Parsing | 2026-06-22 |
+| Kommentar-Bilder und Galerie-Fotos in getrennten Storage-Buckets | Kommentar-Bilder sind statusunabhängig immer erlaubt; Galerie-Fotos nur ab `abgeschlossen` — unterschiedliche RLS-Regeln erfordern separate Buckets | 2026-06-22 |
+| Kommentar-Soft-Limit: 5.000 Zeichen | Jira-Style-Editor lädt zu ausführlicheren Einträgen ein; 5.000 Zeichen decken auch längere Planungsabsprachen ab, ohne Spam-Risiko | 2026-06-22 |
 
 ### Technical Decisions
 _To be added by /architecture_
