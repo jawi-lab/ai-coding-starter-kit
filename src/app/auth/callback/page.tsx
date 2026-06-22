@@ -74,16 +74,19 @@ export default function AuthCallbackPage() {
       }
 
       if (event === 'SIGNED_IN' && session) {
+        const displayName =
+          session.user.user_metadata?.display_name ??
+          session.user.email?.split('@')[0] ??
+          'Nutzer'
+
         const { error } = await supabase
           .from('profiles')
-          .update({ status: 'active' })
-          .eq('id', session.user.id)
+          .upsert({ id: session.user.id, display_name: displayName, status: 'active' }, { onConflict: 'id' })
 
         clearTimeout(timeout)
         subscription.unsubscribe()
 
         if (error) {
-          // BUG-03: profile update failed — show error instead of silent redirect
           setErrorKind('network')
           setState('error')
         } else {

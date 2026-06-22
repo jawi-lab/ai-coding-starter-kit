@@ -49,6 +49,7 @@ export function SignupForm() {
       password: values.password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: { display_name: values.displayName },
       },
     })
 
@@ -63,16 +64,6 @@ export function SignupForm() {
     }
 
     if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        display_name: values.displayName,
-      })
-
-      if (profileError && !profileError.message.includes('duplicate')) {
-        setError('Profil konnte nicht erstellt werden. Bitte versuche es erneut.')
-        return
-      }
-
       window.location.href = `/signup/pending?email=${encodeURIComponent(values.email)}`
     }
   }
