@@ -11,6 +11,7 @@ import { ProposalCard } from './ProposalCard'
 import { ProposalFormSheet } from './ProposalFormSheet'
 import { DeleteProposalDialog } from './DeleteProposalDialog'
 import { ResetVotesDialog } from './ResetVotesDialog'
+import { KanbanBoard } from './KanbanBoard'
 import { useActivityProposals } from '@/hooks/useActivityProposals'
 import { useVote } from '@/hooks/useVote'
 import { useDeleteProposal } from '@/hooks/useDeleteProposal'
@@ -44,6 +45,7 @@ export function GroupMainSheet({
 }: GroupMainSheetProps) {
   const { user } = useAuth()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'vorschlaege' | 'planung' | 'archiv'>('vorschlaege')
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
 
   // Proposal dialogs / sheets state
@@ -125,108 +127,130 @@ export function GroupMainSheet({
             </button>
           </div>
 
-          {/* Tab bar — Vorschläge active, others future */}
+          {/* Tab bar */}
           <div className="flex-shrink-0 px-5 pt-3 pb-0 flex gap-1 border-b border-line">
-            <button className="pb-2.5 px-1 text-[14px] font-[700] text-primary border-b-2 border-primary mr-2">
-              Vorschläge
-            </button>
-            <button
-              disabled
-              className="pb-2.5 px-1 text-[14px] font-[600] text-ink-3 border-b-2 border-transparent cursor-not-allowed mr-2"
-              title="Kommt bald"
-            >
-              Planung
-            </button>
-            <button
-              disabled
-              className="pb-2.5 px-1 text-[14px] font-[600] text-ink-3 border-b-2 border-transparent cursor-not-allowed"
-              title="Kommt bald"
-            >
-              Archiv
-            </button>
+            {(
+              [
+                { id: 'vorschlaege', label: 'Vorschläge', disabled: false },
+                { id: 'planung', label: 'Planung', disabled: false },
+                { id: 'archiv', label: 'Archiv', disabled: true },
+              ] as { id: 'vorschlaege' | 'planung' | 'archiv'; label: string; disabled: boolean }[]
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => !tab.disabled && setActiveTab(tab.id as typeof activeTab)}
+                disabled={tab.disabled}
+                className={`pb-2.5 px-1 text-[14px] border-b-2 mr-2 transition-colors
+                  ${activeTab === tab.id
+                    ? 'font-[700] text-primary border-primary'
+                    : tab.disabled
+                      ? 'font-[600] text-ink-3 border-transparent cursor-not-allowed'
+                      : 'font-[600] text-ink-3 border-transparent hover:text-ink-2'
+                  }`}
+                title={tab.disabled ? 'Kommt bald' : undefined}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* Filter chips */}
-          <div className="flex-shrink-0 px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar">
-            {FILTER_CHIPS.map((chip) => {
-              const active = activeFilter === chip.value
-              return (
-                <button
-                  key={chip.value ?? 'all'}
-                  onClick={() => setActiveFilter(chip.value)}
-                  className={`flex-shrink-0 text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill border-[1.5px] transition-all
-                    ${active
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-surface text-ink-2 border-line hover:border-primary/40'
-                    }`}
-                >
-                  {chip.label}
-                </button>
-              )
-            })}
-          </div>
+          {/* ── Vorschläge Tab ── */}
+          {activeTab === 'vorschlaege' && (
+            <>
+              {/* Filter chips */}
+              <div className="flex-shrink-0 px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar">
+                {FILTER_CHIPS.map((chip) => {
+                  const active = activeFilter === chip.value
+                  return (
+                    <button
+                      key={chip.value ?? 'all'}
+                      onClick={() => setActiveFilter(chip.value)}
+                      className={`flex-shrink-0 text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill border-[1.5px] transition-all
+                        ${active
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-surface text-ink-2 border-line hover:border-primary/40'
+                        }`}
+                    >
+                      {chip.label}
+                    </button>
+                  )
+                })}
+              </div>
 
-          {/* Max-proposals warning */}
-          {atProposalLimit && canCreate && (
-            <div className="mx-5 mb-1 flex items-start gap-2 bg-accent-soft border border-accent/20 rounded-[12px] px-3 py-2.5">
-              <AlertCircle className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
-              <p className="text-[12.5px] text-ink-2 leading-snug">
-                Maximale Vorschlagsanzahl erreicht ({proposals.length}/{memberCount}).
-                Erst wenn ein Vorschlag abgestimmt oder gelöscht wird, kannst du einen neuen erstellen.
-              </p>
-            </div>
+              {/* Max-proposals warning */}
+              {atProposalLimit && canCreate && (
+                <div className="mx-5 mb-1 flex items-start gap-2 bg-accent-soft border border-accent/20 rounded-[12px] px-3 py-2.5">
+                  <AlertCircle className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+                  <p className="text-[12.5px] text-ink-2 leading-snug">
+                    Maximale Vorschlagsanzahl erreicht ({proposals.length}/{memberCount}).
+                    Erst wenn ein Vorschlag abgestimmt oder gelöscht wird, kannst du einen neuen erstellen.
+                  </p>
+                </div>
+              )}
+
+              {/* Proposal list */}
+              <div className="flex-1 overflow-y-auto px-5 pb-24">
+                {error && (
+                  <p className="mt-6 text-center text-[13px] text-error">{error}</p>
+                )}
+
+                {loading ? (
+                  <div className="space-y-3 pt-3">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
+                    ))}
+                  </div>
+                ) : displayed.length === 0 ? (
+                  <EmptyProposalState
+                    hasFilter={activeFilter !== null}
+                    canCreate={canCreate}
+                    atLimit={atProposalLimit}
+                    onCreateClick={() => setCreateOpen(true)}
+                  />
+                ) : (
+                  <div className="space-y-3 pt-3">
+                    {displayed.map((p) => (
+                      <ProposalCard
+                        key={p.id}
+                        proposal={p}
+                        hasVoted={myVotedIds.has(p.id)}
+                        isPending={votePending.has(p.id)}
+                        currentUserId={user?.id ?? ''}
+                        isAdmin={isAdmin}
+                        onVote={toggleVote}
+                        onEdit={setEditProposal}
+                        onDelete={setDeleteTarget}
+                        onReset={setResetTarget}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* FAB — Create Proposal */}
+              {canCreate && !atProposalLimit && (
+                <div className="absolute bottom-6 right-5">
+                  <Button
+                    onClick={() => setCreateOpen(true)}
+                    className="h-12 px-5 bg-primary hover:bg-primary-600 text-white font-[700] text-[14px]
+                               rounded-pill border border-primary-600 shadow-lg gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Vorschlag
+                  </Button>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Proposal list */}
-          <div className="flex-1 overflow-y-auto px-5 pb-24">
-            {error && (
-              <p className="mt-6 text-center text-[13px] text-error">{error}</p>
-            )}
-
-            {loading ? (
-              <div className="space-y-3 pt-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
-                ))}
-              </div>
-            ) : displayed.length === 0 ? (
-              <EmptyProposalState
-                hasFilter={activeFilter !== null}
-                canCreate={canCreate}
-                atLimit={atProposalLimit}
-                onCreateClick={() => setCreateOpen(true)}
+          {/* ── Planung Tab (Kanban-Board) ── */}
+          {activeTab === 'planung' && (
+            <div className="flex-1 overflow-hidden px-4 py-4">
+              <KanbanBoard
+                groupId={groupId}
+                currentUserId={user?.id ?? ''}
+                isAdmin={isAdmin}
               />
-            ) : (
-              <div className="space-y-3 pt-3">
-                {displayed.map((p) => (
-                  <ProposalCard
-                    key={p.id}
-                    proposal={p}
-                    hasVoted={myVotedIds.has(p.id)}
-                    isPending={votePending.has(p.id)}
-                    currentUserId={user?.id ?? ''}
-                    isAdmin={isAdmin}
-                    onVote={toggleVote}
-                    onEdit={setEditProposal}
-                    onDelete={setDeleteTarget}
-                    onReset={setResetTarget}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* FAB — Create Proposal */}
-          {canCreate && !atProposalLimit && (
-            <div className="absolute bottom-6 right-5">
-              <Button
-                onClick={() => setCreateOpen(true)}
-                className="h-12 px-5 bg-primary hover:bg-primary-600 text-white font-[700] text-[14px]
-                           rounded-pill border border-primary-600 shadow-lg gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Vorschlag
-              </Button>
             </div>
           )}
         </SheetContent>

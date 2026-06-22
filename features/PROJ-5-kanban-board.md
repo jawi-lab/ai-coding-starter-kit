@@ -1,6 +1,6 @@
 # PROJ-5: Kanban-Board
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-22
 
@@ -216,6 +216,52 @@ Initiator / Admin → ⋯ → "Planung abschließen" / "Als abgeschlossen markie
 - Die UPDATE-Policy auf `activities` aus PROJ-4 erlaubt nur dem Initiator Änderungen. Sie muss um Admin-Rollcheck erweitert werden: Mitglied in `group_members` mit `role = 'admin'` für die gleiche `group_id`.
 - Supabase Realtime respektiert RLS — nur Gruppenmitglieder empfangen Updates.
 - Client-Validierung des Zeitraums dient der UX; Sicherheit liegt vollständig in RLS.
+
+## Implementation Notes (Frontend)
+
+**Gebaut am:** 2026-06-22
+
+### Neue Dateien
+- `src/hooks/useKanbanActivities.ts` — Datenabruf + Realtime-Subscription (Channel `kanban:{groupId}`)
+- `src/hooks/useUpdateActivityStatus.ts` — Status + Start/End-Datum in `activities` schreiben
+- `src/components/groups/KanbanCard.tsx` — Aktivitätskarte: Thumbnail, Name, Initiator, Zeitraum, ⋯ ActionMenu
+- `src/components/groups/KanbanColumn.tsx` — Spalte: Header mit Count, Kartenliste, Empty State (gestrichelt)
+- `src/components/groups/KanbanBoard.tsx` — Board-Wrapper: Mobile shadcn-Tabs / Desktop 4-Col-Grid, Dialog-State-Management
+- `src/components/groups/MoveToPlanningDialog.tsx` — DateRange-Picker via shadcn Calendar + Popover, Validierung
+- `src/components/groups/ConfirmStatusDialog.tsx` — Generischer Bestätigungsdialog für Statusübergänge ab `in_planung`
+
+### Geänderte Dateien
+- `src/lib/activity-types.ts` — `ActivityStatus` um `in_planung`, `planung_abgeschlossen` erweitert; `KANBAN_STATUSES`, `KanbanStatus`, `KANBAN_COLUMN_LABELS` hinzugefügt; `start_date`/`end_date` zu `Activity`
+- `src/components/groups/GroupMainSheet.tsx` — Tab-State eingeführt, „Planung"-Tab aktiviert, KanbanBoard eingebunden; shadcn Calendar installiert
+- `src/components/ui/calendar.tsx` — via `npx shadcn@latest add calendar` installiert
+
+### Abweichungen vom Tech-Design
+- `canManage` wird nicht als Board-Level-Boolean, sondern per-Card berechnet: `isAdmin || activity.initiator_id === currentUserId` — konform mit Spec (Initiator verwaltet eigene Karten, Admin alle)
+- Archiv-Tab bleibt disabled (kein `activeTab === 'archiv'`-Branch) — PROJ-8 ist Owner
+
+## Implementation Notes (Backend)
+
+**Gebaut am:** 2026-06-22
+
+### DB-Migration: `add_kanban_fields_and_fix_rls`
+
+**Neue Spalten auf `activities`:**
+- `start_date date NULL` — Geplantes Startdatum (gesetzt bei `zu_planen → in_planung`)
+- `end_date date NULL` — Geplantes Enddatum
+
+**Erweiterter CHECK-Constraint `activities_status_check`:**
+- Vorher: `['vorschlag', 'zu_planen', 'geplant', 'abgeschlossen']`
+- Nachher: `['vorschlag', 'zu_planen', 'geplant', 'in_planung', 'planung_abgeschlossen', 'abgeschlossen']`
+- `geplant` bleibt für Bestandsdaten erhalten
+
+**RLS UPDATE-Policy `activities_update_initiator_admin` (ersetzt):**
+- Vorher: USING + WITH CHECK beide auf `status = 'vorschlag'` → nur Metadaten-Edits auf Vorschläge möglich
+- Nachher:
+  - USING: `status <> 'abgeschlossen' AND (initiator OR admin)` — alle Kanban-Übergänge erlaubt
+  - WITH CHECK: `initiator OR admin` — verhindert Privilege Escalation
+  - `abgeschlossen` ist Terminalzustand (kein Update via Client möglich)
+- `vorschlag → zu_planen`-Übergang weiterhin durch SECURITY-DEFINER-Trigger `trg_activity_votes_count` (nicht durch RLS betroffen)
+- `reset_activity_votes` RPC läuft als SECURITY DEFINER — nicht betroffen
 
 ## QA Test Results
 _To be added by /qa_

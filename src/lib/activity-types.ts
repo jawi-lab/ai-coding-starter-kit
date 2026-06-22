@@ -1,5 +1,27 @@
 export type DurationCategory = 'spontan' | 'wochenende' | 'laengerer_zeitraum'
-export type ActivityStatus = 'vorschlag' | 'zu_planen' | 'geplant' | 'abgeschlossen'
+export type ActivityStatus =
+  | 'vorschlag'
+  | 'zu_planen'
+  | 'geplant'
+  | 'in_planung'
+  | 'planung_abgeschlossen'
+  | 'abgeschlossen'
+
+export const KANBAN_STATUSES = [
+  'zu_planen',
+  'in_planung',
+  'planung_abgeschlossen',
+  'abgeschlossen',
+] as const satisfies ActivityStatus[]
+
+export type KanbanStatus = (typeof KANBAN_STATUSES)[number]
+
+export const KANBAN_COLUMN_LABELS: Record<KanbanStatus, string> = {
+  zu_planen: 'Zu Planen',
+  in_planung: 'In Planung',
+  planung_abgeschlossen: 'Planung abgeschlossen',
+  abgeschlossen: 'Abgeschlossen',
+}
 
 export interface Activity {
   id: string
@@ -13,6 +35,8 @@ export interface Activity {
   description: string | null
   og_image_url: string | null
   status: ActivityStatus
+  start_date: string | null
+  end_date: string | null
   created_at: string
 }
 
