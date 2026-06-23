@@ -481,3 +481,10 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
   - Neuer Trigger `on_auth_user_confirmed` (AFTER UPDATE OF `email_confirmed_at` ON `auth.users`) flippt das Profil automatisch auf `active`, sobald die Email bestätigt wird — vollständig server-seitig, synchron zur echten Bestätigung.
   - Backfill bringt bestehende Profile in Einklang mit ihrem Bestätigungsstatus.
 - Die Callback-Seite muss den Status dadurch nicht mehr selbst setzen; der `profiles`-`upsert` (inkl. `'network'`-Fehlerzweig) wurde entfernt — die Seite löst nur noch die Session auf und leitet weiter.
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Signup "Verbindungsfehler" entschärft** (`SignupForm.tsx`): Die generische Fehlermeldung verdeckte den wahren Grund. Auth-Logs zeigten `429 over_email_send_rate_limit` — das eingebaute Supabase-Mailing limitiert auf wenige Mails/Stunde. Fehler-Mapping ergänzt: spezifische Meldung bei Rate-Limit (429 / `over_email_send_rate_limit`), Passwort-Hinweis, sonst die echte Fehlermeldung statt "Verbindungsfehler".
+- **Offene Aufgabe (Ops, kein Code):** Custom-SMTP-Provider (z. B. Resend) in Supabase Auth → SMTP hinterlegen, um das Rate-Limit dauerhaft zu beheben.

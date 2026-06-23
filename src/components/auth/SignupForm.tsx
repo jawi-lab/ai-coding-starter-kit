@@ -55,10 +55,25 @@ export function SignupForm() {
 
     if (signupError) {
       const msg = signupError.message.toLowerCase()
+      const code = (signupError as { code?: string }).code ?? ''
+      const status = (signupError as { status?: number }).status
       if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
         setError('Diese E-Mail-Adresse ist bereits registriert')
+      } else if (
+        code === 'over_email_send_rate_limit' ||
+        status === 429 ||
+        msg.includes('rate limit') ||
+        msg.includes('too many')
+      ) {
+        // Supabase's built-in email service has a very low send-rate cap.
+        // Surface a clear, honest message instead of a generic "Verbindungsfehler".
+        setError(
+          'Zu viele Registrierungen in kurzer Zeit. Bitte warte ein paar Minuten und versuche es erneut.'
+        )
+      } else if (msg.includes('password')) {
+        setError('Das Passwort erfüllt nicht die Anforderungen (mind. 8 Zeichen).')
       } else {
-        setError('Verbindungsfehler — bitte versuche es erneut.')
+        setError(signupError.message || 'Verbindungsfehler — bitte versuche es erneut.')
       }
       return
     }
