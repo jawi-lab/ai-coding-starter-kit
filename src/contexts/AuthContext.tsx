@@ -38,9 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function signOut() {
-    await supabase.auth.signOut()
-    // Navigation is handled by the SIGNED_OUT event in onAuthStateChange
-    // to guarantee the session is cleared from storage before the redirect.
+    try {
+      // scope: 'local' clears the session from storage without depending on a
+      // network call to revoke the token server-side. A failed/expired global
+      // logout would otherwise throw before the SIGNED_OUT event fires, leaving
+      // the user stuck on the page.
+      await supabase.auth.signOut({ scope: 'local' })
+    } catch {
+      // Ignore — we redirect regardless below.
+    } finally {
+      // Guaranteed redirect, independent of the SIGNED_OUT event.
+      window.location.href = '/login'
+    }
   }
 
   async function loadProfile(userId: string) {

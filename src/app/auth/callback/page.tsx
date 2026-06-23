@@ -57,43 +57,87 @@ export default function AuthCallbackPage() {
       return
     }
 
-    // Timeout: if no auth event fires within 10 seconds, the link is likely invalid
+    // Capture the link type BEFORE supabase-js processes and clears the URL,
+    // so a recovery link is still routed correctly even via the getSession path.
+    const isRecovery =
+      (new URLSearchParams(window.location.hash.substring(1)).get('type') ??
+        new URLSearchParams(window.location.search.substring(1)).get('type')) === 'recovery'
+
+    let done = false
+
+    async function finishSignIn(userId: string, displayName: string) {
+      if (done) return
+      done = true
+      // Profile is already created (status 'active') by the handle_new_user
+      // trigger, so this upsert is best-effort — never block sign-in on it.
+      await supabase
+        .from('profiles')
+        .upsert({ id: userId, display_name: displayName, status: 'active' }, { onConflict: 'id' })
+        .then(() => {}, () => {})
+      window.location.href = '/'
+    }
+
+    function deriveName(session: { user: { user_metadata?: Record<string, unknown>; email?: string } }) {
+      return (
+        (session.user.user_metadata?.display_name as string | undefined) ??
+        session.user.email?.split('@')[0] ??
+        'Nutzer'
+      )
+    }
+
+    // Timeout: if no session can be resolved within 10 seconds, the link is invalid
     const timeout = setTimeout(() => {
+      if (done) return
+      done = true
       setErrorKind('generic')
       setState('error')
     }, 10_000)
 
+    // Listen for auth events (covers slow URL detection / recovery)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
+        if (done) return
+        done = true
         clearTimeout(timeout)
-        subscription.unsubscribe()
         window.location.href = '/reset-password'
         return
       }
-
-      if (event === 'SIGNED_IN' && session) {
-        const displayName =
-          session.user.user_metadata?.display_name ??
-          session.user.email?.split('@')[0] ??
-          'Nutzer'
-
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({ id: session.user.id, display_name: displayName, status: 'active' }, { onConflict: 'id' })
-
+      if (event === 'SIGNED_IN' && session && !isRecovery) {
         clearTimeout(timeout)
-        subscription.unsubscribe()
-
-        if (error) {
-          setErrorKind('network')
-          setState('error')
-        } else {
-          window.location.href = '/'
-        }
+        finishSignIn(session.user.id, deriveName(session))
       }
     })
+
+    // Proactively resolve a session. detectSessionInUrl often establishes the
+    // session before this listener attaches, so the SIGNED_IN event is missed
+    // and the page would otherwise time out despite a successful confirmation.
+    ;(async () => {
+      // PKCE links arrive with ?code=…; exchange it if present and not yet done.
+      const code = new URLSearchParams(window.location.search.substring(1)).get('code')
+      if (code) {
+        try {
+          await supabase.auth.exchangeCodeForSession(code)
+        } catch {
+          // Fall through to getSession / event / timeout handling.
+        }
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session || done) return
+      clearTimeout(timeout)
+
+      if (isRecovery) {
+        done = true
+        window.location.href = '/reset-password'
+        return
+      }
+      finishSignIn(session.user.id, deriveName(session))
+    })()
 
     return () => {
       clearTimeout(timeout)

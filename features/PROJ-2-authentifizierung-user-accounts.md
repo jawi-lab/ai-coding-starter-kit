@@ -463,3 +463,15 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 - [x] Alle Env Vars gesetzt
 - [ ] Supabase Redirect URL für Production gesetzt (manuell)
 - [ ] Auth-Flow in Production getestet (Signup, Login, Logout)
+
+### Hotfix 2026-06-23 — Logout & Email-Bestätigung
+
+**1. „Ausloggen"-Button reagierte nicht.**
+- *Ursache:* `signOut()` wartete ausschließlich auf das `SIGNED_OUT`-Event für die Navigation. Ohne Fehler-Handling/Fallback und mit dem Default-Scope `'global'` (Netzwerk-Call) konnte das Event ausbleiben → Button schien wirkungslos.
+- *Fix:* `supabase.auth.signOut({ scope: 'local' })` in `try/catch` mit garantiertem Redirect (`window.location.href = '/login'`) im `finally` ([AuthContext.tsx](../src/contexts/AuthContext.tsx)).
+
+**2. Email-Bestätigungslink zeigte „Bestätigung fehlgeschlagen", obwohl die Bestätigung server-seitig erfolgreich war** (`email_confirmed_at` + `last_sign_in_at` gesetzt).
+- *Ursache:* Die Callback-Seite wartete nur auf das `SIGNED_IN`-Event. `detectSessionInUrl` etabliert die Session aber oft, bevor der React-Listener hängt → Event verpasst → 10s-Timeout → generischer Fehler.
+- *Fix:* [auth/callback](../src/app/auth/callback/page.tsx) löst die Session jetzt **aktiv** per `getSession()` auf (plus PKCE-`code`-Exchange als Fallback), statt nur passiv auf das Event zu warten. Recovery-Links werden über den vorab gelesenen `type`-Parameter weiterhin korrekt nach `/reset-password` geleitet.
+
+**Hinweis (offen):** Der Trigger `handle_new_user` legt Profile bereits beim Signup mit `status = 'active'` an — die Email-Bestätigung gated also nur über Supabase-Auth selbst, nicht über den Profilstatus. Kein akuter Bug, aber für die `pending`→`active`-Logik vormerken.
