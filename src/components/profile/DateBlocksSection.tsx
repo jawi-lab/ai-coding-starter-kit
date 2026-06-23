@@ -96,7 +96,7 @@ export function DateBlocksSection() {
               className="flex items-center gap-2 bg-surface border border-line rounded-[10px] px-3 py-2.5"
             >
               <CalendarOff className="h-3.5 w-3.5 text-ink-3 flex-shrink-0" />
-              <span className="flex-1 text-[13.5px] text-ink font-[600]">
+              <span className="flex-1 min-w-0 text-[13.5px] text-ink font-[600] truncate">
                 {formatBlockLabel(block)}
               </span>
               <button

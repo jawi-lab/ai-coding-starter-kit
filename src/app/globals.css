@@ -116,8 +116,13 @@
   * {
     @apply border-border;
   }
+  html,
   body {
     @apply bg-background text-foreground;
+    /* Prevent any horizontal overflow from shifting fixed-position sheets
+       off-screen on iOS Safari (caused the "Fenster abgeschnitten" bug). */
+    overflow-x: hidden;
+    max-width: 100%;
   }
 }
 

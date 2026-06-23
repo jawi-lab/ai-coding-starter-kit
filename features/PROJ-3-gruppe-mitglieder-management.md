@@ -435,3 +435,11 @@ supabase/functions/generate-invite-code/index.ts
 **Fix (Client, defensiv):** [groups/page.tsx](../src/app/groups/page.tsx) leitet jetzt nur noch bei `!loading && !error && groups.length === 0` auf `/onboarding` — bei einem Lesefehler **kein** stiller Bounce mehr.
 
 **Offen (Security-Advisor, niedrig):** Trigger-Funktionen `handle_new_user` / `handle_user_confirmed` sind als `SECURITY DEFINER` per REST aufrufbar (WARN). Harmlos, aber `EXECUTE` von `anon`/`authenticated` ließe sich entziehen (Trigger feuern unabhängig davon).
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Mitgliederzahl aktualisiert ohne Reload** (`useGroups.ts`): `group_members` ist nicht in der Realtime-Publication. Stattdessen lädt die Gruppenliste jetzt bei `focus`/`visibilitychange` neu — Beitritte von anderen Geräten erscheinen ohne manuellen Reload.
+- **Mobile Cut-off behoben** (`globals.css`): globaler `overflow-x: hidden` + `max-width: 100%` auf `html, body`. iOS Safari verschob fixe Sheets bei horizontalem Overflow aus dem sichtbaren Bereich ("Fenster abgeschnitten").
+- **Navigation auf echte Routen umgestellt:** Gruppe öffnen navigiert jetzt zu `/groups/[groupId]/vorschlaege` statt ein schmales rechtes Sheet zu öffnen. Gemeinsames Layout (`app/groups/[groupId]/layout.tsx`) trägt Header, Tab-Navigation, Settings-Sheet und Activity-Detail-Sheet. `GroupMainSheet.tsx` entfernt.

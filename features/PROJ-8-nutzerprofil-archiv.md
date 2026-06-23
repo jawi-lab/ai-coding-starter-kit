@@ -396,3 +396,9 @@ Der `client_secret` existiert ausschließlich als Supabase Edge Function Environ
 
 ### New Routes
 - `/auth/google-calendar/callback` — static OAuth callback page
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Blockierungs-Ansicht mobil korrigiert** (`DateBlocksSection.tsx`): Zeile gegen Overflow gehärtet (`min-w-0` + `truncate`). Eigentliche Ursache des "abgeschnitten"-Problems war globaler horizontaler Overflow → in PROJ-3 via `globals.css` (`overflow-x: hidden`) behoben.

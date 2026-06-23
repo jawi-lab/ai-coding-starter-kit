@@ -73,6 +73,23 @@ export function useGroups() {
     fetchGroups()
   }, [fetchGroups])
 
+  // Member counts / memberships can change on another device (e.g. someone
+  // joins via invite code). Without server push for group_members we refetch
+  // whenever the tab regains focus/visibility, so the list reflects reality
+  // without forcing a manual reload.
+  useEffect(() => {
+    if (!user) return
+    function refresh() {
+      if (document.visibilityState === 'visible') fetchGroups()
+    }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [user, fetchGroups])
+
   async function createGroup(name: string): Promise<{ groupId: string | null; error: string | null }> {
     if (!user) return { groupId: null, error: 'Nicht eingeloggt' }
 
