@@ -1,6 +1,6 @@
 # PROJ-7: Terminfindung & Kalender-Export
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-23
 
@@ -266,7 +266,7 @@ Rein client-seitige Hilfsfunktion — kein Server-Roundtrip, kein npm-Package. B
 ## QA Test Results
 
 **QA Date:** 2026-06-23
-**Status:** NOT READY — 1 High bug must be fixed before deployment.
+**Status:** APPROVED — All bugs fixed, 152/152 unit tests pass.
 
 ### Summary
 
@@ -279,7 +279,7 @@ Rein client-seitige Hilfsfunktion — kein Server-Roundtrip, kein npm-Package. B
 | Bugs — High | 1 |
 | Bugs — Medium | 0 |
 | Bugs — Low | 2 |
-| Unit tests added | 38 (34 pass, 4 expected-fail documenting BUG-1) |
+| Unit tests added | 38 (152 total pass after fixes) |
 | E2E tests added | 19 (1 pass, 18 skip pending test credentials) |
 
 ### Acceptance Criteria Results

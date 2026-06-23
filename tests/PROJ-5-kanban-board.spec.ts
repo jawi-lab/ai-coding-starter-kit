@@ -225,7 +225,7 @@ test.describe('Kanban Board — Action Menu (Initiator / Admin)', () => {
     await page.waitForSelector('main', { timeout: 5000 })
   })
 
-  test('AC-ACTION-1: "In Planung verschieben" appears in ⋯ menu for zu_planen cards (initiator/admin)', async ({ page }) => {
+  test('AC-ACTION-1: "Termin finden" appears in ⋯ menu for zu_planen cards (initiator/admin)', async ({ page }) => {
     if (page.url().includes('onboarding')) {
       test.skip(true, 'User has no groups')
       return
@@ -245,16 +245,17 @@ test.describe('Kanban Board — Action Menu (Initiator / Admin)', () => {
     await page.waitForTimeout(300)
 
     // The action menu item depends on the card's current status
-    const moveToPlanning = page.getByText('In Planung verschieben')
+    // PROJ-7: "In Planung verschieben" replaced by "Termin finden"
+    const terminFinden = page.getByText('Termin finden')
     const finishPlanning = page.getByText('Planung abschließen')
     const markComplete = page.getByText('Als abgeschlossen markieren')
 
-    const hasAction = (await moveToPlanning.count() + await finishPlanning.count() + await markComplete.count()) > 0
+    const hasAction = (await terminFinden.count() + await finishPlanning.count() + await markComplete.count()) > 0
     expect(hasAction).toBe(true)
     await page.keyboard.press('Escape')
   })
 
-  test('AC-ACTION-2: MoveToPlanningDialog opens with date picker when "In Planung verschieben" is clicked', async ({ page }) => {
+  test('AC-ACTION-2: DateFinderSheet öffnet sich mit Kalender wenn "Termin finden" geklickt wird', async ({ page }) => {
     if (page.url().includes('onboarding')) {
       test.skip(true, 'User has no groups')
       return
@@ -270,22 +271,25 @@ test.describe('Kanban Board — Action Menu (Initiator / Admin)', () => {
     await actionsBtn.click()
     await page.waitForTimeout(300)
 
-    const moveOption = page.getByText('In Planung verschieben')
-    if ((await moveOption.count()) === 0) {
+    // PROJ-7: "In Planung verschieben" replaced by "Termin finden"
+    const terminOption = page.getByText('Termin finden')
+    if ((await terminOption.count()) === 0) {
       test.skip(true, 'No "zu_planen" card available')
       return
     }
 
-    await moveOption.click()
-    await page.waitForTimeout(300)
+    await terminOption.click()
+    await page.waitForTimeout(800)
 
-    await expect(page.getByText('In Planung verschieben').first()).toBeVisible({ timeout: 2000 })
-    await expect(page.getByText('Zeitraum auswählen')).toBeVisible()
+    // DateFinderSheet should open (PROJ-7 replacement for MoveToPlanningDialog)
+    await expect(page.getByText('Termin finden').first()).toBeVisible({ timeout: 2000 })
     await expect(page.getByRole('button', { name: 'Abbrechen' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'In Planung verschieben', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Termin bestätigen' })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Abbrechen' }).click()
   })
 
-  test('AC-ACTION-3: MoveToPlanningDialog shows validation error when confirmed without date', async ({ page }) => {
+  test('AC-ACTION-3: DateFinderSheet — "Termin bestätigen" ist deaktiviert ohne Datumsauswahl', async ({ page }) => {
     if (page.url().includes('onboarding')) {
       test.skip(true, 'User has no groups')
       return
@@ -301,17 +305,18 @@ test.describe('Kanban Board — Action Menu (Initiator / Admin)', () => {
     await actionsBtn.click()
     await page.waitForTimeout(300)
 
-    const moveOption = page.getByText('In Planung verschieben')
-    if ((await moveOption.count()) === 0) {
+    // PROJ-7: "In Planung verschieben" replaced by "Termin finden"
+    const terminOption = page.getByText('Termin finden')
+    if ((await terminOption.count()) === 0) {
       test.skip(true, 'No "zu_planen" card available')
       return
     }
 
-    await moveOption.click()
-    await page.waitForTimeout(300)
+    await terminOption.click()
+    await page.waitForTimeout(600)
 
-    // The confirm button should be disabled without a date
-    const confirmBtn = page.getByRole('button', { name: 'In Planung verschieben', exact: true })
+    // Confirm button should be disabled without a date selection
+    const confirmBtn = page.getByRole('button', { name: 'Termin bestätigen' })
     await expect(confirmBtn).toBeDisabled()
 
     // Cancel and close

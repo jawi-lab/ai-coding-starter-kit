@@ -74,28 +74,22 @@ describe('DTSTART and DTEND', () => {
     expect(await getContent()).toContain('DTSTART;VALUE=DATE:20240805')
   })
 
-  // BUG-1 (HIGH): ical-export.ts uses `new Date(endDate + 'T00:00:00')` which creates
-  // a LOCAL-time Date. Calling `.toISOString().slice(0,10)` then extracts the UTC date,
-  // which is one day behind in any UTC+ timezone (e.g. Germany UTC+1/UTC+2).
-  // Fix: use UTC arithmetic — `new Date(Date.UTC(y, m-1, d+1)).toISOString().slice(0,10)`.
-  // These tests are marked `.fails()` to document the bug; flip to regular `it()` after fix.
-
-  it.fails('DTEND is exclusive — single-day event ends next day', async () => {
+  it('DTEND is exclusive — single-day event ends next day', async () => {
     exportToIcal({ uid: 'x', summary: 'T', startDate: '2024-06-15', endDate: '2024-06-15' })
     expect(await getContent()).toContain('DTEND;VALUE=DATE:20240616')
   })
 
-  it.fails('DTEND is exclusive — multi-day event ends day after endDate', async () => {
+  it('DTEND is exclusive — multi-day event ends day after endDate', async () => {
     exportToIcal({ uid: 'x', summary: 'T', startDate: '2024-06-10', endDate: '2024-06-17' })
     expect(await getContent()).toContain('DTEND;VALUE=DATE:20240618')
   })
 
-  it.fails('DTEND crosses month boundary correctly (Jan 31 → Feb 1)', async () => {
+  it('DTEND crosses month boundary correctly (Jan 31 → Feb 1)', async () => {
     exportToIcal({ uid: 'x', summary: 'T', startDate: '2024-01-31', endDate: '2024-01-31' })
     expect(await getContent()).toContain('DTEND;VALUE=DATE:20240201')
   })
 
-  it.fails('DTEND crosses year boundary correctly (Dec 31 → Jan 1)', async () => {
+  it('DTEND crosses year boundary correctly (Dec 31 → Jan 1)', async () => {
     exportToIcal({ uid: 'x', summary: 'T', startDate: '2024-12-31', endDate: '2024-12-31' })
     expect(await getContent()).toContain('DTEND;VALUE=DATE:20250101')
   })
