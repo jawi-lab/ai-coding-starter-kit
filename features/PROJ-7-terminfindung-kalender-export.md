@@ -1,6 +1,6 @@
 # PROJ-7: Terminfindung & Kalender-Export
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-23
 
@@ -387,4 +387,14 @@ const dtend = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10).rep
 - **E2E Tests:** `tests/PROJ-7-terminfindung-kalender-export.spec.ts` (19 Tests)
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-06-23
+**Production URL:** https://ai-coding-starter-kit-ebon.vercel.app
+**Vercel Deployment ID:** dpl_E3YmDKBTuSNqfZ25LE7cFCLno2pF
+**Git Tag:** v1.7.0-PROJ-7
+
+### Deployment Notes
+- Vercel production build: ✅ (33s, all 12 static pages generated)
+- Edge Function `get-group-availability` deployed to Supabase (Version 2, ACTIVE)
+- `npm run lint` is broken in Next.js 16 (`next lint` command was removed) — does not affect Vercel builds (Vercel ran the build clean). Fix: update `package.json` lint script to use `eslint` directly.
+- GitHub auto-deploy did not trigger (webhook delay); deployed manually via `npx vercel --prod`
