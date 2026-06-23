@@ -1,6 +1,6 @@
 # PROJ-7: Terminfindung & Kalender-Export
 
-## Status: Architected
+## Status: In Review
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-23
 
@@ -226,8 +226,165 @@ Rein client-seitige Hilfsfunktion — kein Server-Roundtrip, kein npm-Package. B
 | `ActivityDetailSheet` | Fügt "Termin anpassen"-Button (Admin + Status-Guard) + "Zum Kalender hinzufügen"-Button (Datums-Guard) hinzu |
 | `MoveToPlanningDialog` | Wird eingestellt — vollständig durch `DateFinderSheet` ersetzt |
 
+## Implementation Notes (Frontend — 2026-06-23)
+
+### New files
+- `src/lib/ical-export.ts` — RFC-5545 client-side iCal generator; no npm package; ganztägige Events (`DTSTART;VALUE=DATE`/`DTEND;VALUE=DATE`); DTEND exklusiv (Day+1)
+- `src/hooks/useGroupAvailability.ts` — ruft `get-group-availability` Edge Function auf; berechnet Farb-Map für 12 Monate client-seitig (O(member × day)); exponiert `getDayColor(date)`, `refresh()`, `cachedAt`, `membersWithoutCalendar`
+- `src/components/groups/DateFinderSheet.tsx` — Fullscreen Bottom-Sheet (96dvh); react-day-picker v10 range mode mit modifiersClassNames für Verfügbarkeitsfarben; MissingCalendarBanner, CacheRefreshBar, ErrorState, Availability-Legend, Footer mit Range-Preview
+
+### Modified files
+- `KanbanCard.tsx` — Menu-Label "In Planung verschieben" → "Termin finden"
+- `KanbanBoard.tsx` — `MoveToPlanningDialog` durch `DateFinderSheet mode="schedule"` ersetzt; `handleMoveToPlanning` entfernt; DialogState `move-to-planning` → `find-date`
+- `ActivityDetailSheet.tsx` — `DateFinderSheet mode="adjust"` + `handleIcalExport`; Buttons "Termin anpassen" (canEdit + status guard) und "Zum Kalender hinzufügen" (start_date guard, auch im readOnly-Modus sichtbar)
+
+### Deviations from spec
+- Availability-Farben als leichte Tages-Backgrounds (`bg-green-100` etc.) via `modifiersClassNames`; im selektierten Range-Bereich überschreibt die Primary-Selection-Farbe die Availability-Farbe (react-day-picker v10 data-attribute-Styling hat Vorrang) — visuell akzeptabel für MVP
+- `Nav: () => <></>` statt `Nav: () => null` wegen TypeScript-Einschränkung in react-day-picker v10
+
+## Implementation Notes (Backend — 2026-06-23)
+
+### DB Migration
+- `group_availability_cache` Tabelle erstellt: `id`, `group_id` (unique FK → groups.id CASCADE), `cached_at`, `data` (jsonb); RLS aktiviert ohne Policies (nur Service Role Zugriff)
+- `activities` Tabelle hatte `start_date`, `end_date`, `location` bereits aus PROJ-8 — keine neue Migration nötig
+- `database.types.ts` aktualisiert: `start_date`/`end_date`/`location` in `activities` ergänzt; `group_availability_cache` Tabellen-Typ hinzugefügt
+
+### Edge Function `get-group-availability`
+- `supabase/functions/get-group-availability/index.ts` — deployed als Version 1; `verify_jwt: true`
+- Sicherheits-Check: JWT → user.id → Mitgliedschaft in `group_members` (Forbidden bei nicht-Mitglied)
+- Cache-Logik: prüft `group_availability_cache` per `group_id`; bei Alter < 30 Min sofortige Rückgabe; nach Neuberechnung upsert per `group_id`
+- Parallel-Abfragen: `profiles`, `calendar_connections`, `user_date_blocks` gleichzeitig in `Promise.all`; Google freeBusy pro Mitglied ebenfalls parallel
+- Token-Refresh: proaktiv wenn `expires_at - 60s ≤ now`; reaktiv bei `null`-Antwort von Google; schlägt Refresh fehl → `calendar_type: null` (grau)
+- `calendar_type`-Logik: `'google'` wenn verbunden + API erreichbar; `'manual'` wenn nur `user_date_blocks` vorhanden; `null` wenn keine Daten
+- Manuelle Blockierungen: `user_date_blocks.start_date`/`end_date` → ISO-Datetime-Range (`T00:00:00Z` / `T23:59:59Z`); mit Google Busy Ranges gemergt
+
+### Benötigte Env Vars (Supabase Edge Functions)
+- `GOOGLE_CLIENT_ID` — Google OAuth App Client ID
+- `GOOGLE_CLIENT_SECRET` — Google OAuth App Client Secret
+(bereits für PROJ-8 `google-calendar-oauth` Funktion gesetzt)
+
 ## QA Test Results
-_To be added by /qa_
+
+**QA Date:** 2026-06-23
+**Status:** NOT READY — 1 High bug must be fixed before deployment.
+
+### Summary
+
+| Category | Count |
+|---|---|
+| Acceptance Criteria tested | 18 / ~25 |
+| Acceptance Criteria passed | 17 |
+| Acceptance Criteria blocked (require multi-user / credentials) | 7 |
+| Bugs — Critical | 0 |
+| Bugs — High | 1 |
+| Bugs — Medium | 0 |
+| Bugs — Low | 2 |
+| Unit tests added | 38 (34 pass, 4 expected-fail documenting BUG-1) |
+| E2E tests added | 19 (1 pass, 18 skip pending test credentials) |
+
+### Acceptance Criteria Results
+
+#### Terminfindung starten (Kanban-Karte)
+| AC | Result | Notes |
+|---|---|---|
+| "Termin finden" erscheint im ⋯-Menü für Admin/Initiator | PASS | AC-KANBAN-1 |
+| DateFinderSheet öffnet sich | PASS | AC-KANBAN-2 |
+| Sheet ruft Edge Function ab + zeigt Lade-Zustand | PASS | AC-KANBAN-5 |
+| Kalender mit Farb-Overlay + Legende | PASS | AC-KANBAN-3 |
+| Hinweis-Banner für Mitglieder ohne Kalender | PASS | AC-BANNER-1 (conditional) |
+| Cache-Refresh-Bar ("Zuletzt aktualisiert") | PASS | AC-CACHE-1 |
+| Datumsauswahl und Range-Preview im Footer | PASS | AC-RANGE-1 |
+| "Termin bestätigen" deaktiviert ohne Datum | PASS | AC-KANBAN-4 |
+| Auto-Swap Start/Ende wenn falsch herum gewählt | PASS | Code-Review (handleRangeSelect) |
+| Aktivität wechselt zu in_planung bei Bestätigung | SKIP | Benötigt Test-Credentials |
+| Abbrechen schließt Sheet ohne Statusänderung | PASS | AC-KANBAN-6 |
+| Redakteur/Beobachter sieht kein "Termin finden" | SKIP | Benötigt Multi-User-Test |
+
+#### Terminfindung nachträglich anpassen (Detailansicht)
+| AC | Result | Notes |
+|---|---|---|
+| "Termin anpassen"-Button sichtbar für Admin/Initiator (in_planung / planung_abgeschlossen) | PASS | AC-ADJUST-1 |
+| Sheet öffnet sich im Anpassen-Modus ("Termin anpassen" Titel, "Termin speichern" Button) | PASS | AC-ADJUST-2 |
+| Aktuell gesetzter Zeitraum vorausgewählt | SKIP | Benötigt Aktivität mit gesetztem Termin |
+| Neuer Zeitraum wird gespeichert, Status bleibt unverändert | SKIP | Benötigt Test-Credentials |
+| Redakteur/Beobachter sieht keinen "Termin anpassen"-Button | SKIP | Benötigt Multi-User-Test |
+
+#### iCal-Export (Detailansicht)
+| AC | Result | Notes |
+|---|---|---|
+| "Zum Kalender hinzufügen" sichtbar wenn start_date gesetzt | PASS | AC-ICAL-1 |
+| Download-Trigger bei Klick (Browser download event) | PASS | AC-ICAL-2 |
+| RFC-5545 konformes Format (Unit Tests) | PARTIAL | DTSTART ✓, CRLF ✓, UID ✓, SUMMARY ✓, DESCRIPTION ✓, LOCATION ✓, Escaping ✓ — **DTEND FAIL (BUG-1)** |
+| Button nicht sichtbar wenn kein Termin gesetzt | PASS | AC-ICAL-3 |
+| Aktivität abgeschlossen: Export-Button bleibt sichtbar | SKIP | Benötigt abgeschlossene Aktivität |
+
+#### Fehlerverhalten
+| AC | Result | Notes |
+|---|---|---|
+| Edge Function nicht erreichbar → Fehler-State mit Retry-Button | PASS | Code-Review (ErrorState + Retry button implementiert) |
+| Einzelnes Mitglied schlägt fehl → wird als grau gewertet | PASS | Code-Review (Edge Function: catch → calendar_type: null) |
+| Bestätigung schlägt fehl → Sheet bleibt offen, Toast-Fehler | PASS | Code-Review (handleConfirm: toast.error + kein onClose) |
+
+### Bugs
+
+#### BUG-1 (HIGH): iCal-Export DTEND timezone bug — falsches Enddatum in UTC+ Zeitzonen
+
+**Datei:** `src/lib/ical-export.ts` Zeile 14–16
+
+**Beschreibung:** `new Date(opts.endDate + 'T00:00:00')` erzeugt ein lokales Datum. Die anschließende Umwandlung mit `.toISOString().slice(0, 10)` extrahiert das UTC-Datum, das in allen UTC+-Zeitzonen (u.a. Deutschland UTC+1/UTC+2) **einen Tag zu früh** liegt. Das erzeugte DTEND ist falsch — Google Calendar, Apple Calendar und Outlook erhalten eine Aktivität, die einen Tag kürzer als geplant erscheint.
+
+**Reproduktion (Deutschland, UTC+2):**
+- Aktivität mit `end_date = '2024-06-15'`
+- Erwartet: `DTEND;VALUE=DATE:20240616`
+- Tatsächlich: `DTEND;VALUE=DATE:20240615`
+
+**Fix:** UTC-Datumsarithmetik verwenden:
+```ts
+const [y, m, d] = opts.endDate.split('-').map(Number)
+const dtend = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10).replace(/-/g, '')
+```
+
+**Unit Test:** 4 `it.fails()`-Tests in `src/lib/ical-export.test.ts` dokumentieren das korrekte Verhalten; werden zu regulären `it()`-Tests sobald der Fix eingespielt ist.
+
+---
+
+#### BUG-2 (LOW): Grammatikfehler im MissingCalendarBanner
+
+**Datei:** `src/components/groups/DateFinderSheet.tsx` Zeile 198
+
+**Beschreibung:** Wenn genau 1 Mitglied keinen Kalender verbunden hat, erscheint der Text: `"1 von 5 Mitglieder ohne Kalender"` — korrekt im Deutschen wäre `"1 von 5 Mitgliedern ohne Kalender"` (Dativ Plural nach "von").
+
+**Fix:** `? \`1 von ${totalMembers} Mitglieder\`` → `? \`1 von ${totalMembers} Mitgliedern\``
+
+---
+
+#### BUG-3 (LOW): Veraltete PROJ-5 E2E-Tests nach Ersatz von MoveToPlanningDialog
+
+**Datei:** `tests/PROJ-5-kanban-board.spec.ts` Zeilen AC-ACTION-2 und AC-ACTION-3
+
+**Beschreibung:** Die Tests suchen nach `"In Planung verschieben"` als Dialog-Titel und Button-Text sowie `"Zeitraum auswählen"` — diese UI-Elemente wurden durch `DateFinderSheet` ersetzt (PROJ-7). Die Tests schlagen fehl, sobald Test-Credentials gesetzt sind.
+
+**Fix:** AC-ACTION-2 und AC-ACTION-3 in `tests/PROJ-5-kanban-board.spec.ts` auf das neue `DateFinderSheet`-Muster aktualisieren (Titel: "Termin finden", Button: "Termin bestätigen").
+
+### Security Audit
+
+| Check | Result |
+|---|---|
+| Edge Function: JWT erforderlich (`verify_jwt: true`) | PASS |
+| Edge Function: Aufrufer muss Gruppen-Mitglied sein (Security-Check) | PASS |
+| Service Role Key nie an Client weitergegeben | PASS |
+| Google OAuth Tokens nur server-seitig (Edge Function) zugänglich | PASS |
+| `group_availability_cache`: RLS aktiviert, keine Client-Policies (nur Service Role) | PASS |
+| iCal-Export: vollständig client-seitig, kein Server-Roundtrip | PASS |
+| Keine hardcodierten Secrets in Quellcode | PASS |
+| Parameterisierte DB-Queries (Supabase-Client) | PASS |
+| XSS: iCal-Felder werden escaped (RFC-5545 Escaping) | PASS |
+| Autorisierung: "Termin finden" nur für Admin/Initiator sichtbar (canManage-Check) | PASS |
+
+### Test Files
+
+- **Unit Tests:** `src/lib/ical-export.test.ts` (22 Tests), `src/hooks/useGroupAvailability.test.ts` (16 Tests)
+- **E2E Tests:** `tests/PROJ-7-terminfindung-kalender-export.spec.ts` (19 Tests)
 
 ## Deployment
 _To be added by /deploy_
