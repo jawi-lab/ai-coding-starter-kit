@@ -39,7 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     await supabase.auth.signOut()
-    window.location.href = '/login'
+    // Navigation is handled by the SIGNED_OUT event in onAuthStateChange
+    // to guarantee the session is cleared from storage before the redirect.
   }
 
   async function loadProfile(userId: string) {
@@ -77,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loadProfile(session.user.id)
       } else {
         setProfile(null)
+        if (_event === 'SIGNED_OUT') {
+          window.location.href = '/login'
+        }
       }
     })
 
