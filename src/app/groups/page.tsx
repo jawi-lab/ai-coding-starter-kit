@@ -7,7 +7,6 @@ import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useGroups } from '@/hooks/useGroups'
 import { useAuth } from '@/contexts/AuthContext'
 import { GroupCard } from '@/components/groups/GroupCard'
-import { GroupMainSheet } from '@/components/groups/GroupMainSheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,20 +23,17 @@ import { Plus } from 'lucide-react'
 function GroupsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { profile, signOut } = useAuth()
-  const { groups, loading, error, refetch } = useGroups()
+  const { profile } = useAuth()
+  const { groups, loading, error } = useGroups()
 
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
-  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null
   const [addSheetOpen, setAddSheetOpen] = useState(false)
   const [profileSheetOpen, setProfileSheetOpen] = useState(false)
 
-  // Open group from query param (e.g., after creation/join)
+  // Open group from query param (e.g., after creation/join) → navigate to its page
   useEffect(() => {
     const groupParam = searchParams.get('group')
     if (groupParam) {
-      setActiveGroupId(groupParam)
-      router.replace('/groups')
+      router.replace(`/groups/${groupParam}/vorschlaege`)
     }
   }, [searchParams, router])
 
@@ -62,18 +58,9 @@ function GroupsContent() {
     ? profile.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
-  function handleGroupLeft() {
-    refetch()
-  }
-
-  function handleGroupDeleted() {
-    refetch()
-  }
-
   function handleAddGroupSuccess(groupId: string) {
     setAddSheetOpen(false)
-    refetch()
-    setActiveGroupId(groupId)
+    router.push(`/groups/${groupId}/vorschlaege`)
   }
 
   return (
@@ -134,20 +121,12 @@ function GroupsContent() {
               <GroupCard
                 key={group.id}
                 group={group}
-                onClick={() => setActiveGroupId(group.id)}
+                onClick={() => router.push(`/groups/${group.id}/vorschlaege`)}
               />
             ))}
           </div>
         )}
       </main>
-
-      {/* Group Main Sheet */}
-      <GroupMainSheet
-        group={activeGroup}
-        onClose={() => setActiveGroupId(null)}
-        onGroupLeft={handleGroupLeft}
-        onGroupDeleted={handleGroupDeleted}
-      />
 
       {/* Profile Sheet */}
       <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />

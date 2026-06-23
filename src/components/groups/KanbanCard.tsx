@@ -18,6 +18,11 @@ interface KanbanCardProps {
   onConfirmFinishPlanning: (activity: ActivityWithInitiator) => void
   onConfirmComplete: (activity: ActivityWithInitiator) => void
   onOpenDetail?: (activity: ActivityWithInitiator) => void
+  /** Drag-and-drop (desktop only). When provided and the card is manageable,
+   *  the card becomes draggable to advance it to the next column. */
+  onDragStartActivity?: (activity: ActivityWithInitiator) => void
+  onDragEndActivity?: () => void
+  isDragging?: boolean
 }
 
 function formatDateRange(start: string | null, end: string | null): string | null {
@@ -37,14 +42,27 @@ export function KanbanCard({
   onConfirmFinishPlanning,
   onConfirmComplete,
   onOpenDetail,
+  onDragStartActivity,
+  onDragEndActivity,
+  isDragging = false,
 }: KanbanCardProps) {
   const canManage = activity.status !== 'abgeschlossen' && (isAdmin || activity.initiator_id === currentUserId)
   const coverSrc = activity.og_image_url || PLACEHOLDER_IMAGE
   const dateRange = formatDateRange(activity.start_date, activity.end_date)
+  const draggable = canManage && !!onDragStartActivity
 
   return (
     <div
-      className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform"
+      draggable={draggable}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move'
+        e.dataTransfer.setData('text/plain', activity.id)
+        onDragStartActivity?.(activity)
+      }}
+      onDragEnd={() => onDragEndActivity?.()}
+      className={`bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform
+        ${draggable ? 'md:cursor-grab md:active:cursor-grabbing' : ''}
+        ${isDragging ? 'opacity-40' : ''}`}
       onClick={() => onOpenDetail?.(activity)}
     >
       {/* Cover image */}

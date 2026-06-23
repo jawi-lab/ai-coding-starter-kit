@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,7 +9,7 @@ import { DateFinderSheet } from './DateFinderSheet'
 import { ConfirmStatusDialog } from './ConfirmStatusDialog'
 import { useKanbanActivities } from '@/hooks/useKanbanActivities'
 import { useUpdateActivityStatus } from '@/hooks/useUpdateActivityStatus'
-import type { ActivityWithInitiator } from '@/lib/activity-types'
+import type { ActivityWithInitiator, KanbanStatus } from '@/lib/activity-types'
 import { KANBAN_STATUSES, KANBAN_COLUMN_LABELS } from '@/lib/activity-types'
 
 interface KanbanBoardProps {
@@ -29,6 +29,11 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
   const { activities, loading, error } = useKanbanActivities(groupId)
   const { updateStatus, loading: updating } = useUpdateActivityStatus()
   const [dialog, setDialog] = useState<DialogState>(null)
+
+  // ── Drag-and-drop state (desktop) ──────────────────────────────────────────
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [draggingStatus, setDraggingStatus] = useState<KanbanStatus | null>(null)
+  const draggedActivityRef = useRef<ActivityWithInitiator | null>(null)
 
   const byStatus = KANBAN_STATUSES.reduce(
     (acc, s) => {
@@ -76,6 +81,46 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
     onConfirmComplete: (a: ActivityWithInitiator) =>
       setDialog({ type: 'complete', activity: a }),
     onOpenDetail,
+  }
+
+  // ── Drag-and-drop handlers ──────────────────────────────────────────────────
+  function handleDragStart(a: ActivityWithInitiator) {
+    draggedActivityRef.current = a
+    setDraggingId(a.id)
+    setDraggingStatus(a.status as KanbanStatus)
+  }
+
+  function handleDragEnd() {
+    draggedActivityRef.current = null
+    setDraggingId(null)
+    setDraggingStatus(null)
+  }
+
+  function handleDrop(targetStatus: KanbanStatus) {
+    const a = draggedActivityRef.current
+    handleDragEnd()
+    if (!a) return
+
+    const from = KANBAN_STATUSES.indexOf(a.status as KanbanStatus)
+    const to = KANBAN_STATUSES.indexOf(targetStatus)
+    if (to === from) return
+
+    // Only a single forward step is allowed — each maps to its gated action.
+    if (to === from + 1) {
+      if (targetStatus === 'in_planung') columnProps.onMoveToPlanning(a)
+      else if (targetStatus === 'planung_abgeschlossen') columnProps.onConfirmFinishPlanning(a)
+      else if (targetStatus === 'abgeschlossen') columnProps.onConfirmComplete(a)
+    } else {
+      toast.info('Aktivitäten lassen sich nur Schritt für Schritt in die nächste Spalte ziehen.')
+    }
+  }
+
+  const dragProps = {
+    onDropActivity: handleDrop,
+    onDragStartActivity: handleDragStart,
+    onDragEndActivity: handleDragEnd,
+    draggingId,
+    draggingStatus,
   }
 
   if (error) {
@@ -143,6 +188,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
               status={s}
               activities={byStatus[s]}
               {...columnProps}
+              {...dragProps}
             />
           ))
         )}

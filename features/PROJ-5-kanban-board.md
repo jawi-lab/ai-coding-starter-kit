@@ -381,3 +381,11 @@ Keine Critical- oder High-Bugs vorhanden. Die zwei Medium-Bugs (BUG-5-01, BUG-5-
 
 ## Deployment
 _To be added by /deploy_
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Eigene Seite:** Das Kanban-Board lebt jetzt unter `app/groups/[groupId]/planung/page.tsx` (vollbreite Route, bis `max-w-5xl`) statt im schmalen Sheet — die 4 Spalten haben endlich Platz.
+- **Drag & Drop ergänzt** (`KanbanBoard.tsx`, `KanbanColumn.tsx`, `KanbanCard.tsx`): War nie implementiert. Native HTML5-DnD auf dem Desktop-Grid. Karten sind ziehbar (nur wenn `canManage`), Zielspalte hebt sich bei gültigem Drop hervor. Erlaubt ist nur **ein Schritt vorwärts**, gemappt auf dieselben gateten Aktionen wie die Buttons (z. B. `zu_planen → in_planung` öffnet den Terminfindungs-Dialog). Ungültige/Rückwärts-Drops zeigen einen Hinweis-Toast.
+- **Hinweis:** Mobil nutzt das Board weiterhin Tabs (kein Touch-DnD; HTML5-DnD reagiert nicht auf Touch). Echtes Touch-Dragging via `@dnd-kit` ist als Folgeaufgabe vorgesehen.

@@ -447,3 +447,11 @@ No Critical or High bugs. All 25 acceptance criteria pass. Security audit clean.
 - **Production URL:** https://ai-coding-starter-kit.vercel.app
 - **Platform:** Vercel (auto-deploy via GitHub push to main)
 - **Commits deployed:** c8a8b72 → f6a2b5b (docs, backend, QA, status update)
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Vorschlagslimit entfernt:** Die Begrenzung `proposals.length >= memberCount` (1/1-Warnbanner) war nicht sinnvoll — beliebig viele Backlog-Vorschläge sind jetzt erlaubt. Warnbanner und `atProposalLimit`-Logik entfernt.
+- **Redundanter Empty-State-Button entfernt:** "Ersten Vorschlag erstellen" auf dem leeren Board gestrichen; der schwebende **+ Vorschlag** FAB ist der einzige Erstell-Einstieg.
+- **Eigene Seite:** Der Backlog lebt jetzt unter `app/groups/[groupId]/vorschlaege/page.tsx` (vollbreite Route statt Sheet-Tab), liest Gruppen-Meta aus `GroupShellContext`.
