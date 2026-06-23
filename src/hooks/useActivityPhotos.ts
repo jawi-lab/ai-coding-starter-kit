@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPublicUrl } from '@/lib/storage'
 import type { ActivityPhoto } from '@/lib/activity-types'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
@@ -105,6 +106,5 @@ export function useActivityPhotos(
 
 export function useActivityPhotoUrl(storagePath: string | null): string | null {
   if (!storagePath) return null
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
-  return data?.publicUrl ?? null
+  return getPublicUrl(BUCKET, storagePath)
 }

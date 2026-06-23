@@ -27,6 +27,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
+import { getPublicUrl } from '@/lib/storage'
 import { exportToIcal } from '@/lib/ical-export'
 import { useActivityDetail } from '@/hooks/useActivityDetail'
 import { DateFinderSheet } from './DateFinderSheet'
@@ -39,6 +40,7 @@ import type {
   ActivityStatus, ActivityComment, ActivityResponsibility, ActivityPhoto,
 } from '@/lib/activity-types'
 import { PLACEHOLDER_IMAGE } from '@/lib/activity-types'
+import { formatGermanDateRange } from '@/lib/date-format'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import type { Json } from '@/lib/database.types'
 
@@ -65,14 +67,7 @@ const STATUS_BADGE: Record<ActivityStatus, string> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDateRange(start: string | null, end: string | null): string | null {
-  if (!start && !end) return null
-  const fmt = (d: string) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('de-DE', {
-      day: '2-digit', month: '2-digit', year: '2-digit',
-    })
-  if (start && end) return `${fmt(start)} – ${fmt(end)}`
-  if (start) return `Ab ${fmt(start)}`
-  return null
+  return formatGermanDateRange(start, end, { dateOnly: true, openEndedPrefix: 'Ab ' })
 }
 
 function extractMentionIds(content: JSONContent): string[] {
@@ -99,8 +94,7 @@ function extractCommentImagePaths(content: JSONContent): string[] {
 }
 
 function getPhotoUrl(storagePath: string): string {
-  const { data } = supabase.storage.from('activity-photos').getPublicUrl(storagePath)
-  return data.publicUrl
+  return getPublicUrl('activity-photos', storagePath)
 }
 
 function avatarFallback(name: string): string {

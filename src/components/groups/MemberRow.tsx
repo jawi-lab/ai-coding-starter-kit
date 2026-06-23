@@ -23,6 +23,7 @@ import {
 import { MoreHorizontal, Shield, Edit2, Eye, UserMinus } from 'lucide-react'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import { ROLE_LABELS } from '@/lib/group-types'
+import { getInitials } from '@/lib/avatar'
 
 interface MemberRowProps {
   member: GroupMember
@@ -50,12 +51,7 @@ export function MemberRow({
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
   const [removing, setRemoving] = useState(false)
 
-  const initials = member.profile.display_name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  const initials = getInitials(member.profile.display_name)
 
   const avatarColor =
     member.role === 'admin' ? 'bg-primary' : member.role === 'editor' ? 'bg-secondary' : 'bg-accent'

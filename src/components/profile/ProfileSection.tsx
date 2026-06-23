@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Pencil, Check, X, Camera } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
+import { getInitials } from '@/lib/avatar'
 
 export function ProfileSection() {
   const { profile } = useAuth()
@@ -16,9 +17,7 @@ export function ProfileSection() {
   const [editName, setEditName] = useState('')
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
-  const initials = profile?.display_name
-    ? profile.display_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'U'
+  const initials = getInitials(profile?.display_name)
 
   function enterEditMode() {
     setEditName(profile?.display_name ?? '')

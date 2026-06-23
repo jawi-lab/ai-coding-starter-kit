@@ -4,31 +4,18 @@ import { Badge } from '@/components/ui/badge'
 import { MapPin } from 'lucide-react'
 import type { ArchiveActivity } from '@/hooks/useArchive'
 import { PLACEHOLDER_IMAGE } from '@/lib/activity-types'
+import { formatGermanDate, formatGermanDateRange } from '@/lib/date-format'
 
 interface ArchiveActivityCardProps {
   activity: ArchiveActivity
   onClick: () => void
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  })
-}
-
-function formatDateRange(start: string | null, end: string | null): string | null {
-  if (!start && !end) return null
-  const fmt = (d: string) => formatDate(d)
-  if (start && end && start !== end) return `${fmt(start)} – ${fmt(end)}`
-  if (start) return fmt(start)
-  return null
-}
-
 export function ArchiveActivityCard({ activity, onClick }: ArchiveActivityCardProps) {
-  const dateRange = formatDateRange(activity.start_date, activity.end_date)
-  const archivedAt = formatDate(activity.created_at)
+  const dateRange = formatGermanDateRange(activity.start_date, activity.end_date, {
+    collapseEqual: true,
+  })
+  const archivedAt = formatGermanDate(activity.created_at)
 
   return (
     <button

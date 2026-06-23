@@ -11,20 +11,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Trash2, CalendarOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { useDateBlocks, type DateBlock } from '@/hooks/useDateBlocks'
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
-}
+import { formatGermanDateRange } from '@/lib/date-format'
 
 function formatBlockLabel(block: DateBlock): string {
-  if (!block.end_date || block.end_date === block.start_date) {
-    return formatDate(block.start_date)
-  }
-  return `${formatDate(block.start_date)} – ${formatDate(block.end_date)}`
+  return (
+    formatGermanDateRange(block.start_date, block.end_date, {
+      dateOnly: true,
+      year: 'numeric',
+      collapseEqual: true,
+    }) ?? ''
+  )
 }
 
 export function DateBlocksSection() {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPublicUrl } from '@/lib/storage'
 import type { ActivityComment, CreateCommentInput } from '@/lib/activity-types'
 
 interface UseActivityCommentsResult {
@@ -119,8 +120,7 @@ export async function uploadCommentImage(
 
   if (uploadErr) return { error: 'Upload fehlgeschlagen' }
 
-  const { data } = supabase.storage.from(COMMENT_IMAGE_BUCKET).getPublicUrl(storagePath)
-  return { url: data.publicUrl, storagePath }
+  return { url: getPublicUrl(COMMENT_IMAGE_BUCKET, storagePath), storagePath }
 }
 
 export async function deleteCommentImages(storagePaths: string[]): Promise<void> {

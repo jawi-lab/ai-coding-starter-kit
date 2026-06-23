@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPublicUrl } from '@/lib/storage'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function useProfile() {
@@ -54,9 +55,8 @@ export function useProfile() {
       setError('Profilbild konnte nicht hochgeladen werden')
       return false
     }
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
     // Add cache-busting param so browser reloads the new image
-    const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`
+    const avatarUrl = `${getPublicUrl('avatars', path)}?t=${Date.now()}`
     const { error: updateErr } = await supabase
       .from('profiles')
       .update({ avatar_url: avatarUrl })

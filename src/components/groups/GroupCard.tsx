@@ -3,6 +3,7 @@
 import { Users, ChevronRight } from 'lucide-react'
 import type { GroupWithMeta } from '@/lib/group-types'
 import { ROLE_LABELS } from '@/lib/group-types'
+import { getInitials } from '@/lib/avatar'
 
 interface GroupCardProps {
   group: GroupWithMeta
@@ -10,12 +11,7 @@ interface GroupCardProps {
 }
 
 export function GroupCard({ group, onClick }: GroupCardProps) {
-  const initials = group.name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  const initials = getInitials(group.name)
 
   return (
     <button

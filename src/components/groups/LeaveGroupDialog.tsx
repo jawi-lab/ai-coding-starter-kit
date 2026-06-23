@@ -25,6 +25,7 @@ import type { GroupMember, GroupRole } from '@/lib/group-types'
 import { ROLE_LABELS } from '@/lib/group-types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { getInitials } from '@/lib/avatar'
 
 interface LeaveGroupDialogProps {
   myRole: GroupRole
@@ -148,12 +149,7 @@ export function LeaveGroupDialog({
           <ScrollArea className="max-h-56">
             <div className="space-y-1 pr-1">
               {otherMembers.map((member) => {
-                const initials = member.profile.display_name
-                  .split(' ')
-                  .map((w) => w[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2)
+                const initials = getInitials(member.profile.display_name)
 
                 return (
                   <button

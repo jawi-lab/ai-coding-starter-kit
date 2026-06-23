@@ -7,6 +7,7 @@ import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useGroups } from '@/hooks/useGroups'
 import { useAuth } from '@/contexts/AuthContext'
 import { GroupCard } from '@/components/groups/GroupCard'
+import { getInitials } from '@/lib/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
@@ -54,9 +55,7 @@ function GroupsContent() {
     }
   }, [loading, error, groups.length, router])
 
-  const initials = profile?.display_name
-    ? profile.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'U'
+  const initials = getInitials(profile?.display_name)
 
   function handleAddGroupSuccess(groupId: string) {
     setAddSheetOpen(false)

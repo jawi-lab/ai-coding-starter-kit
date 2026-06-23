@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { ActivityWithInitiator } from '@/lib/activity-types'
 import { PLACEHOLDER_IMAGE } from '@/lib/activity-types'
+import { formatGermanDateRange } from '@/lib/date-format'
 
 interface KanbanCardProps {
   activity: ActivityWithInitiator
@@ -25,14 +26,6 @@ interface KanbanCardProps {
   isDragging?: boolean
 }
 
-function formatDateRange(start: string | null, end: string | null): string | null {
-  if (!start && !end) return null
-  const fmt = (d: string) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })
-  if (start && end) return `${fmt(start)} – ${fmt(end)}`
-  if (start) return `Ab ${fmt(start)}`
-  return null
-}
 
 export function KanbanCard({
   activity,
@@ -48,7 +41,10 @@ export function KanbanCard({
 }: KanbanCardProps) {
   const canManage = activity.status !== 'abgeschlossen' && (isAdmin || activity.initiator_id === currentUserId)
   const coverSrc = activity.og_image_url || PLACEHOLDER_IMAGE
-  const dateRange = formatDateRange(activity.start_date, activity.end_date)
+  const dateRange = formatGermanDateRange(activity.start_date, activity.end_date, {
+    dateOnly: true,
+    openEndedPrefix: 'Ab ',
+  })
   const draggable = canManage && !!onDragStartActivity
 
   return (
