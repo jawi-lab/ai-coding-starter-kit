@@ -204,6 +204,60 @@ export type Database = {
           },
         ]
       }
+      calendar_connections: {
+        Row: {
+          id: string
+          user_id: string
+          google_email: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          google_email: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          google_email?: string
+          access_token?: string
+          refresh_token?: string
+          expires_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      user_date_blocks: {
+        Row: {
+          id: string
+          user_id: string
+          start_date: string
+          end_date: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          start_date: string
+          end_date?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          start_date?: string
+          end_date?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       activity_photos: {
         Row: {
           id: string

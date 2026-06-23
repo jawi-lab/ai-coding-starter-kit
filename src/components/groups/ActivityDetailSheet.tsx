@@ -181,6 +181,7 @@ interface ActivityDetailSheetProps {
   isAdmin: boolean
   onClose: () => void
   onActivityUpdated?: () => void
+  readOnly?: boolean
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -192,6 +193,7 @@ export function ActivityDetailSheet({
   isAdmin,
   onClose,
   onActivityUpdated,
+  readOnly = false,
 }: ActivityDetailSheetProps) {
 
   // ── Data hooks ─────────────────────────────────────────────────────────────
@@ -345,7 +347,7 @@ export function ActivityDetailSheet({
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const status = activity?.status ?? null
-  const canEdit = isAdmin || activity?.initiator_id === currentUserId
+  const canEdit = !readOnly && (isAdmin || activity?.initiator_id === currentUserId)
   const showResponsibilities =
     status === 'in_planung' ||
     status === 'planung_abgeschlossen' ||
@@ -794,7 +796,7 @@ export function ActivityDetailSheet({
                                 alt=""
                                 className="w-full h-full object-cover"
                               />
-                              {(isAdmin || photo.user_id === currentUserId) && (
+                              {!readOnly && (isAdmin || photo.user_id === currentUserId) && (
                                 <button
                                   onClick={() => setDeletePhotoTarget(photo)}
                                   className="absolute top-1.5 right-1.5 h-6 w-6 rounded-[6px] flex items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-colors"
@@ -820,7 +822,7 @@ export function ActivityDetailSheet({
                         }}
                       />
 
-                      {photoLimitReached ? (
+                      {!readOnly && (photoLimitReached ? (
                         <p className="text-[12.5px] text-ink-3">
                           Du hast dein Limit von 5 Fotos erreicht.
                         </p>
@@ -833,7 +835,7 @@ export function ActivityDetailSheet({
                           <Plus className="h-4 w-4" />
                           {uploadingPhoto ? 'Wird hochgeladen…' : 'Foto hinzufügen'}
                         </button>
-                      )}
+                      ))}
 
                       <Separator className="bg-line" />
                     </div>
@@ -887,7 +889,7 @@ export function ActivityDetailSheet({
                                 <TiptapRenderer content={comment.content} />
                               </div>
                             </div>
-                            {(isAdmin || comment.user_id === currentUserId) && (
+                            {!readOnly && (isAdmin || comment.user_id === currentUserId) && (
                               <button
                                 onClick={() => setDeleteCommentTarget(comment)}
                                 className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-all"
@@ -911,7 +913,7 @@ export function ActivityDetailSheet({
           </div>
 
           {/* ── Fixed comment editor ── */}
-          <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-4">
+          {!readOnly && <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-4">
             {/* Mention dropdown */}
             {mentionOpen && mentionItems.length > 0 && (
               <div className="mb-2 bg-surface border border-line rounded-[12px] shadow-lg overflow-hidden max-h-44 overflow-y-auto">
@@ -1019,7 +1021,7 @@ export function ActivityDetailSheet({
                 <Send className="h-4 w-4" />
               </button>
             </div>
-          </div>
+          </div>}
         </SheetContent>
       </Sheet>
 

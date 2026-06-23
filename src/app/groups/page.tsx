@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useGroups } from '@/hooks/useGroups'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,16 +17,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Plus, LogOut, User } from 'lucide-react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { ProfileSheet } from '@/components/profile/ProfileSheet'
+import { Plus } from 'lucide-react'
 
 function GroupsContent() {
   const router = useRouter()
@@ -36,12 +30,21 @@ function GroupsContent() {
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null
   const [addSheetOpen, setAddSheetOpen] = useState(false)
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false)
 
   // Open group from query param (e.g., after creation/join)
   useEffect(() => {
     const groupParam = searchParams.get('group')
     if (groupParam) {
       setActiveGroupId(groupParam)
+      router.replace('/groups')
+    }
+  }, [searchParams, router])
+
+  // Show toast after successful Google Calendar OAuth
+  useEffect(() => {
+    if (searchParams.get('calendarConnected') === 'true') {
+      toast.success('Google Kalender erfolgreich verbunden')
       router.replace('/groups')
     }
   }, [searchParams, router])
@@ -89,35 +92,22 @@ function GroupsContent() {
             Hinzufügen
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-white text-xs font-[800]">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 rounded-[12px] bg-surface border-line">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold text-sm truncate">
-                    {profile?.display_name ?? 'Mein Konto'}
-                  </span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-line" />
-              <DropdownMenuItem
-                onClick={signOut}
-                className="text-error focus:text-error cursor-pointer text-[14px]"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Ausloggen
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setProfileSheetOpen(true)}
+            className="rounded-full h-9 w-9"
+            aria-label="Profil öffnen"
+          >
+            <Avatar className="h-8 w-8">
+              {profile?.avatar_url && (
+                <AvatarImage src={profile.avatar_url} alt={profile.display_name} />
+              )}
+              <AvatarFallback className="bg-primary text-white text-xs font-[800]">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
         </div>
       </header>
 
@@ -156,6 +146,9 @@ function GroupsContent() {
         onGroupLeft={handleGroupLeft}
         onGroupDeleted={handleGroupDeleted}
       />
+
+      {/* Profile Sheet */}
+      <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
 
       {/* Add group sheet (inline onboarding) */}
       <Sheet open={addSheetOpen} onOpenChange={setAddSheetOpen}>
