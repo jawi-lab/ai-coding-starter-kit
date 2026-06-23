@@ -398,3 +398,10 @@ All 4 QA bugs fixed. No open bugs remain.
 - **Git tag:** v1.6.0-PROJ-6
 - **Commit:** `feat(PROJ-6): Implement Aktivitäts-Detail — hooks, types, and component updates`
 - **Trigger:** Push to `main` → Vercel GitHub auto-deploy
+
+---
+
+## Post-Deployment Fixes (2026-06-23)
+
+- **Bildupload in Kommentaren repariert (Storage-RLS-Bug):** Die Policies für `activity-comment-images` (und `activity-photos`) lasen die Activity-ID aus `storage.foldername(activities.name)` statt aus dem Objektpfad. In der `FROM activities a`-Subquery band sich ein unqualifiziertes `name` an `activities.name` → `is_group_member(NULL)` → jeder Upload/Read wurde verweigert ("Upload fehlgeschlagen"). Fix: explizit `storage.objects.name` qualifizieren. Migration: `supabase/migrations/20260623_fix_storage_rls_foldername_self_reference.sql` (am 2026-06-23 auf Production angewendet & verifiziert).
+- Text-Kommentare waren nie betroffen (RLS auf `activity_comments` korrekt).
