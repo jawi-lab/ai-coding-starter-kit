@@ -415,3 +415,11 @@ supabase/functions/generate-invite-code/index.ts
 **Production URL:** https://ai-coding-starter-kit.vercel.app
 **Vercel Deployment:** https://ai-coding-starter-e63uub9bc-ja-wi.vercel.app
 **Git Tag:** v1.1.0-PROJ-3
+
+### Hotfix 2026-06-23 — „new row violates RLS policy for table groups" beim Gruppe erstellen
+
+**Symptom:** Gruppe anlegen schlug immer mit RLS-Fehler fehl; `groups`-Tabelle blieb leer.
+
+**Ursache:** Der client-seitige Insert nutzte `.insert().select()`. Das `RETURNING` braucht die SELECT-Policy `members_read_group` (`is_group_member(id)`), die zum Insert-Zeitpunkt fehlschlägt — die Mitgliedschaft entstand erst im zweiten Insert (Henne-Ei-Problem). PostgREST meldet das als RLS-Verletzung, das Statement rollt zurück.
+
+**Fix:** Neue SECURITY-DEFINER-RPC `create_group_with_membership(p_name)` (Migration `create_group_with_membership_rpc`), die Gruppe + Admin-Mitgliedschaft atomar anlegt und den Invite-Code server-seitig generiert. `useGroups.createGroup` ruft jetzt diese RPC. Behebt nebenbei das frühere Orphan-Group-Risiko.

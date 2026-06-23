@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { GroupWithMeta, GroupRole } from '@/lib/group-types'
-import { generateInviteCode } from '@/lib/group-types'
 
 export function useGroups() {
   const { user } = useAuth()
@@ -77,45 +76,26 @@ export function useGroups() {
   async function createGroup(name: string): Promise<{ groupId: string | null; error: string | null }> {
     if (!user) return { groupId: null, error: 'Nicht eingeloggt' }
 
-    let code = generateInviteCode()
-    let attempts = 0
-    let groupId: string | null = null
+    // Group + creator membership are created atomically server-side via a
+    // SECURITY DEFINER RPC. Doing the insert client-side fails RLS: the
+    // groups SELECT policy (members_read_group) blocks reading the row back
+    // before the membership exists.
+    const { data, error: rpcErr } = await supabase.rpc('create_group_with_membership', {
+      p_name: name.trim(),
+    })
 
-    while (attempts < 5) {
-      const { data: group, error: insertErr } = await supabase
-        .from('groups')
-        .insert({ name, created_by: user.id, invite_code: code })
-        .select('id')
-        .single()
+    if (rpcErr) return { groupId: null, error: rpcErr.message }
 
-      if (!insertErr && group) {
-        groupId = group.id
-        break
-      }
+    const result = data as { group_id?: string; error?: string }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((insertErr as any)?.code === '23505') {
-        code = generateInviteCode()
-        attempts++
-      } else {
-        return { groupId: null, error: insertErr?.message ?? 'Gruppe konnte nicht erstellt werden' }
-      }
-    }
-
-    if (!groupId) return { groupId: null, error: 'Fehler beim Generieren des Einladungs-Codes' }
-
-    const { error: memberErr } = await supabase
-      .from('group_members')
-      .insert({ group_id: groupId, user_id: user.id, role: 'admin' })
-
-    if (memberErr) {
-      // Cleanup is not possible client-side (RLS blocks group DELETE without admin membership).
-      // This path is extremely rare; the orphaned group is invisible to all users via RLS.
-      return { groupId: null, error: memberErr.message }
-    }
+    if (result.error === 'not_active') return { groupId: null, error: 'Bitte bestätige zuerst deine E-Mail-Adresse' }
+    if (result.error === 'invalid_name') return { groupId: null, error: 'Gruppenname ist erforderlich' }
+    if (result.error === 'name_too_long') return { groupId: null, error: 'Gruppenname darf maximal 50 Zeichen lang sein' }
+    if (result.error === 'code_generation_failed') return { groupId: null, error: 'Fehler beim Generieren des Einladungs-Codes' }
+    if (result.error) return { groupId: null, error: result.error }
 
     await fetchGroups()
-    return { groupId, error: null }
+    return { groupId: result.group_id ?? null, error: null }
   }
 
   async function joinGroup(code: string): Promise<{ groupId: string | null; error: string | null }> {

@@ -409,6 +409,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group_with_membership: {
+        Args: { p_name: string }
+        Returns: Json
+      }
       join_group_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
