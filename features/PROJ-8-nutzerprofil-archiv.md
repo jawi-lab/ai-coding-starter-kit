@@ -1,6 +1,6 @@
 # PROJ-8: Nutzerprofil & Archiv
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-23 (QA)
 
@@ -383,4 +383,16 @@ Der `client_secret` existiert ausschließlich als Supabase Edge Function Environ
 - Löschen-Button bei Blockierungen ist immer sichtbar (B2, Low)
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-06-23
+**Production URL:** https://ai-coding-starter-kit-ebon.vercel.app
+**Git Tag:** v1.8.0-PROJ-8
+**Commit:** a45f895
+
+### Deployment Notes
+- Pushed to `main`; Vercel auto-deployed via GitHub integration
+- Build: `npm run build` ✅ (12 static pages, 0 TypeScript errors)
+- 3 Low bugs (B1 character counter, B2 always-visible delete button, B3 empty-state text) deferred to follow-up sprint — no blocker for production
+
+### New Routes
+- `/auth/google-calendar/callback` — static OAuth callback page
