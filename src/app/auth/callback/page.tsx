@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 
 type PageState = 'loading' | 'error'
-type ErrorKind = 'expired' | 'used' | 'network' | 'generic'
+type ErrorKind = 'expired' | 'used' | 'generic'
 
 const ERROR_MESSAGES: Record<ErrorKind, { title: string; body: string }> = {
   expired: {
@@ -16,10 +16,6 @@ const ERROR_MESSAGES: Record<ErrorKind, { title: string; body: string }> = {
   used: {
     title: 'Account bereits bestätigt',
     body: 'Dein Account wurde bereits aktiviert. Du kannst dich jetzt einloggen.',
-  },
-  network: {
-    title: 'Verbindungsfehler',
-    body: 'Die Bestätigung war erfolgreich, aber ein Netzwerkfehler ist aufgetreten. Bitte logge dich ein — dein Account sollte aktiv sein.',
   },
   generic: {
     title: 'Bestätigung fehlgeschlagen',
@@ -65,24 +61,14 @@ export default function AuthCallbackPage() {
 
     let done = false
 
-    async function finishSignIn(userId: string, displayName: string) {
+    function finishSignIn() {
       if (done) return
       done = true
-      // Profile is already created (status 'active') by the handle_new_user
-      // trigger, so this upsert is best-effort — never block sign-in on it.
-      await supabase
-        .from('profiles')
-        .upsert({ id: userId, display_name: displayName, status: 'active' }, { onConflict: 'id' })
-        .then(() => {}, () => {})
+      // The profile row and its status are managed entirely server-side:
+      // handle_new_user creates it ('pending'), and the on_auth_user_confirmed
+      // trigger flips it to 'active' the moment the email is confirmed — which
+      // has already happened by the time this callback runs. So we just redirect.
       window.location.href = '/'
-    }
-
-    function deriveName(session: { user: { user_metadata?: Record<string, unknown>; email?: string } }) {
-      return (
-        (session.user.user_metadata?.display_name as string | undefined) ??
-        session.user.email?.split('@')[0] ??
-        'Nutzer'
-      )
     }
 
     // Timeout: if no session can be resolved within 10 seconds, the link is invalid
@@ -106,7 +92,7 @@ export default function AuthCallbackPage() {
       }
       if (event === 'SIGNED_IN' && session && !isRecovery) {
         clearTimeout(timeout)
-        finishSignIn(session.user.id, deriveName(session))
+        finishSignIn()
       }
     })
 
@@ -136,7 +122,7 @@ export default function AuthCallbackPage() {
         window.location.href = '/reset-password'
         return
       }
-      finishSignIn(session.user.id, deriveName(session))
+      finishSignIn()
     })()
 
     return () => {
@@ -148,7 +134,6 @@ export default function AuthCallbackPage() {
   if (state === 'error') {
     const msg = ERROR_MESSAGES[errorKind]
     const isUsed = errorKind === 'used'
-    const isNetwork = errorKind === 'network'
 
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -163,12 +148,12 @@ export default function AuthCallbackPage() {
             <p className="text-sm text-muted-foreground">{msg.body}</p>
           </div>
           <div className="flex flex-col gap-3">
-            {!isUsed && !isNetwork && (
+            {!isUsed && (
               <Button asChild>
                 <a href="/signup/pending">Neuen Link anfordern</a>
               </Button>
             )}
-            <Button variant={isUsed || isNetwork ? 'default' : 'outline'} asChild>
+            <Button variant={isUsed ? 'default' : 'outline'} asChild>
               <a href="/login">Zum Login</a>
             </Button>
           </div>

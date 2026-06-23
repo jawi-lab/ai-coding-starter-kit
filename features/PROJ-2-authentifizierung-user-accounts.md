@@ -474,4 +474,10 @@ Folgende Einstellungen müssen im Supabase-Projekt vorgenommen werden (einmalig,
 - *Ursache:* Die Callback-Seite wartete nur auf das `SIGNED_IN`-Event. `detectSessionInUrl` etabliert die Session aber oft, bevor der React-Listener hängt → Event verpasst → 10s-Timeout → generischer Fehler.
 - *Fix:* [auth/callback](../src/app/auth/callback/page.tsx) löst die Session jetzt **aktiv** per `getSession()` auf (plus PKCE-`code`-Exchange als Fallback), statt nur passiv auf das Event zu warten. Recovery-Links werden über den vorab gelesenen `type`-Parameter weiterhin korrekt nach `/reset-password` geleitet.
 
-**Hinweis (offen):** Der Trigger `handle_new_user` legt Profile bereits beim Signup mit `status = 'active'` an — die Email-Bestätigung gated also nur über Supabase-Auth selbst, nicht über den Profilstatus. Kein akuter Bug, aber für die `pending`→`active`-Logik vormerken.
+**3. `pending`→`active`-Status server-seitig sauber gezogen.**
+- *Vorher:* `handle_new_user` legte Profile direkt mit `status = 'active'` an → die Email-Bestätigung gated nie über den Profilstatus, die `/signup/pending`-/AuthGuard-Logik war wirkungslos.
+- *Fix (Migration `profile_status_follows_email_confirmation`):*
+  - `handle_new_user` setzt beim Signup `status = 'pending'` (bzw. `active`, falls bereits bestätigt — z. B. wenn Email-Confirmation deaktiviert ist).
+  - Neuer Trigger `on_auth_user_confirmed` (AFTER UPDATE OF `email_confirmed_at` ON `auth.users`) flippt das Profil automatisch auf `active`, sobald die Email bestätigt wird — vollständig server-seitig, synchron zur echten Bestätigung.
+  - Backfill bringt bestehende Profile in Einklang mit ihrem Bestätigungsstatus.
+- Die Callback-Seite muss den Status dadurch nicht mehr selbst setzen; der `profiles`-`upsert` (inkl. `'network'`-Fehlerzweig) wurde entfernt — die Seite löst nur noch die Session auf und leitet weiter.
