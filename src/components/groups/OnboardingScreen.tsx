@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CreateGroupForm } from './CreateGroupForm'
 import { JoinGroupForm } from './JoinGroupForm'
 import { Users, UserPlus } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 type Panel = 'choose' | 'create' | 'join'
 
@@ -13,6 +14,7 @@ interface OnboardingScreenProps {
 
 export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
   const [panel, setPanel] = useState<Panel>('choose')
+  const { signOut } = useAuth()
 
   return (
     <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-10">
@@ -98,6 +100,14 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
             ← Zurück
           </button>
         )}
+
+        {/* Logout */}
+        <button
+          onClick={signOut}
+          className="w-full text-center text-[12px] text-ink-3 hover:text-ink-2 transition-colors py-1"
+        >
+          Ausloggen
+        </button>
       </div>
     </div>
   )

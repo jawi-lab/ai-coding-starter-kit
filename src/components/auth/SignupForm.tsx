@@ -63,6 +63,11 @@ export function SignupForm() {
       return
     }
 
+    if (data.user?.identities?.length === 0) {
+      setError('Diese E-Mail-Adresse ist bereits registriert')
+      return
+    }
+
     if (data.user) {
       window.location.href = `/signup/pending?email=${encodeURIComponent(values.email)}`
     }
