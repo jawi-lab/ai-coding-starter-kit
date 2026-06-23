@@ -22,7 +22,7 @@
 | PROJ-5 | Kanban-Board | P0 | PROJ-4 | Deployed | [spec](PROJ-5-kanban-board.md) | 2026-06-21 |
 | PROJ-6 | Aktivitäts-Detail | P0 | PROJ-5 | Deployed | [spec](PROJ-6-aktivitaets-detail.md) | 2026-06-21 |
 | PROJ-7 | Terminfindung & Kalender-Export | P0 | PROJ-5, PROJ-6, PROJ-8 | Planned | [spec](PROJ-7-terminfindung-kalender-export.md) | 2026-06-21 |
-| PROJ-8 | Nutzerprofil & Archiv | P0 | PROJ-2, PROJ-6 | Architected | [spec](PROJ-8-nutzerprofil-archiv.md) | 2026-06-21 |
+| PROJ-8 | Nutzerprofil & Archiv | P0 | PROJ-2, PROJ-6 | Approved | [spec](PROJ-8-nutzerprofil-archiv.md) | 2026-06-21 |
 | PROJ-9 | Capacitor Native Apps (iOS + Android) | P1 | PROJ-1..PROJ-8 | Roadmap | — | 2026-06-21 |
 | PROJ-10 | Push-Benachrichtigungen (FCM/APNs) | P1 | PROJ-9 | Roadmap | — | 2026-06-21 |
 | PROJ-11 | OTA-Updates via Capgo | P2 | PROJ-9 | Roadmap | — | 2026-06-21 |
