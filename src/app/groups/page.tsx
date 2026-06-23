@@ -25,7 +25,7 @@ function GroupsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { profile, signOut } = useAuth()
-  const { groups, loading, refetch } = useGroups()
+  const { groups, loading, error, refetch } = useGroups()
 
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null
@@ -49,12 +49,14 @@ function GroupsContent() {
     }
   }, [searchParams, router])
 
-  // Redirect to onboarding if no groups and done loading
+  // Redirect to onboarding only when the user genuinely has no groups.
+  // Never redirect on a fetch error — that would silently bounce the user
+  // away (and hide the error) instead of surfacing the problem.
   useEffect(() => {
-    if (!loading && groups.length === 0) {
+    if (!loading && !error && groups.length === 0) {
       router.replace('/onboarding')
     }
-  }, [loading, groups.length, router])
+  }, [loading, error, groups.length, router])
 
   const initials = profile?.display_name
     ? profile.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)

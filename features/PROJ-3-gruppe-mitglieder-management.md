@@ -423,3 +423,15 @@ supabase/functions/generate-invite-code/index.ts
 **Ursache:** Der client-seitige Insert nutzte `.insert().select()`. Das `RETURNING` braucht die SELECT-Policy `members_read_group` (`is_group_member(id)`), die zum Insert-Zeitpunkt fehlschlägt — die Mitgliedschaft entstand erst im zweiten Insert (Henne-Ei-Problem). PostgREST meldet das als RLS-Verletzung, das Statement rollt zurück.
 
 **Fix:** Neue SECURITY-DEFINER-RPC `create_group_with_membership(p_name)` (Migration `create_group_with_membership_rpc`), die Gruppe + Admin-Mitgliedschaft atomar anlegt und den Invite-Code server-seitig generiert. `useGroups.createGroup` ruft jetzt diese RPC. Behebt nebenbei das frühere Orphan-Group-Risiko.
+
+### Hotfix 2026-06-23 (2) — Nach Gruppe-Anlegen Bounce zurück auf `/onboarding`
+
+**Symptom:** Nach dem Erstellen wurde `/groups` ~1 s gezeigt und dann auf `/onboarding` zurückgeworfen. Daten waren korrekt in der DB (Gruppe + Admin-Mitgliedschaft vorhanden).
+
+**Ursache (Server):** Die RLS-Helfer `is_group_member` / `is_group_admin` waren `SECURITY INVOKER`. Sie werden in der `group_members`-SELECT-Policy verwendet und lesen intern `group_members` — was dieselbe Policy erneut auslöst → **Endlos-Rekursion („stack depth limit exceeded")**. Jeder Lesezugriff auf Gruppen/Mitgliedschaften scheiterte (fiel nie auf, da es bis dahin keine Gruppen gab). `fetchGroups` bekam einen Fehler, `groups` blieb leer → die `/groups`-Seite leitete auf `/onboarding` um.
+
+**Fix (Server):** Migration `rls_helpers_security_definer_fix_recursion` — beide Helfer als `SECURITY DEFINER` mit fixem `search_path` neu angelegt (Standard-Supabase-Muster), sodass der interne Lookup die RLS umgeht. Sofort live, kein Deploy nötig.
+
+**Fix (Client, defensiv):** [groups/page.tsx](../src/app/groups/page.tsx) leitet jetzt nur noch bei `!loading && !error && groups.length === 0` auf `/onboarding` — bei einem Lesefehler **kein** stiller Bounce mehr.
+
+**Offen (Security-Advisor, niedrig):** Trigger-Funktionen `handle_new_user` / `handle_user_confirmed` sind als `SECURITY DEFINER` per REST aufrufbar (WARN). Harmlos, aber `EXECUTE` von `anon`/`authenticated` ließe sich entziehen (Trigger feuern unabhängig davon).
