@@ -22,8 +22,8 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | P0 | Aktivitäts-Vorschläge & Voting | Planned |
 | P0 | Kanban-Board | Planned |
 | P0 | Aktivitäts-Detail | Planned |
-| P0 | Terminfindung & Kalender-Export | Roadmap |
-| P0 | Nutzerprofil & Archiv | Roadmap |
+| P0 | Terminfindung & Kalender-Export | Planned |
+| P0 | Nutzerprofil & Archiv | Planned |
 | P1 | Capacitor Native Apps (iOS + Android) | Roadmap |
 | P1 | Push-Benachrichtigungen | Roadmap |
 | P1 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | Roadmap |

@@ -20,6 +20,7 @@ export type Database = {
           current_votes: number
           description: string | null
           duration_category: string
+          end_date: string | null
           group_id: string
           id: string
           initiator_id: string
@@ -27,6 +28,7 @@ export type Database = {
           name: string
           og_image_url: string | null
           required_votes: number
+          start_date: string | null
           status: string
           url: string | null
         }
@@ -35,6 +37,7 @@ export type Database = {
           current_votes?: number
           description?: string | null
           duration_category: string
+          end_date?: string | null
           group_id: string
           id?: string
           initiator_id: string
@@ -42,6 +45,7 @@ export type Database = {
           name: string
           og_image_url?: string | null
           required_votes: number
+          start_date?: string | null
           status?: string
           url?: string | null
         }
@@ -50,6 +54,7 @@ export type Database = {
           current_votes?: number
           description?: string | null
           duration_category?: string
+          end_date?: string | null
           group_id?: string
           id?: string
           initiator_id?: string
@@ -57,6 +62,7 @@ export type Database = {
           name?: string
           og_image_url?: string | null
           required_votes?: number
+          start_date?: string | null
           status?: string
           url?: string | null
         }
@@ -257,6 +263,35 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
+      }
+      group_availability_cache: {
+        Row: {
+          id: string
+          group_id: string
+          cached_at: string
+          data: Json
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          cached_at?: string
+          data?: Json
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          cached_at?: string
+          data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_availability_cache_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       activity_photos: {
         Row: {

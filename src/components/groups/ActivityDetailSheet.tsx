@@ -9,7 +9,7 @@ import PlaceholderExt from '@tiptap/extension-placeholder'
 import type { JSONContent } from '@tiptap/core'
 import {
   X, Pencil, Trash2, Plus, ImageIcon, Send,
-  MapPin, ExternalLink, Check,
+  MapPin, ExternalLink, Check, CalendarClock, CalendarPlus,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -27,7 +27,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase'
+import { exportToIcal } from '@/lib/ical-export'
 import { useActivityDetail } from '@/hooks/useActivityDetail'
+import { DateFinderSheet } from './DateFinderSheet'
 import {
   useActivityComments, uploadCommentImage, deleteCommentImages,
 } from '@/hooks/useActivityComments'
@@ -197,7 +199,7 @@ export function ActivityDetailSheet({
 }: ActivityDetailSheetProps) {
 
   // ── Data hooks ─────────────────────────────────────────────────────────────
-  const { activity, loading: activityLoading, updateActivity } = useActivityDetail(activityId)
+  const { activity, loading: activityLoading, updateActivity, reload } = useActivityDetail(activityId)
   const { comments, loading: commentsLoading, addComment, deleteComment } = useActivityComments(activityId)
   const { responsibilities, loading: respLoading, addResponsibility, deleteResponsibility } = useActivityResponsibilities(activityId)
   const { photos, loading: photosLoading, uploadPhoto, deletePhoto, userPhotoCount } = useActivityPhotos(activityId, currentUserId)
@@ -230,6 +232,9 @@ export function ActivityDetailSheet({
         membersRef.current = m
       })
   }, [groupId])
+
+  // ── DateFinder state ───────────────────────────────────────────────────────
+  const [dateFinderOpen, setDateFinderOpen] = useState(false)
 
   // ── Edit form state ────────────────────────────────────────────────────────
   const [editing, setEditing] = useState(false)
@@ -403,6 +408,19 @@ export function ActivityDetailSheet({
     } else {
       toast.error('Speichern fehlgeschlagen')
     }
+  }
+
+  // ── iCal export ────────────────────────────────────────────────────────────
+  function handleIcalExport() {
+    if (!activity?.start_date) return
+    exportToIcal({
+      uid: activity.id,
+      summary: activity.name,
+      startDate: activity.start_date,
+      endDate: activity.end_date ?? activity.start_date,
+      description: activity.description,
+      location: activity.location,
+    })
   }
 
   // ── Responsibility handlers ────────────────────────────────────────────────
@@ -665,6 +683,33 @@ export function ActivityDetailSheet({
                   {/* ── Divider ── */}
                   {(activity.description || activity.location || activity.url || editing) && (
                     <Separator className="bg-line" />
+                  )}
+
+                  {/* ── Kalender-Aktionen ── */}
+                  {(activity.start_date || (!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen'))) && (
+                    <div className="flex flex-col gap-2">
+                      {activity.start_date && (
+                        <Button
+                          variant="outline"
+                          onClick={handleIcalExport}
+                          className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+                        >
+                          <CalendarPlus className="h-4 w-4 text-secondary flex-shrink-0" />
+                          Zum Kalender hinzufügen
+                        </Button>
+                      )}
+                      {!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen') && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setDateFinderOpen(true)}
+                          className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+                        >
+                          <CalendarClock className="h-4 w-4 text-secondary flex-shrink-0" />
+                          Termin anpassen
+                        </Button>
+                      )}
+                      <Separator className="bg-line" />
+                    </div>
                   )}
 
                   {/* ── Verantwortlichkeiten ── */}
@@ -1087,6 +1132,27 @@ export function ActivityDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Termin anpassen sheet ── */}
+      {activity && (
+        <DateFinderSheet
+          open={dateFinderOpen}
+          activityId={activity.id}
+          activityName={activity.name}
+          groupId={groupId}
+          mode="adjust"
+          initialDateRange={
+            activity.start_date && activity.end_date
+              ? {
+                  from: new Date(activity.start_date + 'T00:00:00'),
+                  to: new Date(activity.end_date + 'T00:00:00'),
+                }
+              : undefined
+          }
+          onClose={() => setDateFinderOpen(false)}
+          onSuccess={() => { setDateFinderOpen(false); reload(); onActivityUpdated?.() }}
+        />
+      )}
     </>
   )
 }

@@ -81,7 +81,7 @@ export function KanbanCard({
                     className="text-[14px] gap-2 cursor-pointer rounded-[8px]"
                   >
                     <ArrowRight className="h-4 w-4 text-ink-2" />
-                    In Planung verschieben
+                    Termin finden
                   </DropdownMenuItem>
                 )}
                 {activity.status === 'in_planung' && (

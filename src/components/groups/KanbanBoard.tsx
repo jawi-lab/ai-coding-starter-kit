@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { KanbanColumn } from './KanbanColumn'
-import { MoveToPlanningDialog } from './MoveToPlanningDialog'
+import { DateFinderSheet } from './DateFinderSheet'
 import { ConfirmStatusDialog } from './ConfirmStatusDialog'
 import { useKanbanActivities } from '@/hooks/useKanbanActivities'
 import { useUpdateActivityStatus } from '@/hooks/useUpdateActivityStatus'
@@ -20,7 +20,7 @@ interface KanbanBoardProps {
 }
 
 type DialogState =
-  | { type: 'move-to-planning'; activity: ActivityWithInitiator }
+  | { type: 'find-date'; activity: ActivityWithInitiator }
   | { type: 'finish-planning'; activity: ActivityWithInitiator }
   | { type: 'complete'; activity: ActivityWithInitiator }
   | null
@@ -37,22 +37,6 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
     },
     {} as Record<(typeof KANBAN_STATUSES)[number], ActivityWithInitiator[]>
   )
-
-  async function handleMoveToPlanning(startDate: string, endDate: string) {
-    if (dialog?.type !== 'move-to-planning') return
-    const { error: err } = await updateStatus({
-      activityId: dialog.activity.id,
-      status: 'in_planung',
-      startDate,
-      endDate,
-    })
-    if (err) {
-      toast.error(err)
-    } else {
-      toast.success('Aktivität in Planung verschoben')
-      setDialog(null)
-    }
-  }
 
   async function handleFinishPlanning() {
     if (dialog?.type !== 'finish-planning') return
@@ -86,7 +70,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
     currentUserId,
     isAdmin,
     onMoveToPlanning: (a: ActivityWithInitiator) =>
-      setDialog({ type: 'move-to-planning', activity: a }),
+      setDialog({ type: 'find-date', activity: a }),
     onConfirmFinishPlanning: (a: ActivityWithInitiator) =>
       setDialog({ type: 'finish-planning', activity: a }),
     onConfirmComplete: (a: ActivityWithInitiator) =>
@@ -101,6 +85,9 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
       </div>
     )
   }
+
+  const schedulingActivity =
+    dialog?.type === 'find-date' ? dialog.activity : null
 
   return (
     <>
@@ -161,14 +148,18 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
         )}
       </div>
 
-      {/* Dialogs */}
-      <MoveToPlanningDialog
-        open={dialog?.type === 'move-to-planning'}
-        activityName={dialog?.type === 'move-to-planning' ? dialog.activity.name : ''}
-        loading={updating}
-        onCancel={() => setDialog(null)}
-        onConfirm={handleMoveToPlanning}
-      />
+      {/* Terminfindungs-Sheet */}
+      {schedulingActivity && (
+        <DateFinderSheet
+          open={dialog?.type === 'find-date'}
+          activityId={schedulingActivity.id}
+          activityName={schedulingActivity.name}
+          groupId={groupId}
+          mode="schedule"
+          onClose={() => setDialog(null)}
+          onSuccess={() => setDialog(null)}
+        />
+      )}
 
       <ConfirmStatusDialog
         open={dialog?.type === 'finish-planning'}
