@@ -91,7 +91,7 @@ export default function VorschlaegePage() {
           {error && <p className="mt-6 text-center text-[13px] text-error">{error}</p>}
 
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
               ))}
@@ -99,7 +99,7 @@ export default function VorschlaegePage() {
           ) : displayed.length === 0 ? (
             <EmptyProposalState hasFilter={activeFilter !== null} />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
               {displayed.map((p) => (
                 <ProposalCard
                   key={p.id}

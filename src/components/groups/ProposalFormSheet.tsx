@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -153,14 +153,14 @@ export function ProposalFormSheet({
   const title = mode === 'create' ? 'Vorschlag erstellen' : 'Vorschlag bearbeiten'
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="bottom"
-        className="rounded-t-[24px] bg-bg border-t border-line p-0 max-h-[92vh] flex flex-col"
+    <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
+      <ResponsiveModalContent
+        size="md"
+        className="rounded-t-[24px] bg-bg border-line p-0"
       >
-        <SheetHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
-          <SheetTitle className="text-[18px] font-[800] text-ink">{title}</SheetTitle>
-        </SheetHeader>
+        <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
+          <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">{title}</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Name */}
@@ -331,7 +331,7 @@ export function ProposalFormSheet({
             </Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }

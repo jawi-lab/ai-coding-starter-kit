@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -100,12 +100,12 @@ export function GroupDetailSheet({
   }
 
   return (
-    <Sheet open={!!groupId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-md bg-bg border-l border-line p-0 flex flex-col"
+    <ResponsiveModal open={!!groupId} onOpenChange={(open) => !open && onClose()}>
+      <ResponsiveModalContent
+        size="md"
+        className="h-[90dvh] md:h-auto bg-bg border-line p-0"
       >
-        <SheetHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
+        <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
           <div className="flex items-center gap-3 pr-8">
             {loading && !group ? (
               <Skeleton className="h-7 w-48 bg-surface-2" />
@@ -150,9 +150,9 @@ export function GroupDetailSheet({
               </div>
             ) : (
               <div className="flex items-center gap-2 min-w-0">
-                <SheetTitle className="text-[20px] font-[800] text-ink truncate leading-tight">
+                <ResponsiveModalTitle className="text-[20px] font-[800] text-ink truncate leading-tight">
                   {group?.name ?? ''}
-                </SheetTitle>
+                </ResponsiveModalTitle>
                 {isAdmin && (
                   <button
                     onClick={startEditName}
@@ -169,7 +169,7 @@ export function GroupDetailSheet({
           {nameError && (
             <p className="text-[12px] text-error mt-1">{nameError}</p>
           )}
-        </SheetHeader>
+        </ResponsiveModalHeader>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
@@ -220,7 +220,7 @@ export function GroupDetailSheet({
             )}
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }

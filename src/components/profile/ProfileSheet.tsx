@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from '@/components/ui/sheet'
+  ResponsiveModal, ResponsiveModalContent, ResponsiveModalHeader, ResponsiveModalTitle,
+} from '@/components/ui/responsive-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,16 +34,16 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="bottom"
-          className="h-[90dvh] bg-bg border-t border-line p-0 flex flex-col rounded-t-[24px]"
+      <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+        <ResponsiveModalContent
+          size="md"
+          className="h-[90dvh] md:h-auto bg-bg border-line p-0 rounded-t-[24px]"
         >
-          <SheetHeader className="px-5 pt-5 pb-0 flex-shrink-0">
-            <SheetTitle className="text-[18px] font-[800] text-ink text-left">
+          <ResponsiveModalHeader className="px-5 pt-5 pb-0 flex-shrink-0">
+            <ResponsiveModalTitle className="text-[18px] font-[800] text-ink text-left">
               Mein Konto
-            </SheetTitle>
-          </SheetHeader>
+            </ResponsiveModalTitle>
+          </ResponsiveModalHeader>
 
           <Tabs defaultValue="profil" className="flex-1 flex flex-col min-h-0 mt-3">
             <TabsList className="flex-shrink-0 mx-5 bg-surface-2 rounded-[10px] p-0.5 h-9">
@@ -93,8 +93,8 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
               <ArchiveTab />
             </TabsContent>
           </Tabs>
-        </SheetContent>
-      </Sheet>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
 
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <AlertDialogContent className="bg-surface border-line rounded-[18px]">

@@ -12,7 +12,7 @@ import {
   MapPin, ExternalLink, Check, CalendarClock, CalendarPlus,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { ResponsiveModal, ResponsiveModalContent } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -39,7 +39,8 @@ import { useActivityPhotos } from '@/hooks/useActivityPhotos'
 import type {
   ActivityStatus, ActivityComment, ActivityResponsibility, ActivityPhoto,
 } from '@/lib/activity-types'
-import { PLACEHOLDER_IMAGE } from '@/lib/activity-types'
+import { PLACEHOLDER_IMAGE, DURATION_CATEGORY_LABELS } from '@/lib/activity-types'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { formatGermanDateRange } from '@/lib/date-format'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import type { Json } from '@/lib/database.types'
@@ -345,6 +346,7 @@ export function ActivityDetailSheet({
   editorRef.current = editor
 
   // ── Derived values ─────────────────────────────────────────────────────────
+  const isMobile = useIsMobile()
   const status = activity?.status ?? null
   const canEdit = !readOnly && (isAdmin || activity?.initiator_id === currentUserId)
   const showResponsibilities =
@@ -490,13 +492,537 @@ export function ActivityDetailSheet({
     if (!ok) toast.error('Kommentar konnte nicht gelöscht werden')
   }
 
+  // ── Section blocks (shared by mobile & desktop layouts) ─────────────────────
+  const heroSection = activity ? (
+    <div className="relative w-full h-[180px]">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={activity.og_image_url ?? PLACEHOLDER_IMAGE}
+        alt=""
+        aria-hidden
+        className="w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 flex flex-col gap-1.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-[10.5px] font-[800] uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
+            {STATUS_LABELS[activity.status]}
+          </span>
+          {formatDateRange(activity.start_date, activity.end_date) && (
+            <span className="text-[11px] font-[600] text-white/80">
+              {formatDateRange(activity.start_date, activity.end_date)}
+            </span>
+          )}
+        </div>
+        <p className="text-[18px] font-[800] text-white leading-tight">
+          {activity.name}
+        </p>
+        <p className="text-[12px] text-white/70">
+          von {activity.initiator.display_name}
+        </p>
+      </div>
+    </div>
+  ) : null
+
+  const editFormSection = (
+    <div className="space-y-3 bg-surface border border-line rounded-[14px] p-4">
+      <div className="space-y-1.5">
+        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+          Name *
+        </label>
+        <Input
+          value={editName}
+          onChange={e => { setEditName(e.target.value); setNameError('') }}
+          className="bg-bg border-line text-ink text-[14px]"
+          placeholder="Name der Aktivität"
+        />
+        {nameError && (
+          <p className="text-[12px] text-error">{nameError}</p>
+        )}
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+          Beschreibung
+        </label>
+        <Textarea
+          value={editDescription}
+          onChange={e => setEditDescription(e.target.value)}
+          className="bg-bg border-line text-ink text-[14px] min-h-[80px] resize-none"
+          placeholder="Optional"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+          Ort
+        </label>
+        <Input
+          value={editLocation}
+          onChange={e => setEditLocation(e.target.value)}
+          className="bg-bg border-line text-ink text-[14px]"
+          placeholder="Optional – z.B. Biergarten Englischer Garten"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+          Link / URL
+        </label>
+        <Input
+          type="url"
+          value={editUrl}
+          onChange={e => setEditUrl(e.target.value)}
+          className="bg-bg border-line text-ink text-[14px]"
+          placeholder="Optional – https://…"
+        />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setEditing(false)}
+          className="flex-1 border-line text-ink-2 text-[13px]"
+        >
+          Abbrechen
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleSaveEdit}
+          disabled={savingEdit}
+          className="flex-1 bg-primary hover:bg-primary-600 text-white text-[13px] gap-1"
+        >
+          <Check className="h-3.5 w-3.5" />
+          {savingEdit ? 'Speichern…' : 'Speichern'}
+        </Button>
+      </div>
+    </div>
+  )
+
+  const infoSection = activity ? (
+    <div className="space-y-3">
+      {activity.description && (
+        <p className="text-[14px] text-ink-2 leading-relaxed">
+          {activity.description}
+        </p>
+      )}
+      {activity.location && (
+        <div className="flex items-start gap-2">
+          <MapPin className="h-4 w-4 text-ink-3 flex-shrink-0 mt-0.5" />
+          <p className="text-[13.5px] text-ink-2">{activity.location}</p>
+        </div>
+      )}
+      {activity.url && (
+        <div className="flex items-start gap-2">
+          <ExternalLink className="h-4 w-4 text-ink-3 flex-shrink-0 mt-0.5" />
+          <a
+            href={activity.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[13.5px] text-secondary underline underline-offset-2 break-all"
+          >
+            {activity.url}
+          </a>
+        </div>
+      )}
+    </div>
+  ) : null
+
+  const calendarSection =
+    activity && (activity.start_date || (!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen'))) ? (
+      <div className="flex flex-col gap-2">
+        {activity.start_date && (
+          <Button
+            variant="outline"
+            onClick={handleIcalExport}
+            className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+          >
+            <CalendarPlus className="h-4 w-4 text-secondary flex-shrink-0" />
+            Zum Kalender hinzufügen
+          </Button>
+        )}
+        {!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen') && (
+          <Button
+            variant="outline"
+            onClick={() => setDateFinderOpen(true)}
+            className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+          >
+            <CalendarClock className="h-4 w-4 text-secondary flex-shrink-0" />
+            Termin anpassen
+          </Button>
+        )}
+      </div>
+    ) : null
+
+  const responsibilitiesSection = showResponsibilities ? (
+    <div className="space-y-3">
+      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+        Verantwortlichkeiten
+      </h3>
+
+      {respLoading ? (
+        <div className="space-y-2">
+          {[1, 2].map(i => (
+            <Skeleton key={i} className="h-[44px] w-full rounded-[12px] bg-surface" />
+          ))}
+        </div>
+      ) : responsibilities.length === 0 && !addingResp && (
+        <p className="text-[13px] text-ink-3">Noch keine Verantwortlichkeiten vergeben.</p>
+      )}
+
+      {responsibilities.map(resp => (
+        <div
+          key={resp.id}
+          className="flex items-center gap-3 bg-surface border border-line rounded-[12px] px-3 py-2.5"
+        >
+          <Avatar className="h-7 w-7 flex-shrink-0">
+            <AvatarImage src={resp.assigned_user.avatar_url ?? undefined} />
+            <AvatarFallback className="text-[11px] font-[700] bg-secondary-soft text-secondary">
+              {avatarFallback(resp.assigned_user.display_name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-[700] text-ink truncate">{resp.label}</p>
+            <p className="text-[12px] text-ink-3 truncate">{resp.assigned_user.display_name}</p>
+          </div>
+          {!responsibilitiesReadOnly && (isAdmin || resp.created_by === currentUserId) && (
+            <button
+              onClick={() => setDeleteRespTarget(resp)}
+              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-[8px] text-ink-3 hover:text-error hover:bg-error-soft transition-colors"
+              aria-label="Löschen"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      ))}
+
+      {/* Add responsibility form */}
+      {!responsibilitiesReadOnly && addingResp && (
+        <div className="bg-surface border border-line rounded-[12px] p-3 space-y-2.5">
+          <Input
+            value={newRespLabel}
+            onChange={e => setNewRespLabel(e.target.value)}
+            placeholder="Verantwortlichkeit (z.B. Ticketkauf)"
+            className="bg-bg border-line text-ink text-[13.5px]"
+          />
+          <Select value={newRespUserId} onValueChange={setNewRespUserId}>
+            <SelectTrigger className="bg-bg border-line text-[13.5px]">
+              <SelectValue placeholder="Person auswählen" />
+            </SelectTrigger>
+            <SelectContent className="bg-surface border-line">
+              {members.map(m => (
+                <SelectItem key={m.user_id} value={m.user_id} className="text-[13.5px]">
+                  {m.profile.display_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setAddingResp(false); setNewRespLabel(''); setNewRespUserId('') }}
+              className="flex-1 border-line text-ink-2 text-[12.5px]"
+            >
+              Abbrechen
+            </Button>
+            <Button
+              size="sm"
+              disabled={!newRespLabel.trim() || !newRespUserId || savingResp}
+              onClick={handleAddResponsibility}
+              className="flex-1 bg-primary hover:bg-primary-600 text-white text-[12.5px]"
+            >
+              {savingResp ? 'Speichern…' : 'Hinzufügen'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!responsibilitiesReadOnly && !addingResp && (
+        <button
+          onClick={() => setAddingResp(true)}
+          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Verantwortlichkeit hinzufügen
+        </button>
+      )}
+    </div>
+  ) : null
+
+  const photosSection = showPhotos ? (
+    <div className="space-y-3">
+      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+        Erinnerungsfotos
+      </h3>
+
+      {photosLoading ? (
+        <div className="grid grid-cols-3 gap-2">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="aspect-square rounded-[10px] bg-surface" />
+          ))}
+        </div>
+      ) : photos.length === 0 && (
+        <p className="text-[13px] text-ink-3">
+          Noch keine Erinnerungsfotos – lad das erste hoch!
+        </p>
+      )}
+
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map(photo => (
+            <div key={photo.id} className="relative aspect-square rounded-[10px] overflow-hidden bg-surface-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getPhotoUrl(photo.storage_path)}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              {!readOnly && (isAdmin || photo.user_id === currentUserId) && (
+                <button
+                  onClick={() => setDeletePhotoTarget(photo)}
+                  className="absolute top-1.5 right-1.5 h-6 w-6 rounded-[6px] flex items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-colors"
+                  aria-label="Foto löschen"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async e => {
+          const file = e.target.files?.[0]
+          if (file) await handlePhotoUpload(file)
+          e.target.value = ''
+        }}
+      />
+
+      {!readOnly && (photoLimitReached ? (
+        <p className="text-[12.5px] text-ink-3">
+          Du hast dein Limit von 5 Fotos erreicht.
+        </p>
+      ) : (
+        <button
+          onClick={() => photoInputRef.current?.click()}
+          disabled={uploadingPhoto}
+          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" />
+          {uploadingPhoto ? 'Wird hochgeladen…' : 'Foto hinzufügen'}
+        </button>
+      ))}
+    </div>
+  ) : null
+
+  const commentsSection = (
+    <div className="space-y-4">
+      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+        Kommentare
+      </h3>
+
+      {commentsLoading ? (
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="h-8 w-8 rounded-pill bg-surface flex-shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-24 rounded bg-surface" />
+                <Skeleton className="h-4 w-full rounded bg-surface" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : comments.length === 0 ? (
+        <p className="text-[13px] text-ink-3">
+          Noch keine Kommentare – schreib den ersten!
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {comments.map(comment => (
+            <div key={comment.id} className="flex gap-3 group">
+              <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
+                <AvatarImage src={comment.author.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[11px] font-[700] bg-secondary-soft text-secondary">
+                  {avatarFallback(comment.author.display_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-[12.5px] font-[700] text-ink">
+                    {comment.author.display_name}
+                  </span>
+                  <span className="text-[11px] text-ink-3">
+                    {new Date(comment.created_at).toLocaleString('de-DE', {
+                      day: '2-digit', month: '2-digit',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+                <div className="bg-surface border border-line rounded-[10px] px-3 py-2.5">
+                  <TiptapRenderer content={comment.content} />
+                </div>
+              </div>
+              {!readOnly && (isAdmin || comment.user_id === currentUserId) && (
+                <button
+                  onClick={() => setDeleteCommentTarget(comment)}
+                  className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-all"
+                  aria-label="Kommentar löschen"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+          <div ref={commentsEndRef} />
+        </div>
+      )}
+    </div>
+  )
+
+  const infoPanel = activity ? (
+    <div className="bg-surface border border-line rounded-[14px] px-4">
+      <div className="flex items-center justify-between py-2.5 border-b border-line">
+        <span className="text-[13px] text-ink-3 font-[600]">Status</span>
+        <span className="text-[13px] text-ink font-[700]">{STATUS_LABELS[activity.status]}</span>
+      </div>
+      {formatDateRange(activity.start_date, activity.end_date) && (
+        <div className="flex items-center justify-between py-2.5 border-b border-line">
+          <span className="text-[13px] text-ink-3 font-[600]">Zeitraum</span>
+          <span className="text-[13px] text-ink font-[700]">{formatDateRange(activity.start_date, activity.end_date)}</span>
+        </div>
+      )}
+      <div className="flex items-center justify-between py-2.5">
+        <span className="text-[13px] text-ink-3 font-[600]">Dauer</span>
+        <span className="text-[13px] text-ink font-[700]">{DURATION_CATEGORY_LABELS[activity.duration_category]}</span>
+      </div>
+    </div>
+  ) : null
+
+  const composerInner = (
+    <>
+      {/* Mention dropdown */}
+      {mentionOpen && mentionItems.length > 0 && (
+        <div className="mb-2 bg-surface border border-line rounded-[12px] shadow-lg overflow-hidden max-h-44 overflow-y-auto">
+          {mentionItems.map(member => (
+            <button
+              key={member.user_id}
+              onMouseDown={e => {
+                e.preventDefault() // keep editor focused
+                mentionCommandRef.current?.({
+                  id: member.user_id,
+                  label: member.profile.display_name,
+                })
+              }}
+              className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left hover:bg-surface-2 transition-colors"
+            >
+              <Avatar className="h-6 w-6 flex-shrink-0">
+                <AvatarImage src={member.profile.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[10px] font-[700] bg-secondary-soft text-secondary">
+                  {avatarFallback(member.profile.display_name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-[13.5px] text-ink">{member.profile.display_name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-1 mb-2">
+        <button
+          onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBold().run() }}
+          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] font-[900] transition-colors
+            ${editor?.isActive('bold') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
+          aria-label="Fett"
+        >
+          B
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleItalic().run() }}
+          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] italic font-[800] transition-colors
+            ${editor?.isActive('italic') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
+          aria-label="Kursiv"
+        >
+          I
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBulletList().run() }}
+          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
+            ${editor?.isActive('bulletList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
+          aria-label="Aufzählung"
+        >
+          •—
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleOrderedList().run() }}
+          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
+            ${editor?.isActive('orderedList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
+          aria-label="Nummerierte Liste"
+        >
+          1.
+        </button>
+
+        {/* Image upload button */}
+        <input
+          ref={commentImageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async e => {
+            const file = e.target.files?.[0]
+            if (!file || !activityId) return
+            const result = await uploadCommentImage(activityId, file)
+            if (result.error) toast.error(result.error)
+            else if (result.url) editor?.commands.insertContent({ type: 'image', attrs: { src: result.url } })
+            e.target.value = ''
+          }}
+        />
+        <button
+          onMouseDown={e => { e.preventDefault(); commentImageInputRef.current?.click() }}
+          className="h-7 w-7 flex items-center justify-center rounded-[6px] text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
+          aria-label="Bild einfügen"
+        >
+          <ImageIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {/* Editor + Send */}
+      <div className="flex items-end gap-2">
+        <div className="flex-1 bg-surface border border-line rounded-[12px] px-3 py-2 min-h-[40px] max-h-[120px] overflow-y-auto">
+          <EditorContent
+            editor={editor}
+            className="tiptap-editor text-[14px] text-ink outline-none"
+          />
+        </div>
+        <button
+          onClick={handleSendComment}
+          disabled={isEditorEmpty || sendingComment}
+          className={`flex-shrink-0 h-9 w-9 rounded-[10px] flex items-center justify-center transition-all
+            ${isEditorEmpty || sendingComment
+              ? 'bg-surface-2 text-ink-3 cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-primary-600 active:scale-95'
+            }`}
+          aria-label="Senden"
+        >
+          <Send className="h-4 w-4" />
+        </button>
+      </div>
+    </>
+  )
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <Sheet open={!!activityId} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent
-          side="bottom"
-          className="h-[92dvh] bg-bg border-t border-line p-0 flex flex-col rounded-t-[20px] [&>button]:hidden"
+      <ResponsiveModal open={!!activityId} onOpenChange={(open) => !open && onClose()}>
+        <ResponsiveModalContent
+          size="lg"
+          hideClose
+          className="h-[92dvh] md:h-auto bg-bg border-line p-0"
         >
           {/* ── Header ── */}
           <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
@@ -525,8 +1051,8 @@ export function ActivityDetailSheet({
             )}
           </div>
 
-          {/* ── Scrollable feed ── */}
-          <div className="flex-1 overflow-y-auto">
+          {/* ── Body ── */}
+          <div className="flex-1 overflow-y-auto min-h-0">
 
             {/* Loading state */}
             {activityLoading && (
@@ -537,532 +1063,63 @@ export function ActivityDetailSheet({
               </div>
             )}
 
-            {activity && (
+            {activity && (isMobile ? (
+              /* ── Mobile: single column ── */
               <>
-                {/* ── Hero ── */}
-                <div className="relative w-full h-[180px] flex-shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={activity.og_image_url ?? PLACEHOLDER_IMAGE}
-                    alt=""
-                    aria-hidden
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[10.5px] font-[800] uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
-                        {STATUS_LABELS[activity.status]}
-                      </span>
-                      {formatDateRange(activity.start_date, activity.end_date) && (
-                        <span className="text-[11px] font-[600] text-white/80">
-                          {formatDateRange(activity.start_date, activity.end_date)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[18px] font-[800] text-white leading-tight">
-                      {activity.name}
-                    </p>
-                    <p className="text-[12px] text-white/70">
-                      von {activity.initiator.display_name}
-                    </p>
-                  </div>
-                </div>
-
+                {heroSection}
                 <div className="px-5 pt-4 pb-6 space-y-5">
-
-                  {/* ── Edit form ── */}
-                  {editing && (
-                    <div className="space-y-3 bg-surface border border-line rounded-[14px] p-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
-                          Name *
-                        </label>
-                        <Input
-                          value={editName}
-                          onChange={e => { setEditName(e.target.value); setNameError('') }}
-                          className="bg-bg border-line text-ink text-[14px]"
-                          placeholder="Name der Aktivität"
-                        />
-                        {nameError && (
-                          <p className="text-[12px] text-error">{nameError}</p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
-                          Beschreibung
-                        </label>
-                        <Textarea
-                          value={editDescription}
-                          onChange={e => setEditDescription(e.target.value)}
-                          className="bg-bg border-line text-ink text-[14px] min-h-[80px] resize-none"
-                          placeholder="Optional"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
-                          Ort
-                        </label>
-                        <Input
-                          value={editLocation}
-                          onChange={e => setEditLocation(e.target.value)}
-                          className="bg-bg border-line text-ink text-[14px]"
-                          placeholder="Optional – z.B. Biergarten Englischer Garten"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
-                          Link / URL
-                        </label>
-                        <Input
-                          type="url"
-                          value={editUrl}
-                          onChange={e => setEditUrl(e.target.value)}
-                          className="bg-bg border-line text-ink text-[14px]"
-                          placeholder="Optional – https://…"
-                        />
-                      </div>
-                      <div className="flex gap-2 pt-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditing(false)}
-                          className="flex-1 border-line text-ink-2 text-[13px]"
-                        >
-                          Abbrechen
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleSaveEdit}
-                          disabled={savingEdit}
-                          className="flex-1 bg-primary hover:bg-primary-600 text-white text-[13px] gap-1"
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          {savingEdit ? 'Speichern…' : 'Speichern'}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Info sections (hidden while editing) ── */}
-                  {!editing && (
-                    <div className="space-y-3">
-                      {activity.description && (
-                        <p className="text-[14px] text-ink-2 leading-relaxed">
-                          {activity.description}
-                        </p>
-                      )}
-                      {activity.location && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-ink-3 flex-shrink-0 mt-0.5" />
-                          <p className="text-[13.5px] text-ink-2">{activity.location}</p>
-                        </div>
-                      )}
-                      {activity.url && (
-                        <div className="flex items-start gap-2">
-                          <ExternalLink className="h-4 w-4 text-ink-3 flex-shrink-0 mt-0.5" />
-                          <a
-                            href={activity.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[13.5px] text-secondary underline underline-offset-2 break-all"
-                          >
-                            {activity.url}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ── Divider ── */}
+                  {editing && editFormSection}
+                  {!editing && infoSection}
                   {(activity.description || activity.location || activity.url || editing) && (
                     <Separator className="bg-line" />
                   )}
-
-                  {/* ── Kalender-Aktionen ── */}
-                  {(activity.start_date || (!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen'))) && (
-                    <div className="flex flex-col gap-2">
-                      {activity.start_date && (
-                        <Button
-                          variant="outline"
-                          onClick={handleIcalExport}
-                          className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
-                        >
-                          <CalendarPlus className="h-4 w-4 text-secondary flex-shrink-0" />
-                          Zum Kalender hinzufügen
-                        </Button>
-                      )}
-                      {!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen') && (
-                        <Button
-                          variant="outline"
-                          onClick={() => setDateFinderOpen(true)}
-                          className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
-                        >
-                          <CalendarClock className="h-4 w-4 text-secondary flex-shrink-0" />
-                          Termin anpassen
-                        </Button>
-                      )}
-                      <Separator className="bg-line" />
-                    </div>
-                  )}
-
-                  {/* ── Verantwortlichkeiten ── */}
-                  {showResponsibilities && (
-                    <div className="space-y-3">
-                      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
-                        Verantwortlichkeiten
-                      </h3>
-
-                      {respLoading ? (
-                        <div className="space-y-2">
-                          {[1, 2].map(i => (
-                            <Skeleton key={i} className="h-[44px] w-full rounded-[12px] bg-surface" />
-                          ))}
-                        </div>
-                      ) : responsibilities.length === 0 && !addingResp && (
-                        <p className="text-[13px] text-ink-3">Noch keine Verantwortlichkeiten vergeben.</p>
-                      )}
-
-                      {responsibilities.map(resp => (
-                        <div
-                          key={resp.id}
-                          className="flex items-center gap-3 bg-surface border border-line rounded-[12px] px-3 py-2.5"
-                        >
-                          <Avatar className="h-7 w-7 flex-shrink-0">
-                            <AvatarImage src={resp.assigned_user.avatar_url ?? undefined} />
-                            <AvatarFallback className="text-[11px] font-[700] bg-secondary-soft text-secondary">
-                              {avatarFallback(resp.assigned_user.display_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13.5px] font-[700] text-ink truncate">{resp.label}</p>
-                            <p className="text-[12px] text-ink-3 truncate">{resp.assigned_user.display_name}</p>
-                          </div>
-                          {!responsibilitiesReadOnly && (isAdmin || resp.created_by === currentUserId) && (
-                            <button
-                              onClick={() => setDeleteRespTarget(resp)}
-                              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-[8px] text-ink-3 hover:text-error hover:bg-error-soft transition-colors"
-                              aria-label="Löschen"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-
-                      {/* Add responsibility form */}
-                      {!responsibilitiesReadOnly && addingResp && (
-                        <div className="bg-surface border border-line rounded-[12px] p-3 space-y-2.5">
-                          <Input
-                            value={newRespLabel}
-                            onChange={e => setNewRespLabel(e.target.value)}
-                            placeholder="Verantwortlichkeit (z.B. Ticketkauf)"
-                            className="bg-bg border-line text-ink text-[13.5px]"
-                          />
-                          <Select value={newRespUserId} onValueChange={setNewRespUserId}>
-                            <SelectTrigger className="bg-bg border-line text-[13.5px]">
-                              <SelectValue placeholder="Person auswählen" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-surface border-line">
-                              {members.map(m => (
-                                <SelectItem key={m.user_id} value={m.user_id} className="text-[13.5px]">
-                                  {m.profile.display_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => { setAddingResp(false); setNewRespLabel(''); setNewRespUserId('') }}
-                              className="flex-1 border-line text-ink-2 text-[12.5px]"
-                            >
-                              Abbrechen
-                            </Button>
-                            <Button
-                              size="sm"
-                              disabled={!newRespLabel.trim() || !newRespUserId || savingResp}
-                              onClick={handleAddResponsibility}
-                              className="flex-1 bg-primary hover:bg-primary-600 text-white text-[12.5px]"
-                            >
-                              {savingResp ? 'Speichern…' : 'Hinzufügen'}
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {!responsibilitiesReadOnly && !addingResp && (
-                        <button
-                          onClick={() => setAddingResp(true)}
-                          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Verantwortlichkeit hinzufügen
-                        </button>
-                      )}
-
-                      <Separator className="bg-line" />
-                    </div>
-                  )}
-
-                  {/* ── Erinnerungsfotos ── */}
-                  {showPhotos && (
-                    <div className="space-y-3">
-                      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
-                        Erinnerungsfotos
-                      </h3>
-
-                      {photosLoading ? (
-                        <div className="grid grid-cols-3 gap-2">
-                          {[1, 2, 3].map(i => (
-                            <Skeleton key={i} className="aspect-square rounded-[10px] bg-surface" />
-                          ))}
-                        </div>
-                      ) : photos.length === 0 && (
-                        <p className="text-[13px] text-ink-3">
-                          Noch keine Erinnerungsfotos – lad das erste hoch!
-                        </p>
-                      )}
-
-                      {photos.length > 0 && (
-                        <div className="grid grid-cols-3 gap-2">
-                          {photos.map(photo => (
-                            <div key={photo.id} className="relative aspect-square rounded-[10px] overflow-hidden bg-surface-2">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={getPhotoUrl(photo.storage_path)}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                              {!readOnly && (isAdmin || photo.user_id === currentUserId) && (
-                                <button
-                                  onClick={() => setDeletePhotoTarget(photo)}
-                                  className="absolute top-1.5 right-1.5 h-6 w-6 rounded-[6px] flex items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-colors"
-                                  aria-label="Foto löschen"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <input
-                        ref={photoInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async e => {
-                          const file = e.target.files?.[0]
-                          if (file) await handlePhotoUpload(file)
-                          e.target.value = ''
-                        }}
-                      />
-
-                      {!readOnly && (photoLimitReached ? (
-                        <p className="text-[12.5px] text-ink-3">
-                          Du hast dein Limit von 5 Fotos erreicht.
-                        </p>
-                      ) : (
-                        <button
-                          onClick={() => photoInputRef.current?.click()}
-                          disabled={uploadingPhoto}
-                          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors disabled:opacity-50"
-                        >
-                          <Plus className="h-4 w-4" />
-                          {uploadingPhoto ? 'Wird hochgeladen…' : 'Foto hinzufügen'}
-                        </button>
-                      ))}
-
-                      <Separator className="bg-line" />
-                    </div>
-                  )}
-
-                  {/* ── Kommentare ── */}
-                  <div className="space-y-4">
-                    <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
-                      Kommentare
-                    </h3>
-
-                    {commentsLoading ? (
-                      <div className="space-y-3">
-                        {[1, 2].map(i => (
-                          <div key={i} className="flex gap-3">
-                            <Skeleton className="h-8 w-8 rounded-pill bg-surface flex-shrink-0" />
-                            <div className="flex-1 space-y-1.5">
-                              <Skeleton className="h-3 w-24 rounded bg-surface" />
-                              <Skeleton className="h-4 w-full rounded bg-surface" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : comments.length === 0 ? (
-                      <p className="text-[13px] text-ink-3">
-                        Noch keine Kommentare – schreib den ersten!
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {comments.map(comment => (
-                          <div key={comment.id} className="flex gap-3 group">
-                            <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
-                              <AvatarImage src={comment.author.avatar_url ?? undefined} />
-                              <AvatarFallback className="text-[11px] font-[700] bg-secondary-soft text-secondary">
-                                {avatarFallback(comment.author.display_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-baseline gap-2 mb-1">
-                                <span className="text-[12.5px] font-[700] text-ink">
-                                  {comment.author.display_name}
-                                </span>
-                                <span className="text-[11px] text-ink-3">
-                                  {new Date(comment.created_at).toLocaleString('de-DE', {
-                                    day: '2-digit', month: '2-digit',
-                                    hour: '2-digit', minute: '2-digit',
-                                  })}
-                                </span>
-                              </div>
-                              <div className="bg-surface border border-line rounded-[10px] px-3 py-2.5">
-                                <TiptapRenderer content={comment.content} />
-                              </div>
-                            </div>
-                            {!readOnly && (isAdmin || comment.user_id === currentUserId) && (
-                              <button
-                                onClick={() => setDeleteCommentTarget(comment)}
-                                className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-all"
-                                aria-label="Kommentar löschen"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <div ref={commentsEndRef} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Spacer so content isn't hidden behind fixed editor */}
+                  {calendarSection}
+                  {calendarSection && <Separator className="bg-line" />}
+                  {responsibilitiesSection}
+                  {responsibilitiesSection && <Separator className="bg-line" />}
+                  {photosSection}
+                  {photosSection && <Separator className="bg-line" />}
+                  {commentsSection}
                   <div className="h-4" />
                 </div>
               </>
-            )}
+            ) : (
+              /* ── Desktop: two columns ── */
+              <div className="p-5">
+                <div className="rounded-[14px] overflow-hidden">
+                  {heroSection}
+                </div>
+                <div className="mt-5 grid grid-cols-[1fr_300px] gap-6 items-start">
+                  {/* Left column: description + comments + composer */}
+                  <div className="space-y-5 min-w-0">
+                    {editing ? editFormSection : infoSection}
+                    {commentsSection}
+                    {!readOnly && (
+                      <div className="border border-line rounded-[14px] bg-surface p-3">
+                        {composerInner}
+                      </div>
+                    )}
+                  </div>
+                  {/* Right column: info panel + actions + responsibilities + photos */}
+                  <div className="space-y-4 sticky top-0 self-start">
+                    {infoPanel}
+                    {calendarSection}
+                    {responsibilitiesSection}
+                    {photosSection}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* ── Fixed comment editor ── */}
-          {!readOnly && <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-4">
-            {/* Mention dropdown */}
-            {mentionOpen && mentionItems.length > 0 && (
-              <div className="mb-2 bg-surface border border-line rounded-[12px] shadow-lg overflow-hidden max-h-44 overflow-y-auto">
-                {mentionItems.map(member => (
-                  <button
-                    key={member.user_id}
-                    onMouseDown={e => {
-                      e.preventDefault() // keep editor focused
-                      mentionCommandRef.current?.({
-                        id: member.user_id,
-                        label: member.profile.display_name,
-                      })
-                    }}
-                    className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left hover:bg-surface-2 transition-colors"
-                  >
-                    <Avatar className="h-6 w-6 flex-shrink-0">
-                      <AvatarImage src={member.profile.avatar_url ?? undefined} />
-                      <AvatarFallback className="text-[10px] font-[700] bg-secondary-soft text-secondary">
-                        {avatarFallback(member.profile.display_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-[13.5px] text-ink">{member.profile.display_name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Toolbar */}
-            <div className="flex items-center gap-1 mb-2">
-              <button
-                onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBold().run() }}
-                className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] font-[900] transition-colors
-                  ${editor?.isActive('bold') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
-                aria-label="Fett"
-              >
-                B
-              </button>
-              <button
-                onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleItalic().run() }}
-                className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] italic font-[800] transition-colors
-                  ${editor?.isActive('italic') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
-                aria-label="Kursiv"
-              >
-                I
-              </button>
-              <button
-                onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBulletList().run() }}
-                className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
-                  ${editor?.isActive('bulletList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
-                aria-label="Aufzählung"
-              >
-                •—
-              </button>
-              <button
-                onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleOrderedList().run() }}
-                className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
-                  ${editor?.isActive('orderedList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
-                aria-label="Nummerierte Liste"
-              >
-                1.
-              </button>
-
-              {/* Image upload button */}
-              <input
-                ref={commentImageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={async e => {
-                  const file = e.target.files?.[0]
-                  if (!file || !activityId) return
-                  const result = await uploadCommentImage(activityId, file)
-                  if (result.error) toast.error(result.error)
-                  else if (result.url) editor?.commands.insertContent({ type: 'image', attrs: { src: result.url } })
-                  e.target.value = ''
-                }}
-              />
-              <button
-                onMouseDown={e => { e.preventDefault(); commentImageInputRef.current?.click() }}
-                className="h-7 w-7 flex items-center justify-center rounded-[6px] text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
-                aria-label="Bild einfügen"
-              >
-                <ImageIcon className="h-3.5 w-3.5" />
-              </button>
+          {/* ── Mobile fixed comment editor ── */}
+          {isMobile && !readOnly && (
+            <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-4">
+              {composerInner}
             </div>
-
-            {/* Editor + Send */}
-            <div className="flex items-end gap-2">
-              <div className="flex-1 bg-surface border border-line rounded-[12px] px-3 py-2 min-h-[40px] max-h-[120px] overflow-y-auto">
-                <EditorContent
-                  editor={editor}
-                  className="tiptap-editor text-[14px] text-ink outline-none"
-                />
-              </div>
-              <button
-                onClick={handleSendComment}
-                disabled={isEditorEmpty || sendingComment}
-                className={`flex-shrink-0 h-9 w-9 rounded-[10px] flex items-center justify-center transition-all
-                  ${isEditorEmpty || sendingComment
-                    ? 'bg-surface-2 text-ink-3 cursor-not-allowed'
-                    : 'bg-primary text-white hover:bg-primary-600 active:scale-95'
-                  }`}
-                aria-label="Senden"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </div>}
-        </SheetContent>
-      </Sheet>
+          )}
+        </ResponsiveModalContent>
+      </ResponsiveModal>
 
       {/* ── Responsibility delete dialog ── */}
       <AlertDialog open={!!deleteRespTarget} onOpenChange={open => !open && setDeleteRespTarget(null)}>

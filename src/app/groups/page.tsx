@@ -11,11 +11,11 @@ import { getInitials } from '@/lib/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from '@/components/ui/responsive-modal'
 import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
@@ -100,7 +100,7 @@ function GroupsContent() {
       </header>
 
       {/* Main content */}
-      <main className="px-4 py-6 max-w-lg mx-auto">
+      <main className="px-4 py-6 max-w-6xl mx-auto">
         <div className="mb-5">
           <h1 className="text-[24px] font-[900] text-ink">Meine Gruppen</h1>
           <p className="text-[14px] text-ink-2 mt-0.5">
@@ -109,13 +109,13 @@ function GroupsContent() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">
+          <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {[1, 2].map((i) => (
               <Skeleton key={i} className="h-[74px] w-full rounded-[18px] bg-surface" />
             ))}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {groups.map((group) => (
               <GroupCard
                 key={group.id}
@@ -130,20 +130,20 @@ function GroupsContent() {
       {/* Profile Sheet */}
       <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
 
-      {/* Add group sheet (inline onboarding) */}
-      <Sheet open={addSheetOpen} onOpenChange={setAddSheetOpen}>
-        <SheetContent
-          side="bottom"
-          className="rounded-t-[24px] bg-bg border-t border-line p-0 max-h-[90vh]"
+      {/* Add group modal (inline onboarding) */}
+      <ResponsiveModal open={addSheetOpen} onOpenChange={setAddSheetOpen}>
+        <ResponsiveModalContent
+          size="md"
+          className="rounded-t-[24px] bg-bg border-line p-0 max-h-[90dvh]"
         >
-          <SheetHeader className="px-5 pt-5 pb-4 border-b border-line">
-            <SheetTitle className="text-[18px] font-[800] text-ink">Gruppe hinzufügen</SheetTitle>
-          </SheetHeader>
+          <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
+            <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">Gruppe hinzufügen</ResponsiveModalTitle>
+          </ResponsiveModalHeader>
           <div className="overflow-y-auto">
             <OnboardingScreen onSuccess={handleAddGroupSuccess} />
           </div>
-        </SheetContent>
-      </Sheet>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
     </div>
   )
 }

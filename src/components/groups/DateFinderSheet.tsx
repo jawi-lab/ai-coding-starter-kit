@@ -8,7 +8,7 @@ import {
   X, RefreshCw, CalendarDays, AlertTriangle, Info,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { ResponsiveModal, ResponsiveModalContent } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -164,10 +164,11 @@ export function DateFinderSheet({
   const canConfirm = !!dateRange?.from && !saving
 
   return (
-    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <SheetContent
-        side="bottom"
-        className="h-[96dvh] bg-bg border-t border-line p-0 flex flex-col rounded-t-[20px] [&>button]:hidden"
+    <ResponsiveModal open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <ResponsiveModalContent
+        size="md"
+        hideClose
+        className="h-[96dvh] md:h-auto bg-bg border-line p-0"
       >
         {/* ── Header ── */}
         <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
@@ -316,8 +317,8 @@ export function DateFinderSheet({
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }
 
