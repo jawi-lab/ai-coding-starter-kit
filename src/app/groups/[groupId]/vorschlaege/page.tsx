@@ -125,11 +125,12 @@ export default function VorschlaegePage() {
         <div className="absolute bottom-6 right-5 z-10">
           <Button
             onClick={() => setCreateOpen(true)}
-            className="h-12 px-5 bg-primary hover:bg-primary-600 text-white font-[700] text-[14px]
-                       rounded-pill border border-primary-600 shadow-lg gap-2"
+            aria-label="Vorschlag hinzufügen"
+            className="h-14 w-14 p-0 bg-primary hover:bg-primary-600 text-white
+                       rounded-full border border-primary-600 shadow-lg
+                       flex items-center justify-center active:scale-95 transition-transform"
           >
-            <Plus className="h-4 w-4" />
-            Vorschlag
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
           </Button>
         </div>
       )}

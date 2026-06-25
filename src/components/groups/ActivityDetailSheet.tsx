@@ -254,6 +254,10 @@ export function ActivityDetailSheet({
 
   // ── Comment state ──────────────────────────────────────────────────────────
   const [sendingComment, setSendingComment] = useState(false)
+  // Tracked reactively via editor onCreate/onUpdate — Tiptap v3 does not
+  // re-render the component on every transaction, so editor.isEmpty would
+  // otherwise be stale and keep the Send button disabled while typing text.
+  const [isEditorEmpty, setIsEditorEmpty] = useState(true)
   const [deleteCommentTarget, setDeleteCommentTarget] = useState<ActivityComment | null>(null)
   const commentImageInputRef = useRef<HTMLInputElement>(null)
   const commentsEndRef = useRef<HTMLDivElement>(null)
@@ -279,6 +283,8 @@ export function ActivityDetailSheet({
   const sendCommentRef = useRef<(() => Promise<void>) | null>(null)
 
   const editor = useEditor({
+    onCreate: ({ editor }) => setIsEditorEmpty(editor.isEmpty),
+    onUpdate: ({ editor }) => setIsEditorEmpty(editor.isEmpty),
     extensions: [
       StarterKit,
       PlaceholderExt.configure({ placeholder: 'Kommentar schreiben…' }),
@@ -356,7 +362,6 @@ export function ActivityDetailSheet({
   const responsibilitiesReadOnly = status === 'abgeschlossen'
   const showPhotos = status === 'abgeschlossen'
   const photoLimitReached = userPhotoCount >= 5
-  const isEditorEmpty = editor?.isEmpty ?? true
 
   // ── Reset editing state when sheet closes ──────────────────────────────────
   useEffect(() => {
@@ -364,6 +369,7 @@ export function ActivityDetailSheet({
       setEditing(false)
       setAddingResp(false)
       editor?.commands.clearContent()
+      setIsEditorEmpty(true)
     }
   }, [activityId, editor])
 
@@ -474,6 +480,7 @@ export function ActivityDetailSheet({
     setSendingComment(false)
     if (ok) {
       editor.commands.clearContent()
+      setIsEditorEmpty(true)
     } else {
       toast.error('Kommentar konnte nicht gespeichert werden')
     }

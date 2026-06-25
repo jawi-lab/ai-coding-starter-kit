@@ -405,3 +405,7 @@ All 4 QA bugs fixed. No open bugs remain.
 
 - **Bildupload in Kommentaren repariert (Storage-RLS-Bug):** Die Policies für `activity-comment-images` (und `activity-photos`) lasen die Activity-ID aus `storage.foldername(activities.name)` statt aus dem Objektpfad. In der `FROM activities a`-Subquery band sich ein unqualifiziertes `name` an `activities.name` → `is_group_member(NULL)` → jeder Upload/Read wurde verweigert ("Upload fehlgeschlagen"). Fix: explizit `storage.objects.name` qualifizieren. Migration: `supabase/migrations/20260623_fix_storage_rls_foldername_self_reference.sql` (am 2026-06-23 auf Production angewendet & verifiziert).
 - Text-Kommentare waren nie betroffen (RLS auf `activity_comments` korrekt).
+
+## Post-Deployment Fixes (2026-06-25)
+
+- **Senden von Text-Kommentaren repariert:** Der Senden-Button war an `editor?.isEmpty` gebunden, das nur beim Render ausgewertet wurde. Tiptap v3 rendert die Komponente nicht bei jeder Transaktion neu (`shouldRerenderOnTransaction` default `false`), daher blieb der Button beim reinen Tippen disabled — er wurde erst durch ein anderes State-Update (Bild-Upload, `@`-Mention) aktiv. Fix: Leer-Status wird jetzt reaktiv über `onCreate`/`onUpdate` in `isEditorEmpty`-State getrackt und nach `clearContent()` manuell zurückgesetzt. Kommentare lassen sich nun unabhängig von Bildern abschicken.

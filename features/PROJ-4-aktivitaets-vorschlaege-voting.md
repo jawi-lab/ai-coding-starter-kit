@@ -455,3 +455,7 @@ No Critical or High bugs. All 25 acceptance criteria pass. Security audit clean.
 - **Vorschlagslimit entfernt:** Die Begrenzung `proposals.length >= memberCount` (1/1-Warnbanner) war nicht sinnvoll — beliebig viele Backlog-Vorschläge sind jetzt erlaubt. Warnbanner und `atProposalLimit`-Logik entfernt.
 - **Redundanter Empty-State-Button entfernt:** "Ersten Vorschlag erstellen" auf dem leeren Board gestrichen; der schwebende **+ Vorschlag** FAB ist der einzige Erstell-Einstieg.
 - **Eigene Seite:** Der Backlog lebt jetzt unter `app/groups/[groupId]/vorschlaege/page.tsx` (vollbreite Route statt Sheet-Tab), liest Gruppen-Meta aus `GroupShellContext`.
+
+## Post-Deployment Fixes (2026-06-25)
+
+- **Runder +-FAB:** Der „+ Vorschlag"-Pill-Button wurde durch einen runden FAB (`h-14 w-14 rounded-full`) mit reinem Plus-Icon ersetzt (mit `aria-label="Vorschlag hinzufügen"`).
