@@ -39,8 +39,9 @@ ResponsiveModalOverlay.displayName = "ResponsiveModalOverlay"
 
 const contentVariants = cva(
   cn(
-    // shared
-    "fixed z-50 flex flex-col bg-background shadow-lg transition ease-in-out",
+    // shared — overflow-hidden clips child backgrounds (e.g. a bg-bg footer)
+    // to the rounded corners; without it square child rects paint over them.
+    "fixed z-50 flex flex-col overflow-hidden bg-background shadow-lg transition ease-in-out",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=closed]:duration-300 data-[state=open]:duration-500",
     // mobile: bottom sheet
