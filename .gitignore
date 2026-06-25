@@ -37,6 +37,10 @@ yarn-error.log*
 # claude code personal settings
 .claude/settings.local.json
 
+# locally installed agent skills (npx skills) — personal, not team workflow
+.agents/
+.claude/skills/find-skills
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
