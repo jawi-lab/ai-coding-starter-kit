@@ -2,7 +2,24 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22
+**Last Updated:** 2026-06-25
+
+## QA Live-Review Fixes (2026-06-25)
+- **BUG-1 (Critical) – Mitgliederliste lädt nicht (HTTP 400, PGRST200).** Die
+  Embed-Query `group_members … profiles(…)` konnte keine FK-Beziehung auflösen,
+  weil `group_members.user_id` nur auf `auth.users` zeigte (`profiles.id`
+  referenziert ebenfalls `auth.users`). **Fix:** Migration
+  `add_group_members_profiles_fk` ergänzt einen parallelen FK
+  `group_members_user_id_profiles_fkey` (`user_id → profiles.id`, ON DELETE
+  CASCADE; keine Orphan-Rows). Queries in `useGroupDetail.ts` und
+  `ActivityDetailSheet.tsx` nutzen jetzt den expliziten Hint
+  `profiles!group_members_user_id_profiles_fkey(…)`; `database.types.ts` um die
+  Relationship erweitert. Folgefehler BUG-2 (fehlender CTA, weil Rolle nicht
+  auflösbar) ist damit ebenfalls behoben — der Footer mit Gruppenverwaltung
+  (umbenennen / Rollen / entfernen / verlassen / löschen) war bereits
+  implementiert, nur durch BUG-1 verdeckt.
+- **Initialen-Helper** (`src/lib/avatar.ts`): überspringt jetzt Wörter ohne
+  Buchstaben (z. B. „TEST – QA" → „TQ" statt „T–"), Unicode-Letter-Matching.
 
 ## Implementation Notes (Backend)
 Datenbankschema, RLS-Policies, RPC-Funktion und Edge Function vollständig deployed.

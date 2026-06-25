@@ -8,7 +8,12 @@ import {
   X, RefreshCw, CalendarDays, AlertTriangle, Info,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { ResponsiveModal, ResponsiveModalContent } from '@/components/ui/responsive-modal'
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalTitle,
+  ResponsiveModalDescription,
+} from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -180,10 +185,12 @@ export function DateFinderSheet({
             <X className="h-4 w-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-[17px] font-[800] text-ink">
+            <ResponsiveModalTitle className="text-[17px] font-[800] text-ink">
               {mode === 'schedule' ? 'Termin finden' : 'Termin anpassen'}
-            </p>
-            <p className="text-[12px] text-ink-3 truncate">{activityName}</p>
+            </ResponsiveModalTitle>
+            <ResponsiveModalDescription className="text-[12px] text-ink-3 truncate">
+              {activityName}
+            </ResponsiveModalDescription>
           </div>
         </div>
 

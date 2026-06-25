@@ -6,6 +6,7 @@ import {
   ResponsiveModalContent,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
+  ResponsiveModalDescription,
 } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -169,6 +170,9 @@ export function GroupDetailSheet({
           {nameError && (
             <p className="text-[12px] text-error mt-1">{nameError}</p>
           )}
+          <ResponsiveModalDescription className="sr-only">
+            Gruppeneinstellungen: Einladungscode, Mitglieder und Verwaltung.
+          </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         {/* Scrollable content */}

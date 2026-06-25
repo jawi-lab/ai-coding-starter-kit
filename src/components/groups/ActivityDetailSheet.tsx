@@ -208,7 +208,7 @@ export function ActivityDetailSheet({
     if (!groupId) return
     supabase
       .from('group_members')
-      .select('group_id, user_id, role, joined_at, profiles(id, display_name, avatar_url)')
+      .select('group_id, user_id, role, joined_at, profiles!group_members_user_id_profiles_fkey(id, display_name, avatar_url)')
       .eq('group_id', groupId)
       .then(({ data }) => {
         if (!data) return

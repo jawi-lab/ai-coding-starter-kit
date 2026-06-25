@@ -6,6 +6,7 @@ import {
   ResponsiveModalContent,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
+  ResponsiveModalDescription,
 } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -160,6 +161,9 @@ export function ProposalFormSheet({
       >
         <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
           <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">{title}</ResponsiveModalTitle>
+          <ResponsiveModalDescription className="sr-only">
+            Formular für Name, Kategorie und Details einer Aktivität.
+          </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">

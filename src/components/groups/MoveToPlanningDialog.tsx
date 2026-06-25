@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -81,6 +82,9 @@ export function MoveToPlanningDialog({
           <DialogTitle className="text-[17px] font-[800] text-ink text-left">
             In Planung verschieben
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Lege den Zeitraum fest, um diese Aktivität in die Planung zu verschieben.
+          </DialogDescription>
         </DialogHeader>
 
         <p className="text-[13px] text-ink-2 leading-snug -mt-1">

@@ -2,8 +2,17 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22
+**Last Updated:** 2026-06-25
 **Deployed:** 2026-06-22
+
+## QA Live-Review Fixes (2026-06-25)
+- **BUG-2 (Critical) – Kein „Vorschlag hinzufügen"-CTA.** Hauptursache war
+  Folgefehler von BUG-1 (siehe PROJ-3): Da die Rolle wegen des 400 nicht
+  auflösbar war, blieb `canCreate` false und der FAB ausgeblendet. Nach dem
+  FK-Fix erscheint der FAB wieder. Zusätzlich erhält der Empty State jetzt einen
+  expliziten primären CTA „Ersten Vorschlag erstellen"
+  (`src/app/groups/[groupId]/vorschlaege/page.tsx`), sichtbar für Mitglieder mit
+  Erstell-Recht (admin/editor).
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, RLS, Storage

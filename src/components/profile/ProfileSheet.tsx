@@ -2,6 +2,7 @@
 
 import {
   ResponsiveModal, ResponsiveModalContent, ResponsiveModalHeader, ResponsiveModalTitle,
+  ResponsiveModalDescription,
 } from '@/components/ui/responsive-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import { LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProfileSection } from './ProfileSection'
+import { AppearanceSection } from './AppearanceSection'
 import { CalendarConnectionSection } from './CalendarConnectionSection'
 import { DateBlocksSection } from './DateBlocksSection'
 import { ArchiveTab } from './ArchiveTab'
@@ -43,6 +45,9 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
             <ResponsiveModalTitle className="text-[18px] font-[800] text-ink text-left">
               Mein Konto
             </ResponsiveModalTitle>
+            <ResponsiveModalDescription className="sr-only">
+              Profil, Darstellung, Kalender, Verfügbarkeit und Archiv verwalten.
+            </ResponsiveModalDescription>
           </ResponsiveModalHeader>
 
           <Tabs defaultValue="profil" className="flex-1 flex flex-col min-h-0 mt-3">
@@ -65,6 +70,10 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
             <TabsContent value="profil" className="flex-1 overflow-y-auto mt-0">
               <div className="px-5 pt-4 pb-6 space-y-5">
                 <ProfileSection />
+
+                <Separator className="bg-line" />
+
+                <AppearanceSection />
 
                 <Separator className="bg-line" />
 

@@ -19,4 +19,10 @@ describe('getInitials', () => {
     expect(getInitials('Janusz  Wickbold')).toBe('JW')
     expect(getInitials('  Anna')).toBe('A')
   })
+
+  it('skips words without letters and picks the first letter of each word', () => {
+    expect(getInitials('TEST – QA')).toBe('TQ')
+    expect(getInitials('– –')).toBe('U')
+    expect(getInitials('🎉 Party')).toBe('P')
+  })
 })
