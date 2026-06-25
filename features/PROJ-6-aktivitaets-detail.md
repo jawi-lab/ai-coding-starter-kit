@@ -2,7 +2,21 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22 (Deployed to production)
+**Last Updated:** 2026-06-25
+
+## Bugfix (2026-06-25) – iOS-Tastatur verschiebt Kommentar-Composer
+- **Symptom (iPhone):** Beim Fokussieren des Kommentar-Editors im Aktivitäts-Sheet
+  verschob sich das Fenster, der Composer/Senden-Button landete hinter der
+  Tastatur und der Kommentar ließ sich nicht abschicken.
+- **Ursache:** Das Sheet ist `position: fixed; bottom: 0` (`h-[92dvh]`). iOS Safari
+  verkleinert beim Öffnen der Software-Tastatur nur das *visual viewport*, nicht
+  das Layout-Viewport — die am Sheet-Boden fixierte Kommentar-Leiste bleibt hinter
+  der Tastatur.
+- **Fix:** Neuer Hook `src/hooks/useKeyboardInset.ts` misst die Tastatur-Überlappung
+  via `window.visualViewport` (Schwelle 120px gegen Chrome-/Rundungs-Jitter).
+  `ActivityDetailSheet` hebt das Sheet bei offener Tastatur per Inline-Style
+  (`bottom: inset`, `height: calc(100dvh - inset)`) über die Tastatur, sodass der
+  Composer sichtbar bleibt. Nur mobil aktiv; ohne Tastatur unverändert.
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS

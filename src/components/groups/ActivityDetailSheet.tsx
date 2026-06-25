@@ -41,6 +41,7 @@ import type {
 } from '@/lib/activity-types'
 import { PLACEHOLDER_IMAGE, DURATION_CATEGORY_LABELS } from '@/lib/activity-types'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { formatGermanDateRange } from '@/lib/date-format'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import type { Json } from '@/lib/database.types'
@@ -353,6 +354,9 @@ export function ActivityDetailSheet({
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const isMobile = useIsMobile()
+  // Lift the bottom sheet above the iOS software keyboard so the comment
+  // composer stays reachable instead of being hidden behind it.
+  const keyboardInset = useKeyboardInset(isMobile && !!activityId)
   const status = activity?.status ?? null
   const canEdit = !readOnly && (isAdmin || activity?.initiator_id === currentUserId)
   const showResponsibilities =
@@ -1030,6 +1034,15 @@ export function ActivityDetailSheet({
           size="lg"
           hideClose
           className="h-[92dvh] md:h-auto bg-bg border-line p-0"
+          style={
+            keyboardInset > 0
+              ? {
+                  bottom: keyboardInset,
+                  height: `calc(100dvh - ${keyboardInset}px)`,
+                  maxHeight: 'none',
+                }
+              : undefined
+          }
         >
           {/* ── Header ── */}
           <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
