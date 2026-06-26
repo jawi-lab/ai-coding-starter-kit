@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NativeAuthListener } from "@/components/native/NativeAuthListener";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -31,7 +32,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased font-sans">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <NativeAuthListener />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-06-26
-**Last Updated:** 2026-06-26
+**Last Updated:** 2026-06-27
 
 ## Dependencies
 - Requires: PROJ-1..PROJ-8 — die vollständige Web-App muss fertig sein (PRD-Constraint Abschnitt 17, verbindlich). Alle P0-Features sind Deployed. ✓
@@ -278,6 +278,57 @@ in QA prüfen.
 `exchangeCodeForSession()` aufruft (inkl. Cold-Start); native Client-Konfig mit
 `@capacitor/preferences` als Auth-Storage + `detectSessionInUrl: false` für nativ;
 übrige native Plugins (Kamera, Share, Status-Bar etc.); iOS/Android-Projekte.
+
+### Schritt 3 — Capacitor installiert + Auth-Deep-Link verdrahtet (2026-06-27)
+Dritter `/frontend`-Teil: **Capacitor wird installiert** und der native
+OAuth-/Magic-Link-Rücksprung tatsächlich an `exchangeCodeForSession()` angeschlossen.
+
+**Was gebaut wurde:**
+- **Capacitor 8 installiert:** `@capacitor/core`, `@capacitor/app`,
+  `@capacitor/preferences` (deps) + `@capacitor/cli` (devDep).
+  - Kamera/Share/Filesystem/Status-Bar/Splash/Keyboard/Network/Push folgen in ihren
+    jeweiligen Verdrahtungs-Schritten — ungenutzte Plugins jetzt zu installieren wäre
+    toter Ballast.
+- **`capacitor.config.ts`** (Repo-Root): `appId: com.zusammen.app`,
+  `appName: ZUSAMMEN`, `webDir: out` (lokal gebündelter Static Export).
+- **Plattform-Brücke `src/lib/native/`:**
+  - `platform.ts` — `isNativePlatform()` / `getPlatform()` über `@capacitor/core`.
+  - `deep-link.ts` — Kern dieses Schritts:
+    - `parseAuthDeepLink()` (pure) extrahiert `?code=` / `?error=` aus
+      `com.zusammen.app://auth/callback?…`; klassifiziert Fehler (expired/used/generic)
+      **identisch zur Web-Callback-Seite**; erkennt `type=recovery`.
+    - `handleAuthDeepLink()` ruft **`supabase.auth.exchangeCodeForSession(code)`** auf
+      und liefert `signed-in` / `recovery` / `error` / `ignored`.
+    - `registerAuthDeepLinkListener()` verdrahtet `@capacitor/app` `appUrlOpen`
+      (warm) **und** `App.getLaunchUrl()` (**Cold Start** — App war geschlossen),
+      navigiert je Ergebnis (`/`, `/reset-password/`, `/login/?auth_error=<kind>`).
+- **`src/components/native/NativeAuthListener.tsx`** — mountet den Listener im
+  Root-Layout (innerhalb `AuthProvider`); **No-op im Web** (`isNativePlatform()`-Guard).
+- **`src/lib/supabase.ts`** — nativ: Session-Storage über `@capacitor/preferences`
+  (statt WebView-localStorage) + `detectSessionInUrl: false` (URL wird nativ nicht
+  auto-gescannt, der Deep-Link-Listener löst den Code explizit ein). Web-Pfad
+  unverändert (default localStorage, `detectSessionInUrl` an).
+- **`src/app/login/page.tsx`** — zeigt bei `?auth_error=<kind>` eine inline
+  `Alert`-Meldung (AC „Login abgebrochen → verständliche Meldung, bleibt auf Login").
+  _(sonner-`Toaster` ist projektweit nicht gemountet → bewusst inline statt Toast.)_
+
+**Verifikation:**
+- `npx vitest run`: **183/183 grün** (13 neu in `deep-link.test.ts`, keine Regression).
+- `npm run build`: sauberer Static Export, alle 13 Routen `○ Static` — die neuen
+  Capacitor-Imports brechen den Export/Prerender nicht (`isNativePlatform()` ist
+  serverseitig `false`).
+
+**Noch offen in PROJ-9 (nächste Schritte):**
+- **Native Projekte erzeugen** (`npx cap add ios` / `android`) — braucht Xcode/Android
+  Studio, daher eigener Schritt; danach `npx cap sync` und Deep-Link/Cold-Start auf
+  Simulator/Gerät testen.
+- iOS `Info.plist` Custom-URL-Scheme `com.zusammen.app` + Kamera/Foto-Usage-Descriptions;
+  Android Intent-Filter für das Scheme.
+- Übrige Plugins verdrahten: Kalender-Export (`share`+`filesystem`), Avatar (`camera`),
+  Status-Bar/Splash/Safe-Areas, Android-Zurück-Button, `network`-Hinweis, externe Links
+  via `browser`; `push-notifications` nur installieren (PROJ-10).
+- **Erinnerung Backend/Dashboard:** `com.zusammen.app://auth/callback` muss in Supabase
+  → Authentication → URL Configuration → Redirect URLs stehen (Schritt 2-Note).
 
 ## QA Test Results
 _To be added by /qa_
