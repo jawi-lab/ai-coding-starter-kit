@@ -132,6 +132,16 @@
   min-height: 24px;
 }
 
+/* On touch devices, iOS Safari auto-zooms when focusing an editable element
+   whose font-size is < 16px — which shifts the sheet and pushes the send button
+   off-screen. Force 16px on the comment composer for coarse pointers only, so
+   the desktop 14px design is unaffected. */
+@media (pointer: coarse) {
+  .tiptap-editor .ProseMirror {
+    font-size: 16px;
+  }
+}
+
 .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;

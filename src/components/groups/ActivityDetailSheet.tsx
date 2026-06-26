@@ -356,7 +356,7 @@ export function ActivityDetailSheet({
   const isMobile = useIsMobile()
   // Lift the bottom sheet above the iOS software keyboard so the comment
   // composer stays reachable instead of being hidden behind it.
-  const keyboardInset = useKeyboardInset(isMobile && !!activityId)
+  const keyboard = useKeyboardInset(isMobile && !!activityId)
   const status = activity?.status ?? null
   const canEdit = !readOnly && (isAdmin || activity?.initiator_id === currentUserId)
   const showResponsibilities =
@@ -1035,10 +1035,10 @@ export function ActivityDetailSheet({
           hideClose
           className="h-[92dvh] md:h-auto bg-bg border-line p-0"
           style={
-            keyboardInset > 0
+            keyboard.inset > 0
               ? {
-                  bottom: keyboardInset,
-                  height: `calc(100dvh - ${keyboardInset}px)`,
+                  bottom: keyboard.inset,
+                  height: keyboard.height,
                   maxHeight: 'none',
                 }
               : undefined

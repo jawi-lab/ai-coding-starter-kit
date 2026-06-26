@@ -4,19 +4,25 @@
 **Created:** 2026-06-22
 **Last Updated:** 2026-06-25
 
-## Bugfix (2026-06-25) – iOS-Tastatur verschiebt Kommentar-Composer
-- **Symptom (iPhone):** Beim Fokussieren des Kommentar-Editors im Aktivitäts-Sheet
-  verschob sich das Fenster, der Composer/Senden-Button landete hinter der
-  Tastatur und der Kommentar ließ sich nicht abschicken.
-- **Ursache:** Das Sheet ist `position: fixed; bottom: 0` (`h-[92dvh]`). iOS Safari
-  verkleinert beim Öffnen der Software-Tastatur nur das *visual viewport*, nicht
-  das Layout-Viewport — die am Sheet-Boden fixierte Kommentar-Leiste bleibt hinter
-  der Tastatur.
-- **Fix:** Neuer Hook `src/hooks/useKeyboardInset.ts` misst die Tastatur-Überlappung
-  via `window.visualViewport` (Schwelle 120px gegen Chrome-/Rundungs-Jitter).
-  `ActivityDetailSheet` hebt das Sheet bei offener Tastatur per Inline-Style
-  (`bottom: inset`, `height: calc(100dvh - inset)`) über die Tastatur, sodass der
-  Composer sichtbar bleibt. Nur mobil aktiv; ohne Tastatur unverändert.
+## Bugfix (2026-06-25/26) – iOS-Kommentar-Composer verschiebt sich
+- **Symptom (iPhone):** Beim Fokussieren des Kommentar-Editors verschob sich das
+  Fenster und der Senden-Button rutschte aus dem sichtbaren Bereich — der
+  Kommentar ließ sich nicht abschicken.
+- **Ursache 1 (Hauptursache): iOS Auto-Zoom.** Das contenteditable Feld
+  (`.tiptap-editor .ProseMirror`) hatte `font-size: 14px`. iOS Safari zoomt beim
+  Fokussieren automatisch in Eingabefelder mit < 16px hinein und pant dabei das
+  Viewport — der Senden-Button wandert nach rechts aus dem Bild. **Fix:** in
+  `globals.css` per `@media (pointer: coarse)` `font-size: 16px` auf die
+  Composer-Editable (nur Touch; Desktop bleibt bei 14px, Kommentar-Anzeige via
+  `TiptapRenderer` unberührt).
+- **Ursache 2: Tastatur verdeckt Composer.** Das Sheet ist `position: fixed;
+  bottom: 0`; iOS verkleinert beim Tastatur-Öffnen nur das *visual viewport*.
+  **Fix:** Hook `src/hooks/useKeyboardInset.ts` misst via `window.visualViewport`
+  die Tastatur-Überlappung **und** die sichtbare Höhe (Schwelle 120px).
+  `ActivityDetailSheet` pinnt das Sheet bei offener Tastatur per Inline-Style
+  (`bottom: inset`, `height: <gemessene visualViewport.height>px`). Wichtig:
+  **nicht** `100dvh` verwenden — das ist auf iOS das *große* Viewport
+  (Browser-Chrome eingeklappt) und überschießt die Tastatur.
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, Storage, RLS
