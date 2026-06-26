@@ -96,6 +96,36 @@ function navigateForResult(result: DeepLinkAuthResult): void {
 }
 
 /**
+ * Guards the cold-start launch URL against re-processing. In a static export
+ * every onward navigation (`window.location.href`) is a *full* page reload, so
+ * the root layout — and this listener — re-mount on each hop. `App.getLaunchUrl()`
+ * keeps returning the original launch URL, which would otherwise re-trigger the
+ * code exchange (now failing, since the PKCE code was already consumed) and spin
+ * into a redirect loop. `sessionStorage` survives in-app reloads but is cleared
+ * when the app is killed, so a genuinely new cold start is still handled exactly
+ * once.
+ */
+const LAUNCH_URL_GUARD_KEY = 'zusammen.auth.launchUrlHandled';
+
+function wasLaunchUrlHandled(url: string): boolean {
+  try {
+    return sessionStorage.getItem(LAUNCH_URL_GUARD_KEY) === url;
+  } catch {
+    return false;
+  }
+}
+
+function markLaunchUrlHandled(url: string): void {
+  try {
+    sessionStorage.setItem(LAUNCH_URL_GUARD_KEY, url);
+  } catch {
+    // sessionStorage unavailable — fall through; worst case the URL is re-read,
+    // but the consumed-code exchange then resolves to an error (not a loop on
+    // the success path).
+  }
+}
+
+/**
  * Registers the auth deep-link listeners. Handles both:
  *  - cold start: the app was launched directly by the deep link, and
  *  - warm: the app was already running (`appUrlOpen`).
@@ -104,8 +134,11 @@ function navigateForResult(result: DeepLinkAuthResult): void {
  */
 export async function registerAuthDeepLinkListener(): Promise<() => void> {
   // Cold start — the deep link may be the URL the app was launched with.
+  // Process each launch URL only once (see LAUNCH_URL_GUARD_KEY) to avoid a
+  // redirect loop across the full-page reloads of the static export.
   const launch = await App.getLaunchUrl();
-  if (launch?.url) {
+  if (launch?.url && !wasLaunchUrlHandled(launch.url)) {
+    markLaunchUrlHandled(launch.url);
     navigateForResult(await handleAuthDeepLink(launch.url));
   }
 

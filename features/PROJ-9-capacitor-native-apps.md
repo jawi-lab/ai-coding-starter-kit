@@ -330,6 +330,87 @@ OAuth-/Magic-Link-Rücksprung tatsächlich an `exchangeCodeForSession()` angesch
 - **Erinnerung Backend/Dashboard:** `com.zusammen.app://auth/callback` muss in Supabase
   → Authentication → URL Configuration → Redirect URLs stehen (Schritt 2-Note).
 
+### Schritt 4 — Natives iOS-Projekt erzeugt, im Simulator lauffähig, Deep-Link getestet (2026-06-27)
+Vierter `/frontend`-Teil: aus dem Code das **native Xcode-Projekt** erzeugt, im
+iOS-Simulator zum Laufen gebracht (kein Whitescreen) und den **Auth-Deep-Link
+warm + Cold-Start** verifiziert.
+
+**Toolchain-Vorbereitung:**
+- **CocoaPods 1.16.2** via Homebrew installiert. (Hinweis: Capacitor 8 nutzt für
+  iOS inzwischen **Swift Package Manager** — das generierte Projekt hat `Package.swift`,
+  kein `Podfile`; CocoaPods war hier letztlich nicht nötig, schadet aber nicht.)
+- `@capacitor/ios@8.4.1` als Dependency installiert.
+
+**Native iOS-App erzeugt:**
+- `npx cap add ios` → `ios/`-Xcode-Projekt (committet; `ios/.gitignore` schließt
+  `App/App/public`, `DerivedData`, `build`, generierte Config aus → keine Artefakte
+  im Repo). `npm run build && npx cap sync ios` füllt `out/` → `public`.
+- **`ios/App/App/Info.plist`:** Custom-URL-Scheme `com.zusammen.app` als
+  `CFBundleURLTypes` registriert (Deep-Link-Rücksprung). Zusätzlich die iOS-Pflicht-
+  Usage-Descriptions `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`,
+  `NSPhotoLibraryAddUsageDescription` vorbereitet (für den späteren `@capacitor/camera`-
+  Avatar-Schritt — Apple weist Builds sonst zurück).
+
+**Whitescreen behoben (zwei Ursachen):**
+1. **Capacitor-Router inkompatibel mit Next-Static-Export (MPA).** Der Default
+   `CapacitorRouter` mappt **jeden extensionslosen Pfad** (`/login`, `/groups/view`,
+   auch `/login/`) auf die **Root-`index.html`** (SPA-Verhalten). ZUSAMMEN ist aber
+   ein Multi-Page-Static-Export mit echten Dateien pro Route → harte Navigationen
+   (`window.location.href = '/login'`, Cold-Start-Deep-Link-Ziel) landeten immer auf
+   der Root-Shell, die unauthentifiziert `null` rendert → weiß, Endlos-Redirect.
+   - **Fix:** Custom-Router **`ios/App/App/MainViewController.swift`** (`NextStaticRouter`
+     + `CAPBridgeViewController`-Subclass, via `Main.storyboard` `customClass` verdrahtet,
+     in `project.pbxproj` eingetragen). Er löst eine Verzeichnis-Route auf ihre eigene
+     `index.html` auf, wenn diese existiert; Dateien mit Endung werden direkt serviert;
+     Fallback Root-Shell. **Rein nativ — kein Eingriff in den Web-Code, eine Codebasis.**
+     (next/link-Soft-Navigationen brauchten den Fix nicht — sie laufen über die History-API,
+     nicht über den Asset-Handler; nur harte Navigationen waren betroffen.)
+2. **Sync-korruptes Bundle.** Da das Projekt in einem cloud-synchronisierten
+   `~/Desktop`-Ordner liegt, hatte der Sync-Dienst Konflikt-Duplikate (`… 3.html` etc.)
+   erzeugt und die kopierte `public` gegen sich selbst desynchronisiert (die gebündelte
+   `login/index.html` referenzierte Chunk-Hashes, die im Bundle fehlten → alle JS/CSS
+   `code=260 NSFileReadNoSuchFileError` → kein JS → weiß).
+   - **Fix:** `out/` + `public` sauber neu erzeugt (Duplikate gelöscht, frisch gebaut,
+     `cap copy`), Bundle-Konsistenz vor jedem App-Build verifiziert (HTML-Refs ↔ Chunks).
+   - **Build-Stolpersteine durch den iCloud/Sync-Ordner mitgelöst:** (a) `xcodebuild`
+     scheiterte am CodeSign (`resource fork … detritus not allowed`) wegen
+     `com.apple.FinderInfo`-xattrs aus dem Sync → Build mit **externem
+     `-derivedDataPath`** außerhalb des synchronisierten Ordners. (b) SwiftPM-Resolve
+     scheiterte an der Sandbox-Git-Einstellung `safe.bareRepository=explicit` →
+     pro Build via `GIT_CONFIG_*`-Env auf `all` überschrieben.
+
+**Cold-Start-Redirect-Loop behoben (echter Bug in `deep-link.ts`):**
+- Im Static Export ist **jede `window.location.href`-Navigation ein voller Page-Reload**,
+  der `NativeAuthListener` neu mountet → `registerAuthDeepLinkListener()` neu aufruft →
+  **`App.getLaunchUrl()` liefert die Launch-URL erneut** → erneut navigieren → Loop.
+  (Auf dem Erfolgspfad genauso: der zweite `exchangeCodeForSession` schlägt fehl, da der
+  PKCE-Code schon verbraucht ist → Error → Loop.)
+- **Fix:** Dedupe der Launch-URL über `sessionStorage` (`LAUNCH_URL_GUARD_KEY`). Überlebt
+  In-App-Reloads, wird bei echtem Kaltstart (App-Kill) zurückgesetzt → jede neue Launch-URL
+  wird **genau einmal** verarbeitet. `warm`-Pfad (`appUrlOpen`) war nie betroffen (Event
+  feuert einmal, wird nicht erneut abgefragt). 3 neue Unit-Tests in `deep-link.test.ts`.
+
+**Verifikation (iOS-Simulator, iPhone 17, iOS 26.5):**
+- App startet, lädt den Web-Content, **kein Whitescreen** → Login-Screen rendert korrekt.
+- **Deep-Link warm** (`appUrlOpen`, App lief): `…?error=access_denied` → Login zeigt
+  „Der Login wurde abgebrochen…" (`used`).
+- **Deep-Link Cold-Start** (`getLaunchUrl`, App war beendet): `…?error=access_denied&error_code=otp_expired`
+  → App launcht via Scheme, Login zeigt „Der Login-Link ist abgelaufen…" (`expired`).
+  Kein Redirect-Loop (Idle-Commits ~0).
+- URL-Scheme-Registrierung bestätigt (iOS erkennt `com.zusammen.app://` → „ZUSAMMEN").
+- `npx vitest run`: **186/186 grün** (3 neu). `npm run build`: sauberer Static Export.
+
+**Noch offen / nicht in diesem Schritt getestet:**
+- **Erfolgs-Login end-to-end** (echter PKCE-`?code=` → `exchangeCodeForSession` → `signed-in`
+  → `/`): braucht echte Anmeldung (E-Mail/Passwort + Supabase-Magic-Link auf echtem Gerät/
+  Konto). Die Deep-Link-Mechanik (Scheme, warm+cold Listener, Parse, Navigation) ist
+  verifiziert; nur der erfolgreiche Code-Tausch steht als manuelle Prüfung aus.
+- Übrige Plugins verdrahten: Kalender-Export (`share`+`filesystem`), Avatar (`camera`,
+  Usage-Descriptions stehen schon), Status-Bar/Splash/Safe-Areas, Android-Zurück-Button,
+  `network`-Hinweis, externe Links via `browser`; `push-notifications` nur installieren (PROJ-10).
+- **Android-Projekt** (`npx cap add android`) + Intent-Filter fürs Scheme.
+- App-Icon/Splash-Screen-Assets.
+
 ## QA Test Results
 _To be added by /qa_
 

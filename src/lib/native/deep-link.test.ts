@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock the native + supabase modules so the parser/handler can be tested in
 // isolation without loading the real Capacitor bridge or a Supabase client.
@@ -18,7 +18,8 @@ vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { exchangeCodeForSession } },
 }))
 
-import { parseAuthDeepLink, handleAuthDeepLink } from './deep-link'
+import { App } from '@capacitor/app'
+import { parseAuthDeepLink, handleAuthDeepLink, registerAuthDeepLinkListener } from './deep-link'
 
 beforeEach(() => {
   exchangeCodeForSession.mockReset()
@@ -110,5 +111,61 @@ describe('handleAuthDeepLink', () => {
     exchangeCodeForSession.mockRejectedValue(new Error('network'))
     const result = await handleAuthDeepLink('com.zusammen.app://auth/callback?code=bad')
     expect(result).toEqual({ status: 'error', kind: 'generic' })
+  })
+})
+
+describe('registerAuthDeepLinkListener — cold-start launch URL', () => {
+  const originalLocation = window.location
+
+  beforeEach(() => {
+    sessionStorage.clear()
+    vi.mocked(App.addListener).mockResolvedValue({ remove: vi.fn() } as never)
+    // navigateForResult assigns window.location.href; stub it so jsdom doesn't
+    // attempt a real navigation.
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { href: '' },
+    })
+  })
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation })
+  })
+
+  it('handles the launch URL on the first (cold-start) registration', async () => {
+    exchangeCodeForSession.mockResolvedValue({ error: null })
+    vi.mocked(App.getLaunchUrl).mockResolvedValue({ url: 'com.zusammen.app://auth/callback?code=abc' })
+
+    await registerAuthDeepLinkListener()
+
+    expect(exchangeCodeForSession).toHaveBeenCalledTimes(1)
+    expect(window.location.href).toBe('/')
+    expect(sessionStorage.getItem('zusammen.auth.launchUrlHandled')).toBe(
+      'com.zusammen.app://auth/callback?code=abc',
+    )
+  })
+
+  it('does NOT re-process the same launch URL after a full-page reload (no redirect loop)', async () => {
+    exchangeCodeForSession.mockResolvedValue({ error: null })
+    vi.mocked(App.getLaunchUrl).mockResolvedValue({ url: 'com.zusammen.app://auth/callback?code=abc' })
+
+    // First mount (cold start) consumes the code and marks it handled.
+    await registerAuthDeepLinkListener()
+    // Second mount simulates the static-export full reload re-running startup.
+    window.location.href = ''
+    await registerAuthDeepLinkListener()
+
+    // The code is exchanged exactly once; the reload does not navigate again.
+    expect(exchangeCodeForSession).toHaveBeenCalledTimes(1)
+    expect(window.location.href).toBe('')
+  })
+
+  it('does nothing when the app was not launched from a deep link', async () => {
+    vi.mocked(App.getLaunchUrl).mockResolvedValue(null as never)
+
+    await registerAuthDeepLinkListener()
+
+    expect(exchangeCodeForSession).not.toHaveBeenCalled()
+    expect(window.location.href).toBe('')
   })
 })
