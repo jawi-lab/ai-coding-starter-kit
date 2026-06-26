@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getAuthCallbackUrl } from '@/lib/auth-redirect'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -35,7 +36,7 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(values: ForgotValues) {
     await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: getAuthCallbackUrl(),
     })
     setSubmitted(true)
   }

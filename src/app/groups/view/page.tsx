@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useParams, usePathname, useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Settings } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
@@ -12,18 +12,16 @@ import { useGroupDetail } from '@/hooks/useGroupDetail'
 import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
+import { GROUP_TABS, groupHref, resolveGroupTab } from '@/lib/group-routes'
+import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
+import { PlanungTab } from '@/components/groups/tabs/PlanungTab'
+import { ArchivTab } from '@/components/groups/tabs/ArchivTab'
 
-const TABS = [
-  { seg: 'vorschlaege', label: 'Vorschläge' },
-  { seg: 'planung', label: 'Planung' },
-  { seg: 'archiv', label: 'Archiv' },
-] as const
-
-function GroupShell({ children }: { children: React.ReactNode }) {
-  const params = useParams()
-  const groupId = String(params.groupId)
+function GroupView() {
   const router = useRouter()
-  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const groupId = searchParams.get('id') ?? ''
+  const activeSeg = resolveGroupTab(searchParams.get('tab'))
   const { user } = useAuth()
 
   const { group, members, myRole, isAdmin, loading, error, refetch } = useGroupDetail(groupId)
@@ -31,9 +29,15 @@ function GroupShell({ children }: { children: React.ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [detailActivityId, setDetailActivityId] = useState<string | null>(null)
 
+  // Keine Gruppen-ID in der URL → zurück zur Gruppenliste.
+  useEffect(() => {
+    if (!groupId) router.replace('/groups')
+  }, [groupId, router])
+
   const canCreate = myRole === 'admin' || myRole === 'editor'
   const memberCount = members.length || 1
-  const activeSeg = TABS.find((t) => pathname.includes(`/${t.seg}`))?.seg ?? 'vorschlaege'
+
+  if (!groupId) return null
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-bg flex flex-col">
@@ -63,12 +67,13 @@ function GroupShell({ children }: { children: React.ReactNode }) {
 
         {/* Tab navigation */}
         <nav className="max-w-5xl mx-auto w-full px-4 flex gap-1">
-          {TABS.map((tab) => {
+          {GROUP_TABS.map((tab) => {
             const active = activeSeg === tab.seg
             return (
               <Link
                 key={tab.seg}
-                href={`/groups/${groupId}/${tab.seg}`}
+                href={groupHref(groupId, tab.seg)}
+                replace
                 className={`pb-2.5 px-1 mr-3 text-[14px] border-b-2 transition-colors
                   ${active
                     ? 'font-[700] text-primary border-primary'
@@ -118,7 +123,9 @@ function GroupShell({ children }: { children: React.ReactNode }) {
               refetchGroup: refetch,
             }}
           >
-            {children}
+            {activeSeg === 'vorschlaege' && <VorschlaegeTab />}
+            {activeSeg === 'planung' && <PlanungTab />}
+            {activeSeg === 'archiv' && <ArchivTab />}
           </GroupShellProvider>
         )}
       </div>
@@ -144,10 +151,24 @@ function GroupShell({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function GroupLayout({ children }: { children: React.ReactNode }) {
+function GroupViewFallback() {
+  return (
+    <div className="h-[100dvh] bg-bg flex flex-col">
+      <div className="max-w-5xl mx-auto w-full px-4 py-5 space-y-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default function GroupViewPage() {
   return (
     <AuthGuard>
-      <GroupShell>{children}</GroupShell>
+      <Suspense fallback={<GroupViewFallback />}>
+        <GroupView />
+      </Suspense>
     </AuthGuard>
   )
 }

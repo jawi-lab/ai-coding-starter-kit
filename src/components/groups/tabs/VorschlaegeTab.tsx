@@ -27,7 +27,7 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
   { label: DURATION_CATEGORY_LABELS.laengerer_zeitraum, value: 'laengerer_zeitraum' },
 ]
 
-export default function VorschlaegePage() {
+export function VorschlaegeTab() {
   const { user } = useAuth()
   const { groupId, isAdmin, canCreate, memberCount, openActivityDetail } = useGroupShell()
 

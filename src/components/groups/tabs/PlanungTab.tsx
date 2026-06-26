@@ -4,7 +4,7 @@ import { KanbanBoard } from '@/components/groups/KanbanBoard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGroupShell } from '@/components/groups/GroupShellContext'
 
-export default function PlanungPage() {
+export function PlanungTab() {
   const { user } = useAuth()
   const { groupId, isAdmin, openActivityDetail } = useGroupShell()
 

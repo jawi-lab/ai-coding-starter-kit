@@ -7,6 +7,7 @@ import { z } from 'zod'
 import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getAuthCallbackUrl } from '@/lib/auth-redirect'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -48,7 +49,7 @@ export function SignupForm() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: getAuthCallbackUrl(),
         data: { display_name: values.displayName },
       },
     })

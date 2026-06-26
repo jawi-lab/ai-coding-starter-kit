@@ -11,10 +11,12 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <span className="text-2xl font-black uppercase tracking-[0.2em] text-foreground">
-            ZUSAMMEN
-          </span>
+        <div className="flex justify-center mb-8">
+          <img
+            src="/logo.png"
+            alt="ZUSAMMEN"
+            className="h-28 w-28 rounded-[30px] object-cover"
+          />
         </div>
 
         <div className="bg-card rounded-2xl border border-border shadow-md p-6 space-y-6">

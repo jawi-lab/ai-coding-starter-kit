@@ -19,6 +19,7 @@ import {
 import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
+import { groupHref } from '@/lib/group-routes'
 import { Plus } from 'lucide-react'
 
 function GroupsContent() {
@@ -34,7 +35,7 @@ function GroupsContent() {
   useEffect(() => {
     const groupParam = searchParams.get('group')
     if (groupParam) {
-      router.replace(`/groups/${groupParam}/vorschlaege`)
+      router.replace(groupHref(groupParam))
     }
   }, [searchParams, router])
 
@@ -59,16 +60,18 @@ function GroupsContent() {
 
   function handleAddGroupSuccess(groupId: string) {
     setAddSheetOpen(false)
-    router.push(`/groups/${groupId}/vorschlaege`)
+    router.push(groupHref(groupId))
   }
 
   return (
     <div className="min-h-screen bg-bg">
       {/* Header */}
       <header className="bg-bg border-b border-line px-4 h-14 flex items-center justify-between sticky top-0 z-10">
-        <span className="text-[18px] font-[900] uppercase tracking-[0.18em] text-ink">
-          ZUSAMMEN
-        </span>
+        <img
+          src="/logo.png"
+          alt="ZUSAMMEN"
+          className="h-10 w-10 rounded-[30px] object-cover"
+        />
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -120,7 +123,7 @@ function GroupsContent() {
               <GroupCard
                 key={group.id}
                 group={group}
-                onClick={() => router.push(`/groups/${group.id}/vorschlaege`)}
+                onClick={() => router.push(groupHref(group.id))}
               />
             ))}
           </div>

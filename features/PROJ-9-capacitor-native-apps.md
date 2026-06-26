@@ -1,6 +1,6 @@
 # PROJ-9: Capacitor Native Apps (iOS + Android)
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-06-26
 **Last Updated:** 2026-06-26
 
@@ -76,11 +76,11 @@ Die bestehende ZUSAMMEN-Web-App läuft als **echte native App auf iOS und Androi
 - Deep-Link-/Custom-URL-Schema für den Auth-Redirect.
 
 ## Open Questions
-- [ ] Welche Bundle-ID / App-ID? (Vorschlag: `com.zusammen.app` — muss eindeutig und final sein, da später nicht mehr änderbar.)
-- [ ] Wie soll der angezeigte App-Name auf dem Homescreen lauten? (Vorschlag: „ZUSAMMEN".)
-- [ ] Welche Mindest-OS-Versionen werden offiziell unterstützt? (Vorschlag: iOS 15+, Android 8+.)
-- [ ] Bestehen bereits Apple Developer Account und Google Play Console (für TestFlight / internen Test nötig)?
-- [ ] Soll die native App immer das auf Vercel gehostete Web-Frontend nutzen oder den lokal gebündelten Static Export? (Entscheidung in der Architektur-Phase — beeinflusst späteres OTA/Capgo PROJ-11.)
+- [x] Welche Bundle-ID / App-ID? → **`com.zusammen.app`** (final, iOS + Android identisch). _(2026-06-26)_
+- [x] Wie soll der angezeigte App-Name auf dem Homescreen lauten? → **„ZUSAMMEN"**. _(2026-06-26)_
+- [x] Welche Mindest-OS-Versionen? → **iOS 16+, Android 10+ (API 29)**. _(2026-06-26)_
+- [x] Apple Developer Account & Google Play Console vorhanden? → **Beide vorhanden** — TestFlight & interner Test direkt erreichbar. _(2026-06-26)_
+- [x] Remote Vercel-Frontend oder lokaler Static Export? → **Lokaler Static Export** (nativ, Store-konform, Basis für OTA/PROJ-11). _(2026-06-26)_
 
 ## Decision Log
 
@@ -97,13 +97,187 @@ Die bestehende ZUSAMMEN-Web-App läuft als **echte native App auf iOS und Androi
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| _wird in /architecture ergänzt_ | | |
+| Lokal gebündelter Static Export (App lädt `out/`, nicht die Remote-Vercel-URL) | Echtes natives Verhalten, App-Store-konform, Grundlage für OTA (PROJ-11); Web-Version auf Vercel bleibt unverändert | 2026-06-26 |
+| Bundle-ID / App-ID: `com.zusammen.app` (iOS + Android identisch) | Eindeutig, final, passt zum App-Namen; später nicht änderbar | 2026-06-26 |
+| Mindest-OS: iOS 16+, Android 10+ (API 29) | Moderne WebView-Engine, weniger Alt-Geräte-Sonderfälle | 2026-06-26 |
+| `output: 'export'` + `images.unoptimized` in `next.config.ts` | Static Export ist Pflicht; kein Next Image-Server vorhanden; App nutzt nur Client-Supabase, keine API-Routes → Export ist machbar | 2026-06-26 |
+| Dynamische Route `groups/[groupId]/…` wird zu client-seitig aufgelöster Route umgebaut | Static Export kann keine unbekannten Gruppen-IDs vorrendern; größter Umbau des Features; betrifft Frontend | 2026-06-26 |
+| Plattform-Abstraktionsschicht (`src/lib/native/`) mit `Capacitor.isNativePlatform()`-Weiche | Web-Pfad bleibt 1:1 erhalten; native Pfade (Share, Kamera, Deep Link) nur auf Gerät aktiv → eine Codebasis | 2026-06-26 |
+| Auth-Redirect via Custom-URL-Schema `com.zusammen.app://auth/callback` + PKCE-Flow | `window.location.origin` ist nativ `capacitor://localhost`; Deep Link führt zuverlässig in die App zurück (auch Cold Start) | 2026-06-26 |
+| Kalender-Export nativ über `@capacitor/share` + `@capacitor/filesystem` statt `<a download>` | Der HTML-Download-Anchor funktioniert in der WebView nicht; Share-Sheet ist der native Weg in die Kalender-App | 2026-06-26 |
+| Avatar nativ über `@capacitor/camera` (Kamera/Mediathek), Web-Pfad behält `<input type=file>` | Vom Nutzer gewünschtes natives Foto-Erlebnis; Web bleibt unverändert | 2026-06-26 |
+| Supabase-Auth-Session nativ über `@capacitor/preferences` als Storage statt nur WebView-localStorage | Zuverlässigere Token-Persistenz über App-Resume/Cold-Start hinweg | 2026-06-26 |
+| `@capacitor/push-notifications` wird installiert, aber **nicht** verdrahtet | Fundament für PROJ-10 vorbereiten, ohne Single-Responsibility zu verletzen | 2026-06-26 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Grundidee in einem Satz
+PROJ-9 fügt **keine neue Funktionalität** hinzu — es verpackt die bestehende ZUSAMMEN-Web-App mit **Capacitor** in eine native Hülle (iOS + Android). Die App lädt im Inneren genau den Code, der heute schon im Browser läuft; an wenigen Stellen wird das Verhalten gegen native Gerätefunktionen ausgetauscht.
+
+### Was Capacitor ist (PM-Erklärung)
+Capacitor stellt um die Web-App einen nativen Container mit eingebauter Browser-Ansicht (WebView). Aus demselben Code entstehen ein echtes Xcode-Projekt (iOS) und ein Android-Studio-Projekt. So bleibt **eine Codebasis**, statt zwei getrennte Apps zu pflegen.
+
+### Bausteine / Struktur (kein neuer Screen)
+```
+ZUSAMMEN (eine Codebasis)
+│
+├── Web-Version (Vercel)              ← bleibt unverändert
+│
+└── Native Hülle (Capacitor)          ← NEU in PROJ-9
+    ├── iOS-Projekt (Xcode)           App-Icon, Splash, Safe-Areas
+    ├── Android-Projekt (Android Studio)  Zurück-Button, Splash
+    └── Plattform-Brücke (src/lib/native/)
+        ├── Login-Rückleitung         Deep Link statt Browser-Redirect
+        ├── Kalender-Export           natives Teilen-Menü statt Datei-Download
+        ├── Profilbild                Kamera / Fotomediathek statt Datei-Dialog
+        ├── Externe Links             öffnen im System-Browser
+        └── Verbindungs-Hinweis       „Keine Verbindung"-Meldung statt weißer Bildschirm
+```
+
+### Die fünf Anpassungen im Detail (WAS, nicht WIE)
+
+1. **Static Export aktivieren.** Die App wird zusätzlich als statischer `out/`-Ordner gebaut. Das ist unkritisch, weil ZUSAMMEN bereits **komplett client-seitig** läuft (keine API-Routes, keine Server-Logik). Die Vercel-Web-Version läuft danach unverändert weiter.
+   - **Größter Umbau:** Die Gruppen-Detailseiten nutzen heute eine dynamische URL mit der Gruppen-ID (`/groups/[groupId]/…`). Ein Static Export kann unbekannte IDs nicht vorab erzeugen. Diese Seiten werden so umgebaut, dass eine **statische Hülle** ausgeliefert wird und die konkrete Gruppe erst im Gerät geladen wird (client-seitiges Routing). Umsetzung erfolgt im `/frontend`-Schritt.
+
+2. **Login / Deep Link.** Heute leitet der Login über `window.location.origin` zurück — in der nativen App existiert diese Web-Adresse nicht. Stattdessen wird ein **eigenes App-Schema** (`com.zusammen.app://auth/callback`) registriert. Nach erfolgreichem Login springt das System zurück in die App und schließt die Sitzung ab — auch wenn die App vorher komplett geschlossen war. Bei Abbruch/Fehler bleibt der Nutzer mit verständlicher Meldung auf dem Login-Screen.
+
+3. **Kalender-Export.** Der heutige unsichtbare Datei-Download funktioniert in einer App-WebView nicht. Nativ wird die `.ics`-Datei kurz abgelegt und über das **native Teilen-Menü** angeboten, aus dem der Nutzer sie direkt in seine Kalender-App übernimmt.
+
+4. **Profilbild.** Statt des Datei-Dialogs erscheint nativ die Auswahl **Kamera oder Fotomediathek**. Lehnt der Nutzer die Berechtigung ab, zeigt die App eine verständliche Meldung; der Rest der App bleibt nutzbar.
+
+5. **Natives Feinverhalten.** Eigenes App-Icon und Splash-Screen; korrekte **Safe-Areas** an Notch/Home-Indicator; funktionierender **Android-Zurück-Button**; externe Links (z. B. Datenschutz) öffnen im System-Browser; bei eingeblendeter Tastatur scrollt das Eingabefeld in den sichtbaren Bereich; bei fehlender Internetverbindung erscheint eine „Keine Verbindung"-Meldung statt eines weißen Bildschirms.
+
+### Daten-Modell
+**Keine neuen Daten.** PROJ-9 speichert nichts Zusätzliches in der Datenbank. Einzige Änderung beim Speichern: Die **Login-Sitzung** wird auf dem Gerät zuverlässiger abgelegt (über Capacitor-Preferences statt nur WebView-Speicher), damit der Nutzer beim App-Wechsel/Neustart eingeloggt bleibt.
+
+### Plattform-Entscheidungen (begründet)
+- **Lokal gebündelter Static Export** statt Remote-Vercel-URL → fühlt sich nativ an, ist Store-konform und legt die Basis für spätere OTA-Updates (PROJ-11).
+- **Bundle-ID `com.zusammen.app`**, App-Name **„ZUSAMMEN"**, identisch auf beiden Plattformen.
+- **Mindest-OS iOS 16+ / Android 10+** → moderne WebView, weniger Sonderfälle.
+- **iOS zuerst**, Android direkt danach (Entwickler arbeitet am Mac; Deep-Link/OAuth früh absichern).
+
+### Benötigte Pakete (nur Namen + Zweck)
+| Paket | Zweck |
+|-------|-------|
+| `@capacitor/core`, `@capacitor/cli` | Capacitor-Fundament + Kommandozeile |
+| `@capacitor/ios`, `@capacitor/android` | Native iOS-/Android-Projekte |
+| `@capacitor/app` | Deep Links (Login-Rückleitung), Android-Zurück-Button, App-Resume |
+| `@capacitor/browser` | Login-Flow & externe Links im System-Browser |
+| `@capacitor/camera` | Profilbild über Kamera/Mediathek |
+| `@capacitor/share` | Kalender-`.ics` über natives Teilen-Menü |
+| `@capacitor/filesystem` | `.ics` kurz ablegen, damit es geteilt werden kann |
+| `@capacitor/preferences` | Login-Sitzung zuverlässig auf dem Gerät speichern |
+| `@capacitor/status-bar`, `@capacitor/splash-screen` | Splash, Statusleiste, Safe-Area-Verhalten |
+| `@capacitor/keyboard` | Eingabefeld bei eingeblendeter Tastatur sichtbar halten |
+| `@capacitor/network` | „Keine Verbindung"-Erkennung |
+| `@capacitor/push-notifications` | **nur installiert**, Fundament für PROJ-10 (nicht verdrahtet) |
+
+### Voraussetzungen / externe Schritte (kein Code)
+- **Supabase:** Das neue Redirect-Schema `com.zusammen.app://auth/callback` muss in den Auth-Redirect-URLs des Supabase-Projekts hinterlegt werden; Auth-Flow auf **PKCE** stellen.
+- **Apple/Google:** Beide Entwicklerkonten vorhanden ✓ → TestFlight (iOS) und interner Test (Android) sind direkt erreichbar. App-Records mit der Bundle-ID `com.zusammen.app` anlegen.
+- **iOS-Pflichttexte:** Usage-Description-Texte für Kamera und Fotomediathek (sonst weist Apple den Build zurück).
+
+### Risiken / offene Punkte
+- Der Umbau der dynamischen Gruppen-Route ist der einzige nennenswerte Code-Eingriff und muss so erfolgen, dass die **Vercel-Web-Version unverändert** funktioniert (Regressionstest in QA).
+- Deep-Link-Verhalten beim **Cold Start** (App war geschlossen) explizit testen.
+
+## Implementation Notes (Frontend)
+
+### Schritt 1 — Static Export aktiviert (2026-06-26)
+Dies ist der erste `/frontend`-Teil von PROJ-9: die Static-Export-Tauglichkeit. Die
+native Capacitor-Hülle, die Plugin-Verdrahtung (Deep Link, Kamera, Share, Status-Bar
+etc.) und der Supabase-Redirect (`/backend`) stehen noch aus.
+
+**Was gebaut wurde:**
+- `next.config.ts`: `output: 'export'`, `images: { unoptimized: true }`, `trailingSlash: true`.
+  Der Build erzeugt jetzt einen statischen `out/`-Ordner (13 Routen, alle `○ Static`).
+- **Dynamische Route `groups/[groupId]/…` entfernt** und durch eine einzige statische
+  Hülle **`/groups/view`** ersetzt. Gruppe und Tab kommen aus Query-Params
+  (`?id=<groupId>&tab=<vorschlaege|planung|archiv>`) und werden client-seitig aufgelöst.
+  - Gewählter Weg: **Single-Shell mit Query-Param** (statt Placeholder-Param + Host-Rewrite),
+    weil das ohne host-spezifische Config identisch auf Vercel (statisch) und in der
+    Capacitor-WebView funktioniert und robust gegen Hard-Reloads/Cold-Start ist. Entspricht
+    der Architektur-Entscheidung „eine statische Hülle".
+  - Neuer Helper `src/lib/group-routes.ts` (`GROUP_TABS`, `groupHref()`, `resolveGroupTab()`)
+    zentralisiert Tab-Definition und URL-Bau.
+  - Die drei Tab-Inhalte sind jetzt eigenständige Komponenten unter
+    `src/components/groups/tabs/` (`VorschlaegeTab`, `PlanungTab`, `ArchivTab`); Logik
+    unverändert übernommen. Die alte `layout.tsx`-GroupShell ist in `groups/view/page.tsx`
+    aufgegangen, inkl. `<Suspense>`-Boundary (Pflicht für `useSearchParams()` im Export).
+  - Navigations-Aufrufe in `src/app/groups/page.tsx` (3×) nutzen jetzt `groupHref()`.
+
+**Verifikation:**
+- `npm run build` erfolgreich, `out/groups/view/index.html` vorhanden, keine
+  SSR-/`generateStaticParams`-Fehler mehr.
+- `npm test`: 164/164 Unit-Tests grün (keine Regression).
+
+**Hinweis Web-Version:** Die Gruppen-Detail-URLs ändern sich von
+`/groups/<id>/vorschlaege` zu `/groups/view?id=<id>&tab=vorschlaege`. Interne Navigation
+ist vollständig umgestellt; alte externe Deep-Links auf das Pfad-Schema funktionieren nach
+dem nächsten Vercel-Deploy nicht mehr (Gruppen sind ohnehin nur für Mitglieder via RLS
+zugänglich, kein öffentlicher Share-Flow).
+
+**Noch offen in PROJ-9 (nächste Schritte):** Capacitor installieren/initialisieren,
+native Plugins (`@capacitor/app`, `browser`, `camera`, `share`, `filesystem`,
+`preferences`, `status-bar`, `splash-screen`, `keyboard`, `network`, `push-notifications`),
+Plattform-Brücke `src/lib/native/`, Auth-Deep-Link (`com.zusammen.app://auth/callback`,
+PKCE), nativer Kalender-Export & Avatar, iOS/Android-Projekte, Safe-Areas/Splash/Icon.
+Backend-seitig: Supabase-Redirect-URL + PKCE-Flow (`/backend`).
+
+## Implementation Notes (Backend)
+
+### Schritt 2 — Supabase-Redirect & PKCE (2026-06-26)
+Backend-/Auth-Teil von PROJ-9: den Auth-Redirect deep-link-fähig machen und den
+Flow auf **PKCE** umstellen. Capacitor selbst ist noch **nicht** installiert (das
+ist der nächste `/frontend`-Schritt) — der Code ist aber bereits forward-kompatibel.
+
+**Was gebaut wurde (Code):**
+- `src/lib/supabase.ts`: Client explizit auf **`auth.flowType: 'pkce'`** gestellt.
+  Auth-Links kommen damit als `?code=…` und werden über `exchangeCodeForSession()`
+  eingelöst — Voraussetzung für den nativen Deep-Link-Rücksprung und zugleich
+  sicherer als der bisherige (implizite) Hash-Token-Flow im Web. Die Callback-Seite
+  (`src/app/auth/callback/page.tsx`) löste `?code=` bereits ein → kompatibel.
+- Neuer Helper **`src/lib/auth-redirect.ts`**:
+  - `getAuthCallbackUrl()` liefert nativ `com.zusammen.app://auth/callback`,
+    im Web `${window.location.origin}/auth/callback`.
+  - `isNativePlatform()` erkennt die Capacitor-Hülle über das `window.Capacitor`-Global
+    **ohne harte `@capacitor/core`-Abhängigkeit** (bis zum Frontend-Schritt schlicht
+    `false` → Web-Pfad unverändert).
+  - Konstanten `NATIVE_AUTH_SCHEME`, `AUTH_CALLBACK_PATH`, `NATIVE_AUTH_CALLBACK_URL`
+    (wiederverwendbar durch den späteren `@capacitor/app`-Deep-Link-Listener).
+- `SignupForm.tsx` (`emailRedirectTo`) und `ForgotPasswordForm.tsx` (`redirectTo`)
+  nutzen jetzt `getAuthCallbackUrl()` statt des fest verdrahteten `window.location.origin`.
+- Test `src/lib/auth-redirect.test.ts` (Web-Origin, native Deep-Link, Capacitor-Erkennung).
+
+**Verifikation:**
+- `npx vitest run`: 170/170 grün (7 neu, keine Regression).
+- `npx next build`: sauberer Static Export (13 Routen, alle `○ Static`).
+
+**⚠️ Manueller Dashboard-Schritt (zwingend, nicht per MCP möglich):**
+Im Supabase-Projekt `fogldssdmqgeffpuhvxd` unter **Authentication → URL Configuration
+→ Redirect URLs** folgende Einträge zur Allow-List hinzufügen, sonst weist Supabase
+den Redirect ab:
+- `com.zusammen.app://auth/callback` (native App)
+- Web-URLs unverändert lassen (`http://localhost:3000/auth/callback`,
+  `https://<vercel-prod-domain>/auth/callback`).
+PKCE selbst ist eine reine **Client-Einstellung** (oben gesetzt) — am Server muss nur
+die Redirect-URL freigegeben sein.
+
+**Hinweis Produktion (Web):** Der globale Wechsel auf PKCE betrifft auch die bereits
+deployte Web-App (PROJ-2). Nach dem nächsten Vercel-Deploy kommen Bestätigungs-/
+Reset-Links als `?code=` statt als Hash-Token. Edge case: Wird ein Bestätigungslink
+auf einem **anderen Gerät/Browser** geöffnet als dem, auf dem die Registrierung lief,
+fehlt der PKCE-Verifier und der Austausch schlägt fehl (Standard-PKCE-Verhalten) —
+in QA prüfen.
+
+**Noch offen in PROJ-9 (nächste `/frontend`-Schritte):** Capacitor installieren,
+`@capacitor/app`-`appUrlOpen`-Listener, der `?code=` aus dem Deep Link extrahiert und
+`exchangeCodeForSession()` aufruft (inkl. Cold-Start); native Client-Konfig mit
+`@capacitor/preferences` als Auth-Storage + `detectSessionInUrl: false` für nativ;
+übrige native Plugins (Kamera, Share, Status-Bar etc.); iOS/Android-Projekte.
 
 ## QA Test Results
 _To be added by /qa_

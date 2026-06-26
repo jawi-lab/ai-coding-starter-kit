@@ -1,6 +1,6 @@
 'use client'
 
-export default function ArchivPage() {
+export function ArchivTab() {
   return (
     <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-6 text-center gap-3">
       <p className="text-[32px]">📦</p>
