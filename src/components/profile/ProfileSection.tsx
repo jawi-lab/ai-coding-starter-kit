@@ -9,6 +9,8 @@ import { Pencil, Check, X, Camera } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { getInitials } from '@/lib/avatar'
+import { isNativePlatform } from '@/lib/native/platform'
+import { pickAvatarPhoto } from '@/lib/native/camera'
 
 export function ProfileSection() {
   const { profile } = useAuth()
@@ -38,6 +40,15 @@ export function ProfileSection() {
     setError(null)
   }
 
+  async function uploadAndNotify(file: File) {
+    const ok = await uploadAvatar(file)
+    if (ok) {
+      toast.success('Profilbild aktualisiert')
+    } else {
+      toast.error('Profilbild konnte nicht hochgeladen werden')
+    }
+  }
+
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -48,12 +59,29 @@ export function ProfileSection() {
       return
     }
 
-    const ok = await uploadAvatar(file)
-    if (ok) {
-      toast.success('Profilbild aktualisiert')
-    } else {
-      toast.error('Profilbild konnte nicht hochgeladen werden')
+    await uploadAndNotify(file)
+  }
+
+  // Native (Capacitor): open the camera / photo-library chooser instead of the
+  // web `<input type=file>` dialog. Web keeps the file input untouched.
+  async function handleAvatarTap() {
+    if (!isNativePlatform()) {
+      avatarInputRef.current?.click()
+      return
     }
+    let result
+    try {
+      result = await pickAvatarPhoto()
+    } catch {
+      toast.error('Profilbild konnte nicht geladen werden')
+      return
+    }
+    if (result.status === 'cancelled') return
+    if (result.status === 'denied') {
+      toast.error('Bitte erlaube den Kamera- und Fotozugriff in den Einstellungen')
+      return
+    }
+    await uploadAndNotify(result.file)
   }
 
   return (
@@ -66,7 +94,7 @@ export function ProfileSection() {
         {/* Avatar with tap-to-change */}
         <div className="relative flex-shrink-0">
           <button
-            onClick={() => avatarInputRef.current?.click()}
+            onClick={handleAvatarTap}
             disabled={uploadingAvatar}
             className="relative rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Profilbild ändern"

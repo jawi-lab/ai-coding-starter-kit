@@ -494,6 +494,57 @@ geschlossen. Der Web-Pfad (`Blob` + `<a download>`) blieb in der WebView still w
   `isNativePlatform()`, Datei-Schreiben + Share-Aufruf) ist verifiziert; nur der finale
   UI-Tap steht als Gerätetest aus.
 
+### Schritt 7 — Nativer Avatar über Kamera/Fotomediathek (`@capacitor/camera`) (2026-06-27)
+Siebter `/frontend`-Teil: die in Schritt 5/6 als offen markierte **Avatar-Lücke**
+geschlossen. Web behält den `<input type=file>`-Dialog; nativ erscheint jetzt die
+OS-Auswahl **Kamera oder Fotomediathek**.
+
+**Was gebaut wurde:**
+- **Plugin installiert:** `@capacitor/camera@8.2.0` (+ `npx cap sync ios` → jetzt in der
+  iOS-`Package.swift`, 6 Plugins registriert).
+- **Neue Plattform-Brücke `src/lib/native/camera.ts`:** `pickAvatarPhoto()` ruft
+  `Camera.getPhoto()` mit **`CameraSource.Prompt`** (native Action-Sheet Kamera/Mediathek),
+  `resultType: Uri`, `quality 80`, `width/height 1024`, `correctOrientation` + deutschen
+  Prompt-Labels. Das Ergebnis wird via `fetch(webPath)→blob` zu einer `File`
+  (`avatar.<ext>`) umgewandelt, die der **unveränderte** `uploadAvatar(file)`-Flow
+  (useProfile) konsumiert. Diskriminierte Rückgabe `picked | cancelled | denied`;
+  `classifyCameraError()` trennt Nutzer-Abbruch von Berechtigungs-Ablehnung; echte/
+  unerwartete Fehler werden propagiert (Aufrufer → generischer Toast).
+- **`ProfileSection.tsx`** verzweigt im Avatar-Tap hinter **`isNativePlatform()`**: nativ →
+  `pickAvatarPhoto()` (Abbruch still, `denied` → Hinweis „…in den Einstellungen erlauben",
+  AC erfüllt); Web → bestehender `<input type=file>`-Click unverändert. Upload-Erfolgs-/
+  Fehler-Toast in `uploadAndNotify()` extrahiert (von beiden Pfaden genutzt).
+- **`<Toaster />` (sonner) im Root-Layout gemountet.** Er war projektweit **nirgends**
+  gemountet → alle bestehenden Profil-Toasts (Name/Avatar) verpufften still, und die
+  AC-pflichtige „Berechtigung abgelehnt"-Meldung hätte nie angezeigt werden können.
+  Mounten repariert beides mit einer Zeile. (`sonner.tsx` nutzt `next-themes` `useTheme`;
+  ohne Provider fällt es sauber auf `system` zurück — kein Crash.)
+- **iOS Usage-Descriptions** (`NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`,
+  `NSPhotoLibraryAddUsageDescription`) waren bereits in Schritt 4 vorbereitet → keine
+  Info.plist-Änderung nötig.
+- **Unit-Tests `src/lib/native/camera.test.ts`** (7): Prompt-Optionen, File-Erzeugung
+  (Name/Typ), `cancelled`/`denied`-Klassifikation, Re-Throw bei unerwartetem Fehler.
+
+**Verifikation:**
+- `npx vitest run`: **198/198 grün** (7 neu, keine Regression).
+- `npm run build`: sauberer Static Export, alle 13 Routen `○ Static` (Camera-Import bricht
+  den Prerender nicht — `isNativePlatform()` ist serverseitig `false`).
+- `npx cap sync ios`: `@capacitor/camera@8.2.0` in Package.swift registriert.
+
+**Manuell offen (nicht headless tappbar — Simulator-Accessibility/Kamera fehlt):**
+- Avatar antippen → natives Action-Sheet „Kamera / Aus Mediathek" muss erscheinen,
+  Foto/Bild wählbar und als Profilbild hochgeladen (AC „Kamera/Foto nativ"). Berechtigung
+  ablehnen → Hinweis-Toast (AC). Mechanik (Plugin-Registrierung, `Prompt`-Source,
+  File-Konvertierung, Branch hinter `isNativePlatform()`, Denial-Klassifikation, Toast-Mount)
+  ist verifiziert; nur der finale UI-Tap + echte Berechtigungs-Dialoge stehen als
+  Gerätetest aus.
+
+**Noch offen in PROJ-9 (nächste Schritte):** Status-Bar/Splash-Screen-Assets,
+Android-Zurück-Button, `@capacitor/network`-Hinweis, externe Links via `@capacitor/browser`,
+untere Safe-Area in Sheets/Listen; `@capacitor/push-notifications` nur installieren (PROJ-10);
+**Android-Projekt** (`npx cap add android` + Intent-Filter). Erfolgs-Login end-to-end (Schritt 4)
+weiterhin als Gerätetest offen.
+
 ## QA Test Results
 _To be added by /qa_
 

@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NativeAuthListener } from "@/components/native/NativeAuthListener";
 import { NativeStatusBar } from "@/components/native/NativeStatusBar";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -47,6 +48,7 @@ export default function RootLayout({
           <NativeAuthListener />
           <NativeStatusBar />
           {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
