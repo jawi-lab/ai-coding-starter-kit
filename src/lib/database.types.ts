@@ -391,6 +391,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          onboarded: boolean
           status: 'pending' | 'active'
           updated_at: string
         }
@@ -399,6 +400,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id: string
+          onboarded?: boolean
           status?: 'pending' | 'active'
           updated_at?: string
         }
@@ -407,6 +409,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          onboarded?: boolean
           status?: 'pending' | 'active'
           updated_at?: string
         }

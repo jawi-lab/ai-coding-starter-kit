@@ -11,6 +11,7 @@ type Profile = {
   created_at: string
   updated_at: string
   status: 'pending' | 'active'
+  onboarded: boolean
 }
 
 type AuthContextValue = {

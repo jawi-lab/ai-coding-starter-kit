@@ -1,17 +1,17 @@
 'use client'
 
 import { AuthGuard } from '@/components/auth/AuthGuard'
-import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
 import { useRouter } from 'next/navigation'
 
 function OnboardingContent() {
   const router = useRouter()
 
-  function handleGroupReady(groupId: string) {
+  function handleComplete(groupId: string) {
     router.push(`/groups?group=${groupId}`)
   }
 
-  return <OnboardingScreen onSuccess={handleGroupReady} />
+  return <OnboardingFlow onComplete={handleComplete} />
 }
 
 export default function OnboardingPage() {

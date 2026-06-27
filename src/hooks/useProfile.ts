@@ -70,5 +70,14 @@ export function useProfile() {
     return true
   }
 
-  return { saving, uploadingAvatar, error, setError, updateDisplayName, uploadAvatar }
+  // Mark the first-login onboarding flow as completed. Best-effort: a failure
+  // here should not block the user from entering the app, since the only cost is
+  // seeing the intro again on the next login.
+  async function markOnboarded(): Promise<void> {
+    if (!user) return
+    await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id)
+    await refreshProfile()
+  }
+
+  return { saving, uploadingAvatar, error, setError, updateDisplayName, uploadAvatar, markOnboarded }
 }
