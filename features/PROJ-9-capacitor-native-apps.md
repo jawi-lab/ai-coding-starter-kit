@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-06-26
-**Last Updated:** 2026-06-27
+**Last Updated:** 2026-06-28
 
 ## Dependencies
 - Requires: PROJ-1..PROJ-8 — die vollständige Web-App muss fertig sein (PRD-Constraint Abschnitt 17, verbindlich). Alle P0-Features sind Deployed. ✓
@@ -81,6 +81,8 @@ Die bestehende ZUSAMMEN-Web-App läuft als **echte native App auf iOS und Androi
 - [x] Welche Mindest-OS-Versionen? → **iOS 16+, Android 10+ (API 29)**. _(2026-06-26)_
 - [x] Apple Developer Account & Google Play Console vorhanden? → **Beide vorhanden** — TestFlight & interner Test direkt erreichbar. _(2026-06-26)_
 - [x] Remote Vercel-Frontend oder lokaler Static Export? → **Lokaler Static Export** (nativ, Store-konform, Basis für OTA/PROJ-11). _(2026-06-26)_
+- [x] Supabase-Redirect-URL `com.zusammen.app://auth/callback` freigeben → **erledigt** (im Dashboard zur Redirect-Allow-List hinzugefügt, neben `localhost:3000/**` und `qt-voting-app.vercel.app/**`). _(2026-06-28)_
+- [ ] **Restliche manuelle Geräte-/Dashboard-Schritte (bleiben offen, nicht headless):** Erfolgs-Login end-to-end auf echtem Gerät; Kalender-Export- & Avatar-UI-Tap inkl. Berechtigungs-Dialoge; TestFlight- + interner-Android-Test-Upload (Signing/Accounts). _(angelegt 2026-06-28)_
 
 ## Decision Log
 
@@ -92,6 +94,8 @@ Die bestehende ZUSAMMEN-Web-App läuft als **echte native App auf iOS und Androi
 | Kamera-/Fotozugriff **nativ** im MVP | Vom Nutzer ausdrücklich gewünscht; Profilbild-Erfassung soll sich nativ anfühlen | 2026-06-26 |
 | Push-Benachrichtigungen bleiben **PROJ-10**, nur Plugin-Fundament in PROJ-9 | Push ist ein eigenständiges, umfangreiches Feature (Server-Keys, Edge Function, Tokens, Trigger) — würde Single-Responsibility verletzen und PROJ-9 unauslieferbar groß machen | 2026-06-26 |
 | Kein Offline-Modus | App ist auf Supabase angewiesen; Offline-Caching ist erheblicher Mehraufwand ohne MVP-Nutzen | 2026-06-26 |
+| „Fertig bauen" (Refine 2026-06-28) = restliche iOS-Native-Lücken **vollständig** + **komplettes Android-Projekt**; Geräte-/Dashboard-ACs bleiben manuell | Alle code-seitig schließbaren Lücken werden in einem Rutsch erledigt, danach QA. TestFlight-/interner-Test-Upload, Erfolgs-Login-/Share-/Avatar-UI-Tap und Supabase-Redirect-Freigabe erfordern echtes Gerät/Konto/Dashboard und können nicht headless ausgeführt werden | 2026-06-28 |
+| App-Icon & Splash aus bestehendem App-Logo `public/logo.png` (ZSMN-Wortmarke auf Cream, 2000×2000) | Vom Nutzer gewünscht — gleiche Marke wie im Web; kein separates Quell-Asset nötig | 2026-06-28 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
@@ -545,8 +549,224 @@ untere Safe-Area in Sheets/Listen; `@capacitor/push-notifications` nur installie
 **Android-Projekt** (`npx cap add android` + Intent-Filter). Erfolgs-Login end-to-end (Schritt 4)
 weiterhin als Gerätetest offen.
 
+### Schritt 8 — Restliches natives Feinverhalten + Android-Projekt (2026-06-28)
+Achter `/frontend`-Teil (Refine-Runde 2026-06-28): die in Schritt 5–7 als offen
+markierten Native-Lücken **vollständig** geschlossen und das **Android-Projekt** erzeugt.
+Damit ist PROJ-9 **code-seitig komplett**; offen bleiben nur Geräte-/Dashboard-Schritte
+(siehe unten).
+
+**Neue Plugins installiert:** `@capacitor/network@8`, `@capacitor/browser@8`,
+`@capacitor/keyboard@8`, `@capacitor/splash-screen@8`, `@capacitor/push-notifications@8`
+(+ `@capacitor/android@8`). Alle 11 Plugins sind nach `cap sync` in iOS-`Package.swift`
+**und** Android registriert.
+
+**Native Komponenten (im Root-Layout gemountet, alle No-op im Web hinter `isNativePlatform()`):**
+- **`NativeBackButton.tsx`** — `@capacitor/app` `backButton`: navigiert eine Ebene
+  zurück (`history.back()`), beendet die App nur am Wurzel-Screen ohne History
+  (AC „Android-Zurück-Button"). iOS feuert das Event nie → harmlos.
+- **`NativeNetworkBanner.tsx`** — `@capacitor/network`: zeigt bei Offline einen festen
+  „Keine Verbindung"-Banner unter der Statusleiste (`pt-safe`), reagiert live auf
+  `networkStatusChange` (AC-Edge-Case „Keine Internetverbindung" → kein stiller Leerlauf).
+- **`NativeExternalLinks.tsx`** + **`src/lib/native/external-link.ts`** — delegierter
+  Document-Click-Interceptor: http(s)-Links auf eine **fremde Origin** öffnen über
+  `@capacitor/browser` im System-Browser statt in der WebView (AC „externe Links").
+  Bewusst delegiert → erfasst den `activity.url`-Link (ActivityDetailSheet) und jeden
+  künftigen externen Link **ohne** Eingriff in die Komponenten. (AGB/Datenschutz sind
+  aktuell `href="#"`-Platzhalter, also nicht betroffen.) 5 Unit-Tests
+  (`external-link.test.ts`).
+- **`NativeKeyboard.tsx`** + `capacitor.config.ts` `Keyboard: { resize: 'none' }` —
+  bewusst **`none`** statt `native`: so verkleinert sich nur der Visual-Viewport (wie
+  in mobile Safari), wofür der bestehende `useKeyboardInset`-Hook (hebt das Aktivitäts-
+  Sheet über die Tastatur) gebaut wurde. Ein `keyboardDidShow`-Scroll-Assist hält
+  Eingabefelder im Normalfluss sichtbar (AC-Edge-Case „Tastatur überdeckt Eingabefelder").
+
+**Untere Safe-Area:** Der Composer-Footer im ActivityDetailSheet nutzt jetzt
+`pb-[calc(1rem+env(safe-area-inset-bottom))]` — sitzt über dem Home-Indicator, und da iOS
+`safe-area-inset-bottom` bei offener Tastatur auf 0 setzt, bleibt der Abstand bei offener
+Tastatur korrekt minimal. Die mobile `GroupBottomNav` hatte bereits `pb-safe`; andere
+Sheets haben keine fix am unteren Rand verankerten Buttons (scrollen im normalen Fluss).
+
+**App-Icon & Splash-Screen:** Aus dem bestehenden App-Logo `public/logo.png`
+(ZSMN-Wortmarke auf Cream `#F8EBD9`, Eckfarbe exakt = App-`--bg`, kein Seam) wurden Quell-
+Assets `assets/icon.png` (1024, Logo in der Android-Safe-Zone) und `assets/splash.png`/
+`splash-dark.png` (2732, Logo zentriert auf Cream) komponiert und via
+`npx @capacitor/assets generate` in **iOS-AppIcon/Splash (13)** und **Android-Mipmaps/
+Splash (100)** umgewandelt. `SplashScreen`-Config: Cream-Hintergrund, 600 ms, kein Spinner.
+Die mitgenerierten PWA-Icons (nicht genutzt) wurden wieder entfernt. _(Dark-Splash zeigt
+vorerst ebenfalls Cream; eine helle Logo-Variante wäre späterer Politur-Punkt.)_
+
+**Android-Projekt erzeugt (`npx cap add android`):**
+- `android/`-Projekt committet; Gradle-Sync übersprungen (kein `java` auf PATH — der
+  Build läuft in Android Studio mit dessen gebündeltem JBR).
+- **`AndroidManifest.xml`:** Intent-Filter für das Custom-Scheme `com.zusammen.app`
+  (`VIEW`/`DEFAULT`/`BROWSABLE`) — Pendant zum iOS-`CFBundleURLTypes`-Eintrag; der
+  `@capacitor/app`-Deep-Link-Listener (warm + Cold-Start) löst den Auth-Rücksprung auf.
+- **Router-Parität (echter Bug verhindert):** Capacitors Android-Local-Server hat
+  **dasselbe MPA-Problem wie iOS** — mit `html5mode` (Default) mappt er jeden
+  extensionslosen Pfad (`/login`) auf die **Root-`index.html`** → Whitescreen bei harten
+  Navigationen/Cold-Start-Deep-Link-Zielen. Der `RouteProcessor`-Hook reicht hier
+  **nicht** (im html5mode-Zweig fix mit `/index.html` aufgerufen). Lösung:
+  **`NextStaticWebViewClient.java`** (Subclass von `BridgeWebViewClient`, in
+  `MainActivity.onCreate` via `setWebViewClient` verdrahtet) schreibt eine extensionslose
+  Verzeichnis-Anfrage vor dem Servieren auf deren eigene `…/index.html` um und delegiert
+  dann an Capacitors normale Asset-Pipeline (korrekte MIME-Typen, JS-Injection). Dateien
+  mit Endung und `/` bleiben unberührt. **Rein nativ — kein Eingriff in den Web-Code,
+  exakt das Pendant zum iOS-`NextStaticRouter`.**
+
+**Verifikation (in dieser Umgebung möglich):**
+- `npx vitest run`: **203/203 grün** (5 neu in `external-link.test.ts`, keine Regression).
+- `npm run build`: sauberer Static Export, alle 13 Routen `○ Static` (neue Capacitor-
+  Imports brechen den Prerender nicht — `isNativePlatform()` serverseitig `false`).
+- `npx cap sync`: 11/11 Plugins in iOS-`Package.swift` **und** Android registriert.
+- Bundle-Integrität geprüft: keine iCloud-Sync-Duplikate in `out/` / `ios/.../public` /
+  `android/.../public`; referenzierte JS-Chunks der `login/index.html` existieren im Bundle.
+
+**Manuell offen (nicht in dieser Umgebung möglich — Gerät/Dashboard nötig):**
+- **iOS:** Rebuild in Xcode mit den 5 neuen SPM-Plugins (externes `-derivedDataPath`,
+  `GIT_CONFIG`-Override — Schritt-4-Gotchas), dann am Simulator/Gerät prüfen.
+- **Android:** Erst-Build in Android Studio (JBR), App im Emulator/Gerät starten →
+  **`NextStaticWebViewClient` + Intent-Filter + Zurück-Button** verifizieren (kein
+  Whitescreen, Deep-Link warm + Cold-Start). _Hinweis: `@capacitor/push-notifications`
+  zieht auf Android `firebase-messaging`; für PROJ-10 sind Firebase-`google-services.json`
+  + Gradle-Plugin nötig — ohne Verdrahtung baut die App, ein Token-Abruf erfolgt nicht._
+- Erfolgs-Login end-to-end, Kalender-Export-/Avatar-UI-Tap, Offline-/Tastatur-/externe-
+  Links-Verhalten am Gerät; Supabase-Redirect-Freigabe; TestFlight- + interner-Android-
+  Test-Upload. (Siehe Open Questions.)
+
 ## QA Test Results
-_To be added by /qa_
+
+**QA-Datum:** 2026-06-28 · **Tester:** QA (statisch + Red-Team) · **Status:** In Review
+
+### Testbarkeits-Hinweis (wichtig für dieses Feature)
+PROJ-9 verpackt die Web-App nativ. Die nativen Pfade laufen **nur** auf Gerät/Simulator
+(`isNativePlatform()` ist im Desktop-Browser `false` → alle nativen Komponenten sind No-ops).
+Headless E2E/Browser-Tests können das native Verhalten daher **nicht** ausüben. QA hier =
+**(a)** Web-Regression (automatisiert), **(b)** statischer Red-Team-/Korrektheits-Review des
+neuen Codes, **(c)** ehrliche AC-Matrix mit Geräte-Verifikations-Gate. Die On-Device-Tests
+(Distribution, Erfolgs-Login, native UI-Taps) sind **vom Nutzer** durchzuführen.
+
+### Automatisierte Tests (Web-Regression) — ✅
+| Suite | Ergebnis |
+|-------|----------|
+| `npx vitest run` | **205/205 grün** (inkl. 7 `external-link.test.ts`, davon 2 neu für BUG-9-1) |
+| `npm run build` | sauberer Static Export, 13/13 Routen `○ Static` |
+| `npx cap sync` | 11/11 Plugins in iOS-`Package.swift` **und** Android registriert |
+| Bundle-Integrität | keine iCloud-Sync-Duplikate; referenzierte JS-Chunks vorhanden |
+
+### Nativer iOS-Build + Smoke-Test (in dieser Umgebung durchgeführt) — ✅
+- **`xcodebuild` (iPhone-17-Pro-Simulator, Xcode 26.6):** **BUILD SUCCEEDED** — die 5 neuen
+  SPM-Plugins (network, browser, keyboard, splash-screen, push-notifications) + die neue
+  Keyboard-/Splash-Config + der Swift-`NextStaticRouter` kompilieren und linken sauber.
+  (Workarounds wie in Schritt 4: externer `-derivedDataPath` im Scratchpad, `GIT_CONFIG`-
+  Override für `safe.bareRepository`, `CODE_SIGNING_ALLOWED=NO`.)
+- **App im Simulator gestartet:** bootet sauber auf den **Login-Screen** (ZSMN-Logo,
+  Safe-Area korrekt, Statusleisten-Text dunkel im Light Mode) — **kein Whitescreen**. Die 4
+  neu gemounteten Native-Komponenten (`NativeBackButton`, `NativeKeyboard`,
+  `NativeExternalLinks`, `NativeNetworkBanner`) brechen den Boot **nicht** → keine Regression.
+- _Hinweis:_ Deployment-Target jetzt auf iOS 16.0 gesetzt (war Capacitor-Default 15.0) —
+  passend zur Decision-Log-Entscheidung iOS 16+.
+
+### Nativer Android-Compile (in dieser Umgebung durchgeführt) — ✅
+- **`./gradlew :app:compileDebugJavaWithJavac`** (JDK 21 aus Android Studios JBR):
+  **BUILD SUCCESSFUL** — der neue **`NextStaticWebViewClient.java`** + `MainActivity.java`
+  kompilieren sauber gegen die Capacitor-8-Android-API (verbleibende Warnungen stammen aus
+  Capacitors eigenem Plugin-Code, nicht aus unserem). Damit ist die zuvor untestbare Android-
+  Router-Java verifiziert.
+- **Dabei gefunden & behoben:** iCloud-Sync-Duplikate (`… 2.xml`/`… 2.js` etc.) im Projekt —
+  u. a. eine versehentlich getrackte `res/xml/config 2.xml`, die den Android-Resource-Merger
+  abbrechen ließ. Alle Duplikate gelöscht, `config 2.xml` aus dem Commit entfernt. (Bekanntes
+  Sync-Ordner-Risiko aus Schritt 4 — vor jedem nativen Build prüfen.)
+- `minSdkVersion` auf **29 (Android 10)** gesetzt — passend zur Decision-Log-Entscheidung.
+
+> Die historische Playwright-Suite (PROJ-2…8, 13) testet Web-Flows gegen Live-Supabase und
+> berührt keinen PROJ-9-Code; eine PROJ-9-E2E-Spec wurde **bewusst nicht** geschrieben, da
+> sie natives Verhalten im Desktop-Browser nicht assertieren kann.
+
+### Acceptance-Criteria-Matrix
+| AC-Gruppe | Code | Geräte-Verifikation |
+|-----------|------|---------------------|
+| Build & Static Export | ✅ verifiziert (Build reproduzierbar, Web unverändert) | n/a |
+| App-Start (Icon/Splash) | ✅ Assets iOS+Android generiert, Splash-Config gesetzt | ⏳ optischer Check am Gerät |
+| Safe-Areas / Status-Bar | ✅ (iOS in Schritt 5 am Simulator verifiziert) | ⏳ Android |
+| Android-Zurück-Button | ✅ Code (`NativeBackButton`) | ⏳ Android-Gerät |
+| Login / Deep Link | ✅ iOS warm+cold verifiziert (Schritt 4) | ⏳ Erfolgs-Login e2e + Android |
+| Kalender-Export (nativ) | ✅ Code+Build (Schritt 6) | ⏳ Share-Sheet-UI-Tap |
+| Kamera / Foto (nativ) | ✅ Code+Build (Schritt 7) | ⏳ Action-Sheet + Berechtigung |
+| Verteilung (TestFlight/intern. Test) | — | ⏳ **nur manuell** (Signing/Dashboards) |
+| Edge: Offline-Hinweis | ✅ Code (`NativeNetworkBanner`, beide Themes kontrastgeprüft) | ⏳ Gerät |
+| Edge: externe Links | ✅ Code (`NativeExternalLinks` Interceptor) | ⏳ Gerät |
+| Edge: Tastatur | ✅ `resize:'none'` + Scroll-Assist (nutzt bestehenden `useKeyboardInset`) | ⏳ Gerät |
+
+### Gefundene Bugs / Findings
+**BUG-9-1 — `javascript:`/Nicht-HTTP-Schema als Aktivitäts-URL speicherbar — Medium (Security) — ✅ BEHOBEN (2026-06-28)**
+- **Fix (3 Ebenen, Defense-in-Depth):**
+  1. **Eingabe-Validierung** (`ProposalFormSheet.tsx`): URL muss `http:`/`https:` sein,
+     sonst Fehlermeldung „Nur http(s)-Links sind erlaubt" → keine neuen Bad-Data.
+  2. **Render-Guard** (`ActivityDetailSheet.tsx`): `activity.url` wird nur als `<a>`
+     gerendert, wenn `isHttpUrl()` → sonst als reiner Text. Neutralisiert **bereits
+     gespeicherte** Bad-Data auf Web **und** Nativ.
+  3. **Interceptor-Hardening** (`external-link.ts`): `javascript:`/`data:`/`vbscript:`/
+     `blob:`/`file:`-Links werden in der WebView aktiv geblockt (`preventDefault`, kein Öffnen).
+- **Tests:** `isHttpUrl` + Dangerous-Scheme-Fälle in `external-link.test.ts` → **205/205 grün**.
+- _Ursprünglicher Befund unten zur Nachvollziehbarkeit:_
+- **Wo:** `ProposalFormSheet.tsx:102` validiert die URL nur via `new URL(value)` — das
+  akzeptiert **jedes** Schema (`javascript:`, `data:`). Die URL wird in
+  `ActivityDetailSheet.tsx:626` als `<a href={activity.url} target="_blank">` gerendert.
+- **Native Auswirkung (durch PROJ-9 relevanter):** Der neue `NativeExternalLinks`-Interceptor
+  fängt **nur** `http(s)` ab; ein `javascript:`-Link fällt aufs Default-Anchor-Verhalten
+  zurück und **führt JS in der WebView aus** (Zugriff auf Capacitor-Bridge + Supabase-Session).
+- **Realismus:** Insider-Angriff (ein Gruppenmitglied legt die URL an, ein anderes tippt sie) —
+  in einer Freundesgruppe begrenzt, Impact nativ aber hoch. Im reinen Web blocken moderne
+  Browser `javascript:`-Navigationen weitgehend → primär ein Nativ-Risiko.
+- **Empfehlung (Fix in `/frontend`, nicht hier):** URL-Validierung auf `http`/`https`
+  beschränken (`new URL(v).protocol === 'http(s):'`) **und** im Interceptor Nicht-HTTP-Schemata
+  aktiv blocken (preventDefault ohne Öffnen). Pre-existing Datengap (Proposal-Form), durch die
+  native Hülle verschärft.
+
+**OBS-9-2 — Google-Calendar-Connect (OAuth) nativ inkompatibel — Medium, außerhalb PROJ-9-AC — bewusst NICHT in dieser Runde gefixt**
+- `useCalendarConnection.ts:54` navigiert per `window.location.href = data.auth_url` zur Google-
+  OAuth-Seite. In einer eingebetteten WebView blockt Google das (`disallowed_useragent`). Der
+  **Kalender-Export (.ics)** — der eigentliche PROJ-9-AC — ist davon **nicht** betroffen (Schritt 6,
+  `@capacitor/share`). Betrifft die separate Google-**Sync**-Funktion.
+- **Warum nicht heute gefixt:** Ein korrekter Fix berührt mehrere Stellen, die headless weder
+  konfigurierbar noch testbar sind — ein Teil-Fix wäre ein anderes, ebenso gebrochenes Verhalten.
+- **Konkreter Plan (eigener Schritt / PROJ-7-Nachzug):**
+  1. **Nativ** `auth_url` per `@capacitor/browser` (`Browser.open`) im System-Browser/Custom-Tab
+     öffnen statt `window.location.href` (umgeht `disallowed_useragent`).
+  2. **Redirect-URI** auf ein Custom-Scheme-Deep-Link umstellen
+     (`com.zusammen.app://auth/google-calendar/callback`) — in **Google Cloud Console** (OAuth-
+     Client) **und** in der Edge Function `google-calendar-oauth/init` als erlaubte Redirect-URI
+     hinterlegen; nativ diese statt der `window.location.origin`-Web-URL senden.
+  3. **Deep-Link-Handler** für `…/google-calendar/callback` ergänzen (analog zu `deep-link.ts`
+     Auth-Flow), der den `?code=` an die Edge Function zum Token-Tausch weiterreicht und das
+     System-Browser-Fenster schließt (`Browser.close`).
+  4. Web-Pfad unverändert lassen (Branch hinter `isNativePlatform()`).
+
+**OBS-9-3 — Android-Router-Fallback bei unbekannter Route — Low/Info — ✅ ANGEGLICHEN (2026-06-28)**
+- `NextStaticWebViewClient` prüft jetzt per `AssetManager`, ob `public/<route>/index.html`
+  existiert; falls nicht, fällt er auf die Root-Shell (`/index.html`) zurück — exakt wie der
+  iOS-`NextStaticRouter`. Unbekannte Routen zeigen damit keine leere Seite mehr.
+
+### Red-Team-Audit (sonst)
+- Kein Secret-Leak in den neuen Modulen; `Browser.open` öffnet nur validierte http(s)-URLs.
+- `NextStaticWebViewClient`: kein Pfad-Traversal-Vektor (AssetManager sandboxed; Requests stammen
+  von der eigenen App-Origin).
+- Deep-Link-/Auth-Pfad (`deep-link.ts`, PKCE) in dieser Runde **unverändert** → keine Regression.
+- Netzwerk-Banner-Kontrast in Light **und** Dark Mode geprüft (ok).
+
+### Production-Ready-Entscheidung: **NOT YET — bleibt „In Review"**
+- **Keine Critical/High-Bugs** im statischen Review; Web-Regression vollständig grün.
+- **Blocker für „Approved/Deploy“ sind keine Bugs, sondern Verifikations-Gates**, die in dieser
+  Umgebung nicht ausführbar sind: On-Device-Verifikation (iOS-Rebuild + Android-Erst-Build,
+  Erfolgs-Login e2e, native UI-Taps) und die manuellen Dashboard-Schritte (Supabase-Redirect,
+  TestFlight/interner Test). Siehe Open Questions.
+- **Empfehlung:** BUG-9-1 (Medium) vor dem Store-Schritt fixen; OBS-9-2 einplanen.
+
+### Empfohlene Reihenfolge der Behebung
+1. ~~**BUG-9-1** (Security, Medium)~~ → **✅ behoben** (2026-06-28).
+2. **On-Device-Verifikation** (iOS + Android) durch den Nutzer — verbleibendes Gate für „Approved".
+3. **OBS-9-2** (Google-Sync nativ) — separat / PROJ-7-Nachzug (außerhalb PROJ-9-AC).
+4. ~~**OBS-9-3** (Low)~~ → **✅ angeglichen** (2026-06-28, Android-Router fällt jetzt wie iOS auf die Root-Shell zurück).
 
 ## Deployment
 _To be added by /deploy_

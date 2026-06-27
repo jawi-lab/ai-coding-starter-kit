@@ -43,6 +43,7 @@ import { PLACEHOLDER_IMAGE, DURATION_CATEGORY_LABELS } from '@/lib/activity-type
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { formatGermanDateRange } from '@/lib/date-format'
+import { isHttpUrl } from '@/lib/native/external-link'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import type { Json } from '@/lib/database.types'
 
@@ -623,14 +624,20 @@ export function ActivityDetailSheet({
       {activity.url && (
         <div className="flex items-start gap-2">
           <ExternalLink className="h-4 w-4 text-ink-3 flex-shrink-0 mt-0.5" />
-          <a
-            href={activity.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[13.5px] text-secondary underline underline-offset-2 break-all"
-          >
-            {activity.url}
-          </a>
+          {/* Only linkify safe http(s) URLs — a stored javascript:/data: URL would
+              otherwise execute in the native WebView when tapped (PROJ-9 BUG-9-1). */}
+          {isHttpUrl(activity.url) ? (
+            <a
+              href={activity.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13.5px] text-secondary underline underline-offset-2 break-all"
+            >
+              {activity.url}
+            </a>
+          ) : (
+            <p className="text-[13.5px] text-ink-2 break-all">{activity.url}</p>
+          )}
         </div>
       )}
     </div>
@@ -1134,7 +1141,7 @@ export function ActivityDetailSheet({
 
           {/* ── Mobile fixed comment editor ── */}
           {isMobile && !readOnly && (
-            <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-4">
+            <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               {composerInner}
             </div>
           )}

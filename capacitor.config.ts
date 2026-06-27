@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize } from '@capacitor/keyboard';
 
 /**
  * Capacitor configuration for ZUSAMMEN (PROJ-9).
@@ -23,6 +24,23 @@ const config: CapacitorConfig = {
     StatusBar: {
       overlaysWebView: true,
       style: 'DEFAULT',
+    },
+    // `resize: 'none'` keeps the WebView full-height and lets the visual viewport
+    // shrink when the keyboard opens — i.e. it behaves exactly like mobile Safari,
+    // which is what the existing `useKeyboardInset` hook (visualViewport-based,
+    // pins the activity sheet above the keyboard) was engineered for. A native
+    // resize would silently make that hook inert. A scroll-into-view assist for
+    // normal-flow inputs runs on top — see NativeKeyboard.tsx. (PROJ-9 edge case
+    // "Tastatur überdeckt Eingabefelder".)
+    Keyboard: {
+      resize: KeyboardResize.None,
+    },
+    // Use the brand cream as the splash background; the auto-generated splash
+    // assets (npx @capacitor/assets) center the ZUSAMMEN logo on it.
+    SplashScreen: {
+      launchShowDuration: 600,
+      backgroundColor: '#F8EBD9',
+      showSpinner: false,
     },
   },
 };

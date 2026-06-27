@@ -3,6 +3,10 @@ import { Archivo } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NativeAuthListener } from "@/components/native/NativeAuthListener";
 import { NativeStatusBar } from "@/components/native/NativeStatusBar";
+import { NativeBackButton } from "@/components/native/NativeBackButton";
+import { NativeNetworkBanner } from "@/components/native/NativeNetworkBanner";
+import { NativeExternalLinks } from "@/components/native/NativeExternalLinks";
+import { NativeKeyboard } from "@/components/native/NativeKeyboard";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -47,6 +51,10 @@ export default function RootLayout({
         <AuthProvider>
           <NativeAuthListener />
           <NativeStatusBar />
+          <NativeBackButton />
+          <NativeKeyboard />
+          <NativeExternalLinks />
+          <NativeNetworkBanner />
           {children}
           <Toaster />
         </AuthProvider>

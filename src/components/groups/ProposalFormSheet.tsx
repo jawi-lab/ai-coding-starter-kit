@@ -99,7 +99,12 @@ export function ProposalFormSheet({
       next.required_votes = `Maximal ${memberCount} (Mitgliederanzahl)`
     if (values.url.trim()) {
       try {
-        new URL(values.url.trim())
+        const parsed = new URL(values.url.trim())
+        // Only http(s) — `new URL()` also accepts javascript:/data: etc., which
+        // would execute in the native WebView when the link is tapped (PROJ-9).
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          next.url = 'Nur http(s)-Links sind erlaubt'
+        }
       } catch {
         next.url = 'Gültige URL eingeben (z. B. https://…)'
       }
