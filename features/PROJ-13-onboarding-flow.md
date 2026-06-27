@@ -1,8 +1,8 @@
 # PROJ-13: Onboarding-Flow (Erst-Login)
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-27
-**Last Updated:** 2026-06-27 (QA bestanden — 21/22 ACs, 1 Low-Bug, production-ready; noch nicht via /deploy)
+**Last Updated:** 2026-06-28 (QA bestanden — 22/22 ACs, BUG-1 behoben; live deployed)
 
 ## Dependencies
 - PROJ-2 (Authentifizierung & User Accounts) — Supabase Auth Session, AuthGuard, AuthContext-Profil
