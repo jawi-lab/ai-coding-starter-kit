@@ -1,8 +1,9 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { ArrowLeft, Settings } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,11 +12,14 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
 import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
+import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
+import { GroupBottomNav } from '@/components/groups/GroupBottomNav'
+import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
 import { GROUP_TABS, groupHref, resolveGroupTab } from '@/lib/group-routes'
 import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
 import { PlanungTab } from '@/components/groups/tabs/PlanungTab'
-import { ArchivTab } from '@/components/groups/tabs/ArchivTab'
+import { TermineTab } from '@/components/groups/tabs/TermineTab'
 
 function GroupView() {
   const router = useRouter()
@@ -28,6 +32,22 @@ function GroupView() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [detailActivityId, setDetailActivityId] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+
+  // Die Übersicht (VorschlaegeTab) registriert hier ihren refetch, damit das
+  // zentral gerenderte Create-Sheet die Liste nach dem Erstellen aktualisiert.
+  const proposalsRefetchRef = useRef<(() => void) | null>(null)
+  const registerProposalsRefetch = useCallback((fn: (() => void) | null) => {
+    proposalsRefetchRef.current = fn
+  }, [])
+
+  // Einziger Erstellen-Einstieg (Bottom-Nav-+ wie Desktop-FAB): immer zur
+  // Übersicht wechseln und das Sheet öffnen — so gibt es nie zwei Eingaben.
+  const openCreateProposal = useCallback(() => {
+    router.replace(groupHref(groupId, 'vorschlaege'))
+    setCreateOpen(true)
+  }, [router, groupId])
 
   // Keine Gruppen-ID in der URL → zurück zur Gruppenliste.
   useEffect(() => {
@@ -65,8 +85,8 @@ function GroupView() {
           </button>
         </div>
 
-        {/* Tab navigation */}
-        <nav className="max-w-5xl mx-auto w-full px-4 flex gap-1">
+        {/* Top-Tab-Navigation — nur Desktop. Mobil übernimmt die Bottom-Nav. */}
+        <nav className="max-w-5xl mx-auto w-full px-4 hidden md:flex gap-1">
           {GROUP_TABS.map((tab) => {
             const active = activeSeg === tab.seg
             return (
@@ -121,14 +141,44 @@ function GroupView() {
               loading,
               openActivityDetail: setDetailActivityId,
               refetchGroup: refetch,
+              openCreateProposal,
+              registerProposalsRefetch,
             }}
           >
             {activeSeg === 'vorschlaege' && <VorschlaegeTab />}
             {activeSeg === 'planung' && <PlanungTab />}
-            {activeSeg === 'archiv' && <ArchivTab />}
+            {activeSeg === 'termine' && <TermineTab />}
           </GroupShellProvider>
         )}
       </div>
+
+      {/* Bottom-Navigation — nur mobil/nativ. Desktop nutzt die oberen Tabs. */}
+      {group && (
+        <GroupBottomNav
+          groupId={groupId}
+          activeSeg={activeSeg}
+          canCreate={canCreate}
+          onCreate={openCreateProposal}
+          onProfile={() => setProfileOpen(true)}
+        />
+      )}
+
+      {/* Zentrales „neuer Vorschlag"-Sheet (einziger Erstellen-Einstieg) */}
+      <ProposalFormSheet
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        mode="create"
+        groupId={groupId}
+        memberCount={memberCount}
+        onSuccess={() => {
+          toast.success('Vorschlag erstellt')
+          proposalsRefetchRef.current?.()
+          setCreateOpen(false)
+        }}
+      />
+
+      {/* Profil-Sheet (aus der Bottom-Nav) */}
+      <ProfileSheet open={profileOpen} onOpenChange={setProfileOpen} />
 
       {/* Shared settings sheet */}
       <GroupDetailSheet

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -29,16 +29,22 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
 
 export function VorschlaegeTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail } = useGroupShell()
+  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
+    useGroupShell()
 
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
-  const [createOpen, setCreateOpen] = useState(false)
   const [editProposal, setEditProposal] = useState<ActivityWithInitiator | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ActivityWithInitiator | null>(null)
   const [resetTarget, setResetTarget] = useState<ActivityWithInitiator | null>(null)
 
   const { proposals, myVotedIds, loading, error, filterByCategory, refetch } =
     useActivityProposals(groupId)
+
+  // Refetch beim zentral gerenderten Create-Sheet registrieren (siehe Group-View).
+  useEffect(() => {
+    registerProposalsRefetch(refetch)
+    return () => registerProposalsRefetch(null)
+  }, [refetch, registerProposalsRefetch])
   const { toggleVote, pending: votePending } = useVote({ onError: (msg) => toast.error(msg) })
   const { deleteProposal } = useDeleteProposal()
   const { resetVotes } = useResetVotes()
@@ -120,11 +126,11 @@ export function VorschlaegeTab() {
         </div>
       </div>
 
-      {/* FAB — Create Proposal (no cap: unlimited backlog) */}
+      {/* Desktop-FAB (neuer Vorschlag). Auf Mobil übernimmt der zentrale +-Button der Bottom-Nav. */}
       {canCreate && (
-        <div className="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-10">
+        <div className="hidden md:block absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-10">
           <Button
-            onClick={() => setCreateOpen(true)}
+            onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"
             className="h-14 w-14 p-0 bg-primary hover:bg-primary-600 text-white
                        rounded-full border border-primary-600 shadow-lg
@@ -134,15 +140,6 @@ export function VorschlaegeTab() {
           </Button>
         </div>
       )}
-
-      <ProposalFormSheet
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        mode="create"
-        groupId={groupId}
-        memberCount={memberCount}
-        onSuccess={() => { toast.success('Vorschlag erstellt'); refetch() }}
-      />
 
       <ProposalFormSheet
         open={!!editProposal}

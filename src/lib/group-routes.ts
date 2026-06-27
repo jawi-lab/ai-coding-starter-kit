@@ -7,10 +7,14 @@
 // client-seitig aufgelöst. Das funktioniert identisch auf Vercel (statisch) und
 // in der Capacitor-WebView, ohne Host-spezifische Rewrites.
 
+// Gruppen-Bereiche. Reihenfolge = obere Tab-Leiste (Desktop) und Bottom-Navigation
+// (mobil/nativ, PROJ-9). Das frühere `archiv` ist entfernt — das echte (persönliche)
+// Archiv lebt im Profil-Sheet; der Gruppen-Archiv-Tab war nur ein Platzhalter und
+// hätte diese Funktion gedoppelt.
 export const GROUP_TABS = [
-  { seg: 'vorschlaege', label: 'Vorschläge' },
-  { seg: 'planung', label: 'Planung' },
-  { seg: 'archiv', label: 'Archiv' },
+  { seg: 'vorschlaege', label: 'Übersicht' },
+  { seg: 'planung', label: 'Board' },
+  { seg: 'termine', label: 'Termine' },
 ] as const
 
 export type GroupTab = (typeof GROUP_TABS)[number]['seg']
