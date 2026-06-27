@@ -67,8 +67,14 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
 
   async function handleContinue() {
     const trimmed = name.trim()
+    // An emptied field is a validation error, not a silent skip — use the
+    // dedicated "Schritt überspringen" button to advance without a name.
+    if (!trimmed) {
+      setError('Name darf nicht leer sein')
+      return
+    }
     // Only write if the user actually changed their name; otherwise just advance.
-    if (trimmed && trimmed !== profile?.display_name) {
+    if (trimmed !== profile?.display_name) {
       const ok = await updateDisplayName(trimmed)
       if (!ok) return
     }

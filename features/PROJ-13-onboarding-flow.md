@@ -147,7 +147,7 @@ automatisierte Suite liefen real.
 - [x] (Code) Avatar-Tap: nativ `pickAvatarPhoto()`, Web `<input type=file>`; 5-MB-Limit + Validierung identisch zu PROJ-8 ([ProfileStep.tsx:35-66](../src/components/onboarding/ProfileStep.tsx#L35-L66))
 - [x] (Code) Name geändert + „Weiter" → speichert via `updateDisplayName`, danach `onNext()`
 - [x] (Code) „Schritt überspringen" → `onSkip()` = `next()` ohne Speichern
-- [ ] (Code) **BUG-1:** Leerer Name + „Weiter" zeigt KEINE Validierungsfehlermeldung und wechselt trotzdem weiter (siehe BUG-1). Die „zu lang"-Variante ist via `maxLength={50}` am Input nicht erreichbar (im Hook zusätzlich abgesichert).
+- [x] (Code) Leerer Name + „Weiter" → `setError('Name darf nicht leer sein')`, Flow wechselt nicht (BUG-1 **behoben**, [ProfileStep.tsx:68-74](../src/components/onboarding/ProfileStep.tsx#L68-L74)). Die „zu lang"-Variante ist via `maxLength={50}` am Input nicht erreichbar (im Hook zusätzlich abgesichert).
 
 #### AC-4: Schritt 3 — Wie möchtest du starten?
 - [x] (Code) Zwei Karten „Gruppe gründen" (Terracotta/`primary`) + „Code eingeben" (Navy/`secondary`) ([GroupStep.tsx:39-69](../src/components/onboarding/GroupStep.tsx#L39-L69))
@@ -177,7 +177,7 @@ automatisierte Suite liefen real.
 
 ### Bugs Found
 
-#### BUG-1: Leerer Name + „Weiter" wechselt ohne Validierungsfehler weiter
+#### BUG-1: Leerer Name + „Weiter" wechselt ohne Validierungsfehler weiter ✅ BEHOBEN (2026-06-27, /frontend)
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Erst-Login → Profil-Schritt
@@ -185,12 +185,12 @@ automatisierte Suite liefen real.
   3. Erwartet (laut AC): Validierungsfehlermeldung „Name darf nicht leer sein", Flow bleibt im Profil-Schritt
   4. Tatsächlich: Der `if (trimmed && trimmed !== profile?.display_name)`-Guard ([ProfileStep.tsx:71](../src/components/onboarding/ProfileStep.tsx#L71)) ist bei leerem `trimmed` falsch ⇒ kein `updateDisplayName`-Aufruf ⇒ kein Fehler ⇒ `onNext()` wechselt weiter
 - **Auswirkung:** Kein Datenverlust — der bestehende Name bleibt in der DB unverändert; lediglich die AC-Vorgabe (Fehlermeldung + kein Wechsel) ist verletzt. Verhält sich faktisch wie „überspringen".
-- **Fix-Vorschlag:** In `handleContinue` zuerst auf leeren `trimmed` prüfen und `setError('Name darf nicht leer sein')` + früh zurückkehren, bevor der „unverändert"-Pfad greift.
-- **Priorität:** Nice to have / vor Deployment optional
+- **Fix:** In `handleContinue` wird zuerst auf leeren `trimmed` geprüft → `setError('Name darf nicht leer sein')` + früher Return, bevor der „unverändert"-Pfad greift ([ProfileStep.tsx:68-74](../src/components/onboarding/ProfileStep.tsx#L68-L74)). Verifiziert: `tsc` clean, Vitest 198/198.
+- **Priorität:** Erledigt
 
 ### Summary
-- **Acceptance Criteria:** 21/22 bestanden (1 Abweichung = BUG-1)
-- **Bugs Found:** 1 total (0 Critical, 0 High, 0 Medium, 1 Low)
+- **Acceptance Criteria:** 22/22 bestanden (BUG-1 behoben)
+- **Bugs Found:** 1 total (0 Critical, 0 High, 0 Medium, 1 Low) — **alle behoben**
 - **Security:** Pass (keine neuen Findings; Auth-Guard live verifiziert)
 - **Automatisierte Tests:** Vitest 198/198 ✅, Playwright PROJ-13 1 passed / 3 skipped (auth-gated) ✅, `tsc` clean (außer vorbestehendem `ical-export.test.ts`)
 - **Production Ready:** YES (kein Critical/High; BUG-1 ist Low, kein Blocker)
