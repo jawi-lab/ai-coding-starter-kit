@@ -1,8 +1,8 @@
 # PROJ-13: Onboarding-Flow (Erst-Login)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-06-27
-**Last Updated:** 2026-06-27 (Frontend + Backend implementiert, noch nicht via /qa & /deploy)
+**Last Updated:** 2026-06-27 (QA bestanden — 21/22 ACs, 1 Low-Bug, production-ready; noch nicht via /deploy)
 
 ## Dependencies
 - PROJ-2 (Authentifizierung & User Accounts) — Supabase Auth Session, AuthGuard, AuthContext-Profil
@@ -112,5 +112,86 @@ Basierend auf den Stitch-Designs „Willkommen / Starten / Profil einrichten" (P
 - Keine — Implementierung entspricht dem oben dokumentierten Design.
 
 ### Offene Schritte
-- `/qa` (Acceptance Criteria + Security Audit) noch nicht durchgeführt
-- `/deploy` noch nicht durchgeführt; Änderungen aktuell uncommitted im Working Tree
+- `/deploy` noch nicht durchgeführt
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-06-27
+**App URL:** http://localhost:3000 (Static Export, Supabase Live-Backend)
+**Tester:** QA Engineer (AI)
+
+**Testmethodik-Hinweis:** Die interaktiven Schritt-ACs erfordern einen eingeloggten
+Erst-Login-Account (`profiles.onboarded = false`, ohne Gruppen-Mitgliedschaft). Ein
+solches Test-Login stand in dieser Umgebung nicht zur Verfügung (kein
+`TEST_USER_EMAIL`/`PASSWORD`, Signup durch Supabase-E-Mail-Ratelimit blockiert). Diese
+ACs wurden daher per **Code-Review gegen die Implementierung** verifiziert (mit „(Code)"
+markiert), nicht live im Browser durchgeklickt. Auth-Guard, Build, Typecheck und die
+automatisierte Suite liefen real.
+
+### Acceptance Criteria Status
+
+#### AC-1: Erkennung des ersten Logins
+- [x] (Code) `onboarded = false` → voller 3-Schritt-Flow: `isFirstLogin` ⇒ `['welcome','profile','group']` ([OnboardingFlow.tsx:24-25](../src/components/onboarding/OnboardingFlow.tsx#L24-L25))
+- [x] (Code) `onboarded = true` ohne Gruppe → nur Gruppen-Schritt: `steps = ['group']`
+- [x] (Code) onboardeter Nutzer mit Gruppe → `/` leitet via `group_members`-Count nach `/groups` ([page.tsx:14-24](../src/app/page.tsx#L14-L24))
+- [x] (Code) Status `pending` → AuthGuard leitet nach `/signup/pending` ([AuthGuard.tsx:17-19](../src/components/auth/AuthGuard.tsx#L17-L19))
+
+#### AC-2: Schritt 1 — Willkommen
+- [x] (Code) Überschrift „Willkommen bei ZUSAMMEN" (ZUSAMMEN in `text-primary`), Wertbeschreibung, „Los geht's"-Button ([WelcomeStep.tsx:56-72](../src/components/onboarding/WelcomeStep.tsx#L56-L72))
+- [x] (Code) „Los geht's" → `onNext()` wechselt zu Schritt 2
+
+#### AC-3: Schritt 2 — Dein Profil
+- [x] (Code) Avatar-Picker (Initialen-Fallback), Namensfeld (vorbelegt `profile.display_name`), Hinweis „Dein Profil ist für Gruppenmitglieder sichtbar."
+- [x] (Code) Avatar-Tap: nativ `pickAvatarPhoto()`, Web `<input type=file>`; 5-MB-Limit + Validierung identisch zu PROJ-8 ([ProfileStep.tsx:35-66](../src/components/onboarding/ProfileStep.tsx#L35-L66))
+- [x] (Code) Name geändert + „Weiter" → speichert via `updateDisplayName`, danach `onNext()`
+- [x] (Code) „Schritt überspringen" → `onSkip()` = `next()` ohne Speichern
+- [ ] (Code) **BUG-1:** Leerer Name + „Weiter" zeigt KEINE Validierungsfehlermeldung und wechselt trotzdem weiter (siehe BUG-1). Die „zu lang"-Variante ist via `maxLength={50}` am Input nicht erreichbar (im Hook zusätzlich abgesichert).
+
+#### AC-4: Schritt 3 — Wie möchtest du starten?
+- [x] (Code) Zwei Karten „Gruppe gründen" (Terracotta/`primary`) + „Code eingeben" (Navy/`secondary`) ([GroupStep.tsx:39-69](../src/components/onboarding/GroupStep.tsx#L39-L69))
+- [x] (Code) „Gruppe gründen" → `CreateGroupForm`; Erfolg → `handleGroupReady` setzt `markOnboarded()` + Navigation `/groups?group=<id>`
+- [x] (Code) „Code eingeben" → `JoinGroupForm`; analog
+- [x] (Code) „← Zurück zur Auswahl" kehrt zur Kartenauswahl zurück
+
+#### AC-5: Navigation & Allgemein
+- [x] (Code) Fortschritts-Punkte ab >1 Schritt + Zurück-Pfeil ab Schritt 2 ([OnboardingFlow.tsx:43-68](../src/components/onboarding/OnboardingFlow.tsx#L43-L68))
+- [x] **(Live, E2E)** „Abmelden" → Session beendet → `/login` (E2E `AC-SIGNOUT` + Code `signOut`)
+- [x] (Code) Safe-Areas: `pt-safe` (Header) + `pb-safe` (unten)
+
+### Edge Cases Status
+- [x] (Code) Name unverändert + „Weiter": kein DB-Write, Flow wechselt (`trimmed !== display_name`-Guard)
+- [x] (Code) `markOnboarded()` schlägt fehl: best-effort, kein `await`-Throw blockiert, Navigation läuft trotzdem
+- [x] (DB) Bestandsnutzer per Backfill auf `onboarded = true` (verifiziert: 4/5 Profile `true`, 1 neuer `false`)
+- [x] (Code) Erst-Login mit bestehender Gruppe → `/` → `/groups` (überspringt Intro)
+- [x] (Code) Avatar-Upload-Fehler → Toast, Flow bleibt im Profil-Schritt, kein Datenverlust
+
+### Security Audit Results
+- [x] **Authentifizierung:** `/onboarding` ohne Login → `/login` (E2E `AC-GUARD` **live bestanden**)
+- [x] **Autorisierung:** `markOnboarded()` schreibt via RLS `profiles_update_own` (`with_check: auth.uid() = id`) → nur eigene Zeile; kein Fremd-Zugriff möglich
+- [x] **Input-Validierung:** Name-Feld `maxLength=50` + Hook-Längen-/Leerprüfung; Name wird als Textinhalt gerendert (React-Escaping, kein `dangerouslySetInnerHTML`) → kein XSS
+- [x] **Datei-Upload:** `accept` + 5-MB-Limit, Pfad an `user.id` gebunden (Storage-RLS aus PROJ-8)
+- [x] **Advisors:** Keine NEUEN Security-Lints durch die `onboarded`-Spalte; bestehende Warnungen (SECURITY DEFINER RPCs, leaked-password-protection, public avatars bucket) sind vorbestehend und außerhalb des PROJ-13-Scopes
+- Hinweis (vorbestehend, kein PROJ-13-Bug): `profiles_update_own` erlaubt dem Nutzer das Schreiben beliebiger eigener Spalten inkl. `status` — bewusst server-seitig via Trigger gehärtet (PROJ-2).
+
+### Bugs Found
+
+#### BUG-1: Leerer Name + „Weiter" wechselt ohne Validierungsfehler weiter
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Erst-Login → Profil-Schritt
+  2. Namensfeld komplett leeren, „Weiter" tippen
+  3. Erwartet (laut AC): Validierungsfehlermeldung „Name darf nicht leer sein", Flow bleibt im Profil-Schritt
+  4. Tatsächlich: Der `if (trimmed && trimmed !== profile?.display_name)`-Guard ([ProfileStep.tsx:71](../src/components/onboarding/ProfileStep.tsx#L71)) ist bei leerem `trimmed` falsch ⇒ kein `updateDisplayName`-Aufruf ⇒ kein Fehler ⇒ `onNext()` wechselt weiter
+- **Auswirkung:** Kein Datenverlust — der bestehende Name bleibt in der DB unverändert; lediglich die AC-Vorgabe (Fehlermeldung + kein Wechsel) ist verletzt. Verhält sich faktisch wie „überspringen".
+- **Fix-Vorschlag:** In `handleContinue` zuerst auf leeren `trimmed` prüfen und `setError('Name darf nicht leer sein')` + früh zurückkehren, bevor der „unverändert"-Pfad greift.
+- **Priorität:** Nice to have / vor Deployment optional
+
+### Summary
+- **Acceptance Criteria:** 21/22 bestanden (1 Abweichung = BUG-1)
+- **Bugs Found:** 1 total (0 Critical, 0 High, 0 Medium, 1 Low)
+- **Security:** Pass (keine neuen Findings; Auth-Guard live verifiziert)
+- **Automatisierte Tests:** Vitest 198/198 ✅, Playwright PROJ-13 1 passed / 3 skipped (auth-gated) ✅, `tsc` clean (außer vorbestehendem `ical-export.test.ts`)
+- **Production Ready:** YES (kein Critical/High; BUG-1 ist Low, kein Blocker)
+- **Recommendation:** Deploy möglich; BUG-1 optional vorab durch `/frontend` fixen lassen. Für einen vollständigen Live-Durchklick der interaktiven Schritte empfiehlt sich ein Test-Account mit `onboarded = false` (+ `TEST_USER_EMAIL/PASSWORD`).
