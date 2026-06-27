@@ -456,6 +456,44 @@ irgendeinem Sprung, nicht nur beim Login. Tab-Wechsel laufen über next/link (So
 - Splash-Screen-Assets, Android-Zurück-Button, `network`-Hinweis, externe Links via
   `browser`; `push-notifications` nur installieren (PROJ-10); Android-Projekt.
 
+### Schritt 6 — Nativer Kalender-Export (`.ics` über Share-Sheet) (2026-06-27)
+Sechster `/frontend`-Teil: die in Schritt 5 als offen markierte **Kalender-Export-Lücke**
+geschlossen. Der Web-Pfad (`Blob` + `<a download>`) blieb in der WebView still wirkungslos.
+
+**Was gebaut wurde:**
+- **Plugins installiert:** `@capacitor/share@8.0.1`, `@capacitor/filesystem@8.1.2`
+  (+ `npx cap sync ios` → beide jetzt in der iOS-`Package.swift` registriert).
+- **`src/lib/ical-export.ts` refaktoriert** ohne den Web-Pfad zu ändern:
+  - Reine Builder extrahiert: `buildIcalContent(opts)` (RFC-5545-String) und
+    `icalFileName(summary)` (sanitärer Dateiname) — von beiden Plattformen genutzt,
+    einzige Quelle der `.ics`-Erzeugung.
+  - `exportToIcal()` verzweigt hinter **`isNativePlatform()`**: nativ →
+    `shareIcsNative(...)` (fire-and-forget, Signatur bleibt synchron/`void`, Aufrufer
+    unverändert); Web → unveränderter `<a download>`-Pfad.
+- **Neue Plattform-Brücke `src/lib/native/share-ics.ts`:** `shareIcsNative()` schreibt
+  die `.ics` via `@capacitor/filesystem` in `Directory.Cache` (UTF-8) und reicht die
+  File-URI an `@capacitor/share` → natives Teilen-Menü („Zum Kalender hinzufügen").
+  Eine abgebrochene/abgewiesene Freigabe wird geschluckt (kein Fehler); ein echter
+  Schreibfehler wird propagiert.
+- **Unit-Tests `src/lib/native/share-ics.test.ts`** (5): Schreiben in Cache/UTF-8,
+  Teilen der File-URI, Reihenfolge write→share, Abbruch geschluckt, Schreibfehler propagiert.
+  Die bestehenden `ical-export.test.ts` (Web-Pfad) laufen unverändert grün (jsdom →
+  `isNativePlatform()` = false → Web-Branch).
+
+**Verifikation:**
+- `npx vitest run`: **191/191 grün** (5 neu, keine Regression).
+- `npm run build`: sauberer Static Export, alle 13 Routen `○ Static` (neue Capacitor-
+  Imports brechen den Prerender nicht).
+- `npx cap sync ios` + nativer Build (externes DerivedData) **BUILD SUCCEEDED**,
+  auf iPhone-17-Simulator (iOS 26.5) installiert und gestartet (eingeloggt, Gruppen-Liste).
+
+**Manuell offen (nicht headless tappbar — Simulator-Accessibility fehlt):**
+- Antippen von „Zum Kalender hinzufügen" in einer terminierten Aktivität → das native
+  Share-Sheet muss erscheinen und die `.ics` in die Kalender-App übernehmbar sein
+  (AC „Kalender-Export (nativ)"). Mechanik (Build, Plugin-Registrierung, Branch hinter
+  `isNativePlatform()`, Datei-Schreiben + Share-Aufruf) ist verifiziert; nur der finale
+  UI-Tap steht als Gerätetest aus.
+
 ## QA Test Results
 _To be added by /qa_
 
