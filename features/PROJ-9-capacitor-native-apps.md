@@ -411,6 +411,51 @@ warm + Cold-Start** verifiziert.
 - **Android-Projekt** (`npx cap add android`) + Intent-Filter fürs Scheme.
 - App-Icon/Splash-Screen-Assets.
 
+### Schritt 5 — Safe-Areas + native Status-Bar (2026-06-27)
+Fünfter `/frontend`-Teil: das erste Stück **natives Feinverhalten**, nachdem die App
+im Simulator lief. Beim Login-Test fiel auf, dass der Content unter Notch/Statusleiste
+klebt (Gruppen-Header überlappte die Uhr).
+
+**Safe-Areas:**
+- `viewport-fit=cover` als `viewport`-Export in `layout.tsx` (macht die
+  `env(safe-area-inset-*)`-Werte überhaupt erst != 0).
+- Utility-Klassen in `globals.css`: `.pt-safe`, `.pb-safe`, `.h-bar-safe`
+  (= `calc(3.5rem + inset-top)` + `padding-top: inset-top`).
+- Angewandt auf die Top-Header (`groups/page.tsx` → `h-bar-safe`,
+  `groups/view/page.tsx` → `pt-safe`) und den FAB
+  (`VorschlaegeTab.tsx` → `bottom-[calc(1.5rem+inset-bottom)]`).
+- **Web bleibt unberührt** — die Insets sind im Browser 0, die Klassen sind No-ops.
+
+**Status-Bar (`@capacitor/status-bar`):**
+- Installiert + in `capacitor.config.ts` (`overlaysWebView: true`, `style: DEFAULT`).
+- Neue native-only Komponente `src/components/native/NativeStatusBar.tsx` setzt den
+  Statusleisten-Stil aus dem App-Theme: Light Mode → `Style.Light` (dunkler Text),
+  Dark Mode → `Style.Dark` (heller Text). Reagiert via `MutationObserver` auf die
+  `dark`-Klasse, die der Theme-Switch auf `<html>` toggelt. No-op im Web. Im Root-Layout
+  gemountet (neben `NativeAuthListener`).
+
+**Verifikation (Simulator, eingeloggt):**
+- Light Mode: Header sitzt unter der Statusleiste, dunkler Statusleisten-Text auf Cream.
+- Dark Mode (`simctl ui … appearance dark`): heller Statusleisten-Text auf Dunkel,
+  Header korrekt im Safe-Area. Beide Modi sauber.
+- `npx vitest run`: 186/186 grün, `npm run build` sauber.
+
+**Statische Absicherung der App-weiten Navigation:** Alle harten `window.location.href`-
+Ziele im Code (`/groups`, `/onboarding`, `/reset-password`, `/signup/pending`, inkl.
+Query-Strings) lösen über den `NextStaticRouter` korrekt auf → kein Whitescreen auf
+irgendeinem Sprung, nicht nur beim Login. Tab-Wechsel laufen über next/link (Soft-Nav).
+
+**Bekannte native Lücken (noch offen, wie geplant):**
+- **Kalender-Export** (`src/lib/ical-export.ts`) nutzt `Blob` + `a.download` + `a.click()`
+  → funktioniert in der WebView **nicht**. Nächster Schritt: `@capacitor/share` +
+  `@capacitor/filesystem`.
+- **Avatar/Foto** über `<input type=file>` (öffnet auf iOS den nativen Picker, aber nicht
+  die gewünschte `@capacitor/camera`-Kamera/Mediathek-Auswahl).
+- **Untere Safe-Area in Sheets/Scroll-Listen** nur punktuell (FAB) abgedeckt — Aktivitäts-
+  Sheet-Buttons & lange Listen bei Bedarf noch nachziehen.
+- Splash-Screen-Assets, Android-Zurück-Button, `network`-Hinweis, externe Links via
+  `browser`; `push-notifications` nur installieren (PROJ-10); Android-Projekt.
+
 ## QA Test Results
 _To be added by /qa_
 

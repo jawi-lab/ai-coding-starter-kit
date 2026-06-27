@@ -42,7 +42,7 @@ function GroupView() {
   return (
     <div className="h-[100dvh] overflow-hidden bg-bg flex flex-col">
       {/* Header */}
-      <header className="flex-shrink-0 bg-bg border-b border-line">
+      <header className="flex-shrink-0 bg-bg border-b border-line pt-safe">
         <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center gap-3">
           <button
             onClick={() => router.push('/groups')}

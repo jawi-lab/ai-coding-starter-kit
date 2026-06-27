@@ -15,6 +15,16 @@ const config: CapacitorConfig = {
   appId: 'com.zusammen.app',
   appName: 'ZUSAMMEN',
   webDir: 'out',
+  plugins: {
+    // The WebView extends under the status bar (overlaysWebView); content is
+    // kept clear of it via `env(safe-area-inset-top)` in the CSS. The concrete
+    // light/dark text style is set at runtime from the app theme — see
+    // src/components/native/NativeStatusBar.tsx.
+    StatusBar: {
+      overlaysWebView: true,
+      style: 'DEFAULT',
+    },
+  },
 };
 
 export default config;

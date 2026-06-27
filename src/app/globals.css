@@ -182,3 +182,18 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Native safe areas (PROJ-9). With `viewport-fit=cover` these insets are the
+   notch/status-bar (top) and home-indicator (bottom) gaps on iOS; they resolve
+   to 0 in a normal browser, so the same classes are harmless on the web. */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+/* A top bar whose content row stays `h` tall but sits below the status bar. */
+.h-bar-safe {
+  height: calc(3.5rem + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+}

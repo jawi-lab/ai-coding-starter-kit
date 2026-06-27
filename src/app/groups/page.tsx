@@ -66,7 +66,7 @@ function GroupsContent() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Header */}
-      <header className="bg-bg border-b border-line px-4 h-14 flex items-center justify-between sticky top-0 z-10">
+      <header className="bg-bg border-b border-line px-4 h-bar-safe flex items-center justify-between sticky top-0 z-10">
         <img
           src="/logo.png"
           alt="ZUSAMMEN"

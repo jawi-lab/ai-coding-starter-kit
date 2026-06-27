@@ -11,3 +11,8 @@ capacitor-cordova-ios-plugins
 # Generated Config files
 App/App/capacitor.config.json
 App/App/config.xml
+
+# Cloud-sync conflict duplicates (e.g. "config 2.xml", "logo 3.png") — the
+# project lives in a synced Desktop folder; these copies must never be committed.
+* [0-9].*
+* [0-9]

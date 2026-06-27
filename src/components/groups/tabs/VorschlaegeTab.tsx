@@ -126,7 +126,7 @@ export function VorschlaegeTab() {
 
       {/* FAB — Create Proposal (no cap: unlimited backlog) */}
       {canCreate && (
-        <div className="absolute bottom-6 right-5 z-10">
+        <div className="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-10">
           <Button
             onClick={() => setCreateOpen(true)}
             aria-label="Vorschlag hinzufügen"
