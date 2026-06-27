@@ -97,11 +97,7 @@ export function VorschlaegeTab() {
               ))}
             </div>
           ) : displayed.length === 0 ? (
-            <EmptyProposalState
-              hasFilter={activeFilter !== null}
-              canCreate={canCreate}
-              onCreate={() => setCreateOpen(true)}
-            />
+            <EmptyProposalState hasFilter={activeFilter !== null} />
           ) : (
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
               {displayed.map((p) => (
@@ -175,15 +171,7 @@ export function VorschlaegeTab() {
   )
 }
 
-function EmptyProposalState({
-  hasFilter,
-  canCreate,
-  onCreate,
-}: {
-  hasFilter: boolean
-  canCreate: boolean
-  onCreate: () => void
-}) {
+function EmptyProposalState({ hasFilter }: { hasFilter: boolean }) {
   if (hasFilter) {
     return (
       <div className="flex flex-col items-center justify-center pt-16 gap-2 text-center px-6">
@@ -201,15 +189,6 @@ function EmptyProposalState({
       <p className="text-[13px] text-ink-3 max-w-[240px] leading-relaxed">
         Schlag der Gruppe eine Aktivität vor und stimmt gemeinsam ab.
       </p>
-      {canCreate && (
-        <Button
-          onClick={onCreate}
-          className="mt-2 h-11 px-5 bg-primary hover:bg-primary-600 text-white rounded-[12px] font-[600] gap-2"
-        >
-          <Plus className="h-4.5 w-4.5" strokeWidth={2.5} />
-          Ersten Vorschlag erstellen
-        </Button>
-      )}
     </div>
   )
 }
