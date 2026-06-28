@@ -146,11 +146,16 @@ async function sendFcm(
     // ignore parse failure
   }
 
+  // Only delete on signals that unambiguously mean "this token is dead". We do
+  // NOT treat INVALID_ARGUMENT as deletable: FCM also returns it for a malformed
+  // *message* (a bug on our side), which would otherwise wipe every recipient's
+  // valid token in the same send. Such cases are surfaced via the error log below.
   const unregistered =
-    resp.status === 404 ||
-    errorCode === 'UNREGISTERED' ||
-    errorCode === 'NOT_FOUND' ||
-    errorCode === 'INVALID_ARGUMENT';
+    resp.status === 404 || errorCode === 'UNREGISTERED' || errorCode === 'NOT_FOUND';
+
+  if (!unregistered) {
+    console.error(`FCM send failed (status ${resp.status}, code ${errorCode || 'unknown'})`);
+  }
 
   return { ok: false, unregistered };
 }

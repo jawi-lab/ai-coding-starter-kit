@@ -40,6 +40,11 @@ create trigger trg_activities_last_changed_by
   for each row execute function public.set_activity_last_changed_by();
 
 -- 2) Async HTTP (pg_net) ---------------------------------------------------------
+-- pg_net is a non-relocatable, Supabase-managed extension; its callable objects
+-- live in the dedicated `net` schema regardless of the extension's home schema.
+-- The "extension in public" advisor (QA-10-5) cannot be remediated by
+-- `alter extension ... set schema` (not relocatable) and a drop/recreate would
+-- risk the live webhook for an INFO-level lint — accepted as-is.
 create extension if not exists pg_net;
 
 -- 3) Webhook secret in Vault -----------------------------------------------------

@@ -1,6 +1,6 @@
 # PROJ-10: Push-Benachrichtigungen (FCM/APNs)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-06-28
 **Last Updated:** 2026-06-28
 
@@ -48,8 +48,8 @@ PROJ-10 ist „fertig", wenn: die Erlaubnis sauber eingeholt wird, ein Geräte-T
 
 ### Auslösende Ereignisse (richtige Empfänger)
 - [ ] Angenommen ein Mitglied erstellt einen neuen Aktivitäts-Vorschlag, wenn der Vorschlag gespeichert ist, dann erhalten **alle anderen** Gruppenmitglieder (nicht der Ersteller) eine Push „[Name] hat „[Titel]" vorgeschlagen".
-- [ ] Angenommen ein Vorschlag gewinnt das Voting / wird in die Planung verschoben, wenn der Statuswechsel erfolgt, dann erhalten alle Gruppenmitglieder eine Push, dass „[Titel]" jetzt geplant wird.
-- [ ] Angenommen ein gemeinsamer Termin wird bestätigt, wenn die Bestätigung erfolgt, dann erhalten alle Gruppenmitglieder eine Push mit Aktivitätstitel und Termin.
+- [ ] Angenommen ein Vorschlag gewinnt das Voting / wird in die Planung verschoben, wenn der Statuswechsel erfolgt, dann erhalten alle **anderen** Gruppenmitglieder (nicht der Auslöser des Statuswechsels — z. B. der entscheidende Voter) eine Push, dass „[Titel]" jetzt geplant wird.
+- [ ] Angenommen ein gemeinsamer Termin wird bestätigt, wenn die Bestätigung erfolgt, dann erhalten alle **anderen** Gruppenmitglieder (nicht der Auslöser) eine Push mit Aktivitätstitel und Termin.
 - [ ] Angenommen ein Nutzer wird in einem Kommentar @erwähnt, wenn der Kommentar gespeichert ist, dann erhält **nur** der/die Erwähnte(n) eine Push „[Name] hat dich in „[Titel]" erwähnt" (kein Push für nicht erwähnte Mitglieder).
 - [ ] Angenommen einem Nutzer wird die Verantwortung für etwas zugewiesen, wenn die Zuweisung gespeichert ist, dann erhält **nur** dieser Nutzer eine Push über seine neue Verantwortung.
 - [ ] Angenommen ein Nutzer löst ein Ereignis selbst aus (z. B. erwähnt sich selbst oder kommentiert), wenn die Push erzeugt wird, dann erhält der Auslöser **keine** Benachrichtigung über seine eigene Aktion.
@@ -270,8 +270,88 @@ Empfängerkreis ist immer **aktuelle Gruppenmitgliedschaft** — wer raus ist, b
 2. **Supabase Function Secrets** setzen: `FCM_SERVICE_ACCOUNT` = Service-Account-JSON, `PUSH_WEBHOOK_SECRET` = der in Vault generierte Wert. Den Vault-Wert holst du dir z. B. im SQL-Editor mit `select decrypted_secret from vault.decrypted_secrets where name = 'push_webhook_secret';` und trägst ihn 1:1 als Function-Secret ein (beide Seiten müssen identisch sein). `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` stellt Supabase automatisch bereit.
 3. **On-Device-E2E-Test** auf physischem iOS- und Android-Gerät (Simulator/Emulator liefern Push nur eingeschränkt).
 
-## QA Test Results
-_To be added by /qa_
+## QA Test Results (/qa, 2026-06-28)
+
+**Tester:** QA Engineer + Red-Team · **Build:** static export green · **Unit tests:** 238/238 pass (25 files), incl. 33 PROJ-10 tests (`push.test.ts` 12, `send-push/logic.test.ts` 21).
+
+### Test approach (warum kein Browser-E2E)
+Push existiert **nur** in der nativen Hülle; im Web sind alle Pfade No-ops hinter `isNativePlatform()`. Browser-E2E (Playwright) kann native Push **nicht** auslösen — ein Web-Test prüft nur No-ops. Daher wurde stattdessen geprüft:
+- **Pure Logik** (Klassifizierung, Empfänger-Auflösung, Nachrichtentexte, Deep-Link-Parsing/-Pfade) über die bestehenden 33 Unit-Tests — alle grün.
+- **Live-Infrastruktur** direkt in Supabase verifiziert (Tabelle/RLS/Trigger/Vault/Edge Function).
+- **Statische Analyse** der Client- und Server-Hälfte gegen jedes Acceptance Criterion.
+- **On-Device-Beweis** liegt bereits vor (Open Questions): Android E2E auf Emulator ✅, iOS im Simulator (simulierter Push) ✅.
+
+### Live-Infrastruktur (Supabase, Projekt `fogldssdmqgeffpuhvxd`)
+| Prüfung | Ergebnis |
+|---------|----------|
+| Tabelle `device_tokens` (RLS aktiv, FK→profiles, unique token, Index user_id) | ✅ vorhanden, 1 Token (Android-Emulator) |
+| RLS-Policies `device_tokens` | ✅ nur SELECT/DELETE **eigene** (authenticated). **Kein** INSERT/UPDATE-Policy → Registrierung nur über RPC |
+| RPC `register_device_token` (SECURITY DEFINER, `auth.uid()`-Stempel, on-conflict-Reassign) | ✅ live, grant nur `authenticated`/`service_role` |
+| Trigger `set_activity_last_changed_by` (Actor-Tracking) | ✅ aktiv |
+| Push-Webhooks (5 Trigger: activities INSERT/UPDATE, comments INSERT, responsibilities INSERT) | ✅ alle aktiv mit engen WHEN-Klauseln |
+| Vault-Secret `push_webhook_secret` | ✅ vorhanden |
+| Edge Function `send-push` | ✅ ACTIVE, `verify_jwt=false` (per Design; eigene `x-webhook-secret`-Prüfung) |
+| Integrations-Pfad „wird geplant" | ✅ `vorschlag→zu_planen` wird vom bestehenden `update_activity_votes_count`-Trigger gesetzt → matcht die Webhook-WHEN-Klausel |
+
+### Acceptance Criteria
+**Berechtigung & Token-Registrierung**
+- [x] Soft-Ask im Onboarding vor OS-Dialog — `PushStep.tsx`, nur nativ in `OnboardingFlow`. ✅
+- [x] „Erlauben" → Token serverseitig pro Nutzer — `requestPushPermission()` → `registerDeviceToken()` → RPC. ✅
+- [x] Ablehnen → App läuft weiter, kein Token — beide Wege rufen `onNext()`; kein Token ohne `granted`. ✅
+- [x] Nachträgliches Aktivieren / dauerhaft verweigert → System-Einstellungen — `PushNotificationSection` + `usePushPermission` (prompt/granted/denied). ✅
+- [x] Multi-Device → an alle Geräte — `device_tokens` mehrzeilig pro Nutzer, Versand `.in('user_id', recipientIds)`. ✅ (iOS-Hardware s. Hinweis)
+
+**Auslösende Ereignisse**
+- [x] Neuer Vorschlag → alle außer Ersteller — `classifyEvent` new_proposal, actor=`initiator_id`. ✅
+- [x] Wird geplant → alle Mitglieder — now_planning (Voting-Trigger erzeugt den Statuswechsel). ✅ (Auslöser ausgeschlossen, s. Finding QA-10-3)
+- [x] Termin bestätigt → alle Mitglieder, Titel + Datum — date_set, `formatGermanDate`. ✅
+- [x] @-Erwähnung → nur Erwähnte — mention, Schnitt mit Mitgliedschaft, Autor ausgeschlossen. ✅
+- [x] Verantwortung → nur Zugewiesener — responsibility, `created_by` ausgeschlossen. ✅
+- [x] Auslöser bekommt nie eigene Push — `resolveRecipients` filtert `actorId` zentral serverseitig. ✅
+- [x] Kein Mitglied (mehr) → keine Push — Empfänger = aktuelle `group_members`. ✅
+
+**Tap & Vordergrund**
+- [x] Cold Start → direkter Kontext — `notificationActionPerformed` → `navigateToPushTarget` (Full-Page-Load), AuthGuard fängt ausgeloggt ab. ✅
+- [x] Hintergrund-Tap → Kontext — gleicher Listener. ✅
+- [x] Vordergrund → antippbarer sonner-Toast, kein Banner — `notificationReceived`. ✅
+
+**Inhalt**
+- [x] Name + Titel, Deutsch — `buildMessage` (5 Texte, getestet). ✅
+
+### Edge Cases
+- [x] Onboarding übersprungen → Profil-Nachweg. ✅
+- [x] OS dauerhaft verweigert → Hinweis auf Systemeinstellungen. ✅
+- [x] Ungültiges Token → Cleanup bei `UNREGISTERED`/404 (s. Finding QA-10-1 zu `INVALID_ARGUMENT`). ✅/⚠️
+- [x] Re-Login auf anderem Account → RPC on-conflict reassigned Token an neuen Nutzer; Logout entkoppelt (`removeDeviceToken`). ✅
+- [x] Massen-Ereignisse → genau 1 Datenänderung = 1 Webhook, keine Doppelzustellung. ✅
+- [x] Empfänger ohne Token → still übersprungen. ✅
+- [x] Tap auf gelöschten Inhalt → `?activity=` Param wird vom DetailSheet/„Gruppe nicht gefunden" abgefangen, Param wird gestrippt. ✅
+- [x] Cold Start ohne Login → AuthGuard leitet zu Login. ✅
+
+### Security Audit (Red Team)
+- ✅ **Service-Keys nie im Client:** FCM-Service-Account + Webhook-Secret nur serverseitig (Edge Function Secrets / Vault).
+- ✅ **Webhook fail-closed:** ohne gesetztes `PUSH_WEBHOOK_SECRET` lehnt die Function **jede** Anfrage mit 401 ab; Secret-Vergleich konstant gegen Header.
+- ✅ **RLS:** `device_tokens` ohne INSERT/UPDATE-Policy; Schreiben nur über SECURITY DEFINER-RPC mit erzwungenem `auth.uid()`. SELECT/DELETE nur eigene Zeilen.
+- ✅ **Empfänger RLS-konform:** Versand schneidet immer mit aktueller Gruppenmitgliedschaft; Ausgetretene erhalten nichts.
+- ✅ **Auslöser-Ausschluss serverseitig** (nicht umgehbar vom Client).
+- ✅ **Keine sensiblen Daten** in der Payload (nur Aktivitätstitel + IDs; Sperrbildschirm-Anzeige bewusst akzeptiert).
+
+### Findings (alle Low — keine Critical/High) · **aufgeräumt 2026-06-28**
+| ID | Sev | Befund | Status |
+|----|-----|--------|--------|
+| QA-10-1 | Low | Token-Cleanup löschte auch bei `INVALID_ARGUMENT`. Das kann FCM auch bei **fehlerhafter Nachricht** (nicht bei totem Token) liefern — dann würden in einem Send alle gültigen Empfänger-Tokens gelöscht. | ✅ **Behoben (Code)** — `index.ts` löscht jetzt nur bei `UNREGISTERED`/`NOT_FOUND`/HTTP 404; andere Fehler werden geloggt, nicht gelöscht. **Redeploy der Edge Function erfolgt im `/deploy`-Schritt** (Code geändert, noch nicht live). |
+| QA-10-2 | Low | `register_device_token` reassigned per `on conflict (token) do update` jedes Token an den Aufrufer. Wer ein **fremdes** FCM-Token kennt, könnte es übernehmen. Exploit erfordert das hochentropische Opfer-Token (nicht via RLS lesbar). | ✅ **Akzeptiert + dokumentiert** — Security-Note im Migrations-Kommentar (`20260628_proj10_device_tokens.sql`). Bewusster Re-Login-Mechanismus, kein neues Angriffsflächen-Risiko. |
+| QA-10-3 | Low (Spec) | AC „wird geplant"/„Termin" sagte „**alle** Gruppenmitglieder", Implementierung + Decision Table schließen den Auslöser aus. | ✅ **Behoben** — beide AC-Texte an die Decision Table angeglichen („alle anderen, nicht der Auslöser"). |
+| QA-10-4 | Low | Setzt eine einzelne UPDATE gleichzeitig `vorschlag→zu_planen` **und** `start_date`, feuert 1 Webhook; `classifyEvent` wählt `now_planning` und unterdrückt `date_set`. In der Praxis getrennte Nutzeraktionen. | ✅ **Akzeptiert + dokumentiert** — bewusste Präzedenz als Kommentar in `logic.ts` festgehalten. |
+| QA-10-5 | Info | `pg_net` im `public`-Schema (Advisor WARN). | ✅ **Akzeptiert** — `pg_net` ist non-relocatable + Supabase-managed (Objekte liegen im `net`-Schema); `set schema` nicht möglich, Drop/Recreate zu riskant für INFO-Lint. Begründung als Kommentar in der Webhook-Migration. |
+
+**Pre-existing (nicht PROJ-10):** Leaked-Password-Protection aus, `function_search_path_mutable` auf 3 Altfunktionen, `group_availability_cache` RLS-ohne-Policy, public `avatars`-Bucket-Listing. Unverändert aus früheren Features.
+
+### Hinweis zur iOS-Hardware (Release-Gate, kein Code-Bug)
+Echte **APNs-Zustellung + iOS-Token-Anlage** sind nur auf einem **physischen iPhone** prüfbar (Apple Push Key .p8 → Firebase, Open Question offen `[~]`). Code-seitig ist die iOS-Hälfte fertig und im Simulator (simulierter Push) bewiesen. Für die iOS-Store-Auslieferung muss der .p8-Schritt + ein On-Device-Test vor Release erfolgen.
+
+### Production-Ready: **JA** (mit iOS-Hardware-Gate vor Store-Release)
+Keine Critical/High-Bugs. Alle Findings sind Low/optional. Server-Pipeline live und Android E2E-bewiesen; iOS Code-fertig, echte APNs-Zustellung steht als dokumentierter manueller Schritt aus.
 
 ## Deployment
 _To be added by /deploy_

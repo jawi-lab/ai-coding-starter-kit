@@ -79,6 +79,11 @@ export function classifyEvent(p: WebhookPayload): EventDescriptor | null {
     if (p.type === 'UPDATE') {
       const old = p.old_record ?? {};
       const actorId = str(rec.last_changed_by) ?? null;
+      // Precedence is deliberate: a single UPDATE that both moves the proposal into
+      // planning AND sets the date emits exactly one push (now_planning wins). In
+      // practice these are separate user actions (Kanban move, then date finder),
+      // so each fires its own webhook; the precedence only matters for the rare
+      // combined write and avoids a double notification for one change.
       if (old.status === 'vorschlag' && rec.status === 'zu_planen') {
         return { event: 'now_planning', activityId, groupId, activityName, actorId };
       }

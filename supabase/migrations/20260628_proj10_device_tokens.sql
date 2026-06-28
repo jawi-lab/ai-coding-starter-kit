@@ -38,6 +38,14 @@ create policy "Users delete own device tokens"
 -- INSERT/UPDATE. The RPC always stamps user_id = auth.uid(), so the Re-Login case
 -- (a token row currently owned by another user is reassigned to the new user via
 -- the unique-token upsert) works without a permissive USING(true) UPDATE policy.
+--
+-- Security note (accepted tradeoff): on-conflict reassignment means an attacker who
+-- already knows a victim's exact FCM token could re-register it under their own
+-- account. This is acceptable because the FCM token is a high-entropy device secret
+-- that is never exposed to other users (RLS restricts SELECT to the owner; the
+-- send-push function reads it only via the service role). Knowing someone else's
+-- token already implies their device/install is compromised, so this adds no new
+-- attack surface — and the reassignment is exactly what makes the Re-Login case work.
 create or replace function public.register_device_token(p_token text, p_platform text)
 returns void
 language plpgsql
