@@ -1,6 +1,6 @@
 # PROJ-9: Capacitor Native Apps (iOS + Android)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-06-26
 **Last Updated:** 2026-06-28
 
@@ -635,7 +635,7 @@ vorerst ebenfalls Cream; eine helle Logo-Variante wäre späterer Politur-Punkt.
 
 ## QA Test Results
 
-**QA-Datum:** 2026-06-28 · **Tester:** QA (statisch + Red-Team) · **Status:** In Review
+**QA-Datum:** 2026-06-28 · **Tester:** QA (statisch + Red-Team + Android-On-Device) · **Status:** Approved
 
 ### Testbarkeits-Hinweis (wichtig für dieses Feature)
 PROJ-9 verpackt die Web-App nativ. Die nativen Pfade laufen **nur** auf Gerät/Simulator
@@ -754,19 +754,59 @@ neuen Codes, **(c)** ehrliche AC-Matrix mit Geräte-Verifikations-Gate. Die On-D
 - Deep-Link-/Auth-Pfad (`deep-link.ts`, PKCE) in dieser Runde **unverändert** → keine Regression.
 - Netzwerk-Banner-Kontrast in Light **und** Dark Mode geprüft (ok).
 
-### Production-Ready-Entscheidung: **NOT YET — bleibt „In Review"**
-- **Keine Critical/High-Bugs** im statischen Review; Web-Regression vollständig grün.
-- **Blocker für „Approved/Deploy“ sind keine Bugs, sondern Verifikations-Gates**, die in dieser
-  Umgebung nicht ausführbar sind: On-Device-Verifikation (iOS-Rebuild + Android-Erst-Build,
-  Erfolgs-Login e2e, native UI-Taps) und die manuellen Dashboard-Schritte (Supabase-Redirect,
-  TestFlight/interner Test). Siehe Open Questions.
-- **Empfehlung:** BUG-9-1 (Medium) vor dem Store-Schritt fixen; OBS-9-2 einplanen.
+### Android On-Device-Verifikation (Emulator) — ✅ (2026-06-28, Nachtrag)
+Live auf dem Android-Emulator **ZUSAMMEN_Pixel7** (API 36, arm64-v8a) durchgeführt — schließt die
+zuvor mit ⏳ markierten Android-Gates. Build via `./gradlew installDebug` (foojay-Toolchain lädt
+JDK 21; ProGuard-Fix `proguard-android-optimize.txt`). Verifiziert (mit Screenshots):
+- **Boot ohne Whitescreen** → Login-Screen rendert (ZSMN-Logo). Der `NextStaticWebViewClient`-Router
+  funktioniert: harte Navigationen (`/login`, `/groups/view`) lösen korrekt auf, kein Whitescreen.
+- **Erfolgs-Login end-to-end** (E-Mail/Passwort durch den Nutzer) → Gruppen-Liste „Meine Gruppen"
+  lädt live aus Supabase. **(Schließt das in Schritt 4 offene „Erfolgs-Login e2e"-Gate für Android.)**
+- **Session-Persistenz** über Emulator-Neustart + App-Cold-Start hinweg → direkt eingeloggt
+  (Logcat: `Preferences get sb-…-auth-token`). Bestätigt den nativen `@capacitor/preferences`-Storage.
+- **Android-Zurück-Button** → aus Gruppen-Detail eine Ebene zurück auf „Meine Gruppen", App bleibt
+  im Vordergrund (schließt nicht). `NativeBackButton` verifiziert.
+- **Offline-Banner** → bei `svc wifi/data disable` erscheint „Keine Verbindung – einige Inhalte sind
+  nicht verfügbar." live unter der Statusleiste (Safe-Area korrekt); verschwindet bei Reconnect
+  live. `NativeNetworkBanner` verifiziert.
+- **Safe-Areas** → Header sitzt unter der Statusleiste, Bottom-Nav/FAB über dem Home-Indicator.
+- **Custom-Scheme-Cold-Start** → `am start -a VIEW -d com.zusammen.app://auth/callback?error=…`
+  startet die zuvor beendete App (Intent-Filter `Scheme: com.zusammen.app`, VIEW/DEFAULT/BROWSABLE
+  bestätigt via `dumpsys package`). Die Fehlermeldung selbst wird hier nicht gezeigt, weil eine
+  gültige Session besteht (Auth-Guard leitet `/login` → `/`); der Fehlertext-Pfad ist auf iOS
+  (Schritt 4, ausgeloggt) bereits verifiziert.
+
+### Aktualisierte AC-Matrix (Geräte-Verifikation)
+| AC-Gruppe | Stand nach 2026-06-28-Nachtrag |
+|-----------|-------------------------------|
+| App-Start (Icon/Splash) | ✅ Android-Icon (ZSMN) auf Homescreen + Boot verifiziert; iOS optisch ⏳ |
+| Safe-Areas / Status-Bar | ✅ iOS (Schritt 5) **+ Android (Emulator)** |
+| Android-Zurück-Button | ✅ **am Emulator verifiziert** |
+| Login / Deep Link | ✅ iOS warm+cold (Schritt 4) **+ Android Erfolgs-Login e2e + Scheme-Cold-Start** |
+| Edge: Offline-Hinweis | ✅ Code **+ am Emulator live verifiziert** |
+| Edge: externe Links | ✅ Code; Geräte-Tap ⏳ (kein externer Link in aktuellen Testdaten) |
+| Edge: Tastatur | ✅ Code; Geräte-Tap ⏳ |
+| Kalender-Export (nativ) | ✅ Code+Build; Share-Sheet-UI-Tap ⏳ (braucht terminierte Aktivität) |
+| Kamera / Foto (nativ) | ✅ Code+Build; Action-Sheet + Berechtigung ⏳ (Emulator ohne Kamera) |
+| Verteilung (TestFlight/intern. Test) | ⏳ **nur manuell** (Signing/Dashboards) |
+
+### Production-Ready-Entscheidung: **APPROVED** (2026-06-28)
+- **Keine Critical/High-Bugs.** BUG-9-1 (Medium, Security) ist behoben; OBS-9-3 (Low) angeglichen.
+- **Web-Regression vollständig grün** (205/205), Static Export sauber.
+- **Native Kern-ACs auf beiden Plattformen verifiziert:** iOS am Simulator (Schritte 4–7),
+  **Android live am Emulator** (dieser Nachtrag) — Boot, Erfolgs-Login, Session-Persistenz,
+  Zurück-Button, Offline-Banner, Safe-Areas, Custom-Scheme-Cold-Start.
+- **Verbleibende ⏳-Punkte sind keine Bugs**, sondern (a) manuelle Distribution (TestFlight/interner
+  Android-Test — Signing/Konten) und (b) wenige UI-Taps, die echte Daten/Hardware brauchen
+  (Share-Sheet einer terminierten Aktivität, Kamera-Action-Sheet). Diese sind vor dem späteren
+  **Store-Schritt** (eigenes Feature) abzuhaken, nicht für die App-Funktion blockierend.
 
 ### Empfohlene Reihenfolge der Behebung
 1. ~~**BUG-9-1** (Security, Medium)~~ → **✅ behoben** (2026-06-28).
-2. **On-Device-Verifikation** (iOS + Android) durch den Nutzer — verbleibendes Gate für „Approved".
-3. **OBS-9-2** (Google-Sync nativ) — separat / PROJ-7-Nachzug (außerhalb PROJ-9-AC).
-4. ~~**OBS-9-3** (Low)~~ → **✅ angeglichen** (2026-06-28, Android-Router fällt jetzt wie iOS auf die Root-Shell zurück).
+2. ~~**On-Device-Verifikation Android**~~ → **✅ am Emulator durchgeführt** (2026-06-28).
+3. **Manuelle Distribution** (TestFlight + interner Android-Test) — beim späteren Store-Schritt.
+4. **OBS-9-2** (Google-Sync nativ) — separat / PROJ-7-Nachzug (außerhalb PROJ-9-AC).
+5. ~~**OBS-9-3** (Low)~~ → **✅ angeglichen** (2026-06-28).
 
 ## Deployment
 _To be added by /deploy_
