@@ -26,6 +26,7 @@ function GroupView() {
   const searchParams = useSearchParams()
   const groupId = searchParams.get('id') ?? ''
   const activeSeg = resolveGroupTab(searchParams.get('tab'))
+  const activityParam = searchParams.get('activity')
   const { user } = useAuth()
 
   const { group, members, myRole, isAdmin, loading, error, refetch } = useGroupDetail(groupId)
@@ -53,6 +54,16 @@ function GroupView() {
   useEffect(() => {
     if (!groupId) router.replace('/groups')
   }, [groupId, router])
+
+  // Deep-Link aus einem Push-Tap (PROJ-10): `?activity=<id>` öffnet direkt das
+  // Detail-Sheet dieser Aktivität. Danach strippen wir den Param, damit das
+  // Schließen des Sheets es nicht erneut öffnet. Ein nicht mehr existierender
+  // Inhalt wird vom ActivityDetailSheet abgefangen (kein leerer Screen).
+  useEffect(() => {
+    if (!activityParam || !groupId) return
+    setDetailActivityId(activityParam)
+    router.replace(groupHref(groupId, activeSeg))
+  }, [activityParam, groupId, activeSeg, router])
 
   const canCreate = myRole === 'admin' || myRole === 'editor'
   const memberCount = members.length || 1

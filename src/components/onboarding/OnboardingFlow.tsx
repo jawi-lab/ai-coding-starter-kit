@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
+import { isNativePlatform } from '@/lib/native/platform'
 import { WelcomeStep } from './WelcomeStep'
 import { ProfileStep } from './ProfileStep'
+import { PushStep } from './PushStep'
 import { GroupStep } from './GroupStep'
 
-type Step = 'welcome' | 'profile' | 'group'
+type Step = 'welcome' | 'profile' | 'push' | 'group'
 
 interface OnboardingFlowProps {
   onComplete?: (groupId: string) => void
@@ -18,11 +20,16 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const { profile, signOut } = useAuth()
   const { markOnboarded } = useProfile()
 
-  // First login → full intro (welcome + profile + group). A returning user who
-  // already finished onboarding but currently has no group (e.g. left their last
-  // one) only needs the group step.
+  // First login → full intro (welcome + profile + push + group). A returning user
+  // who already finished onboarding but currently has no group (e.g. left their
+  // last one) only needs the group step. The push soft-ask (PROJ-10) only appears
+  // on native, where push exists — on the web it is omitted entirely.
   const isFirstLogin = profile ? !profile.onboarded : true
-  const steps: Step[] = isFirstLogin ? ['welcome', 'profile', 'group'] : ['group']
+  const steps: Step[] = isFirstLogin
+    ? isNativePlatform()
+      ? ['welcome', 'profile', 'push', 'group']
+      : ['welcome', 'profile', 'group']
+    : ['group']
 
   const [index, setIndex] = useState(0)
   const step = steps[index]
@@ -74,6 +81,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
           {step === 'welcome' && <WelcomeStep onNext={next} />}
           {step === 'profile' && <ProfileStep onNext={next} onSkip={next} />}
+          {step === 'push' && <PushStep onNext={next} onSkip={next} />}
           {step === 'group' && <GroupStep onSuccess={handleGroupReady} />}
 
           <button

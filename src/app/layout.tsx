@@ -7,6 +7,7 @@ import { NativeBackButton } from "@/components/native/NativeBackButton";
 import { NativeNetworkBanner } from "@/components/native/NativeNetworkBanner";
 import { NativeExternalLinks } from "@/components/native/NativeExternalLinks";
 import { NativeKeyboard } from "@/components/native/NativeKeyboard";
+import { NativePushListener } from "@/components/native/NativePushListener";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
           <NativeStatusBar />
           <NativeBackButton />
           <NativeKeyboard />
+          <NativePushListener />
           <NativeExternalLinks />
           <NativeNetworkBanner />
           {children}

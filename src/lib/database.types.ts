@@ -24,6 +24,7 @@ export type Database = {
           group_id: string
           id: string
           initiator_id: string
+          last_changed_by: string | null
           location: string | null
           name: string
           og_image_url: string | null
@@ -41,6 +42,7 @@ export type Database = {
           group_id: string
           id?: string
           initiator_id: string
+          last_changed_by?: string | null
           location?: string | null
           name: string
           og_image_url?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           group_id?: string
           id?: string
           initiator_id?: string
+          last_changed_by?: string | null
           location?: string | null
           name?: string
           og_image_url?: string | null
@@ -77,6 +80,143 @@ export type Database = {
           {
             foreignKeyName: "activities_initiator_id_fkey"
             columns: ["initiator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_last_changed_by_fkey"
+            columns: ["last_changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_comments: {
+        Row: {
+          activity_id: string
+          content: Json
+          created_at: string
+          id: string
+          mentioned_user_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          content: Json
+          created_at?: string
+          id?: string
+          mentioned_user_ids?: string[]
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          mentioned_user_ids?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_comments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_photos: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_photos_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_responsibilities: {
+        Row: {
+          activity_id: string
+          assigned_user_id: string
+          created_at: string
+          created_by: string
+          id: string
+          label: string
+        }
+        Insert: {
+          activity_id: string
+          assigned_user_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          label: string
+        }
+        Update: {
+          activity_id?: string
+          assigned_user_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_responsibilities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_responsibilities_assigned_user_id_fkey"
+            columns: ["assigned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_responsibilities_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -119,41 +259,64 @@ export type Database = {
           },
         ]
       }
-      activity_comments: {
+      calendar_connections: {
         Row: {
-          id: string
-          activity_id: string
-          user_id: string
-          content: Json
-          mentioned_user_ids: string[]
+          access_token: string
           created_at: string
+          expires_at: string
+          google_email: string
+          id: string
+          refresh_token: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          activity_id: string
-          user_id: string
-          content: Json
-          mentioned_user_ids?: string[]
+          access_token: string
           created_at?: string
+          expires_at: string
+          google_email: string
+          id?: string
+          refresh_token: string
+          user_id: string
         }
         Update: {
-          id?: string
-          activity_id?: string
-          user_id?: string
-          content?: Json
-          mentioned_user_ids?: string[]
+          access_token?: string
           created_at?: string
+          expires_at?: string
+          google_email?: string
+          id?: string
+          refresh_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      device_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "activity_comments_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_comments_user_id_fkey"
+            foreignKeyName: "device_tokens_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -161,127 +324,24 @@ export type Database = {
           },
         ]
       }
-      activity_responsibilities: {
-        Row: {
-          id: string
-          activity_id: string
-          label: string
-          assigned_user_id: string
-          created_by: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          activity_id: string
-          label: string
-          assigned_user_id: string
-          created_by: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          activity_id?: string
-          label?: string
-          assigned_user_id?: string
-          created_by?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_responsibilities_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_responsibilities_assigned_user_id_fkey"
-            columns: ["assigned_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_responsibilities_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      calendar_connections: {
-        Row: {
-          id: string
-          user_id: string
-          google_email: string
-          access_token: string
-          refresh_token: string
-          expires_at: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          google_email: string
-          access_token: string
-          refresh_token: string
-          expires_at: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          google_email?: string
-          access_token?: string
-          refresh_token?: string
-          expires_at?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      user_date_blocks: {
-        Row: {
-          id: string
-          user_id: string
-          start_date: string
-          end_date: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          start_date: string
-          end_date?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          start_date?: string
-          end_date?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       group_availability_cache: {
         Row: {
-          id: string
-          group_id: string
           cached_at: string
           data: Json
+          group_id: string
+          id: string
         }
         Insert: {
-          id?: string
-          group_id: string
           cached_at?: string
           data?: Json
+          group_id: string
+          id?: string
         }
         Update: {
-          id?: string
-          group_id?: string
           cached_at?: string
           data?: Json
+          group_id?: string
+          id?: string
         }
         Relationships: [
           {
@@ -293,38 +353,35 @@ export type Database = {
           },
         ]
       }
-      activity_photos: {
+      group_members: {
         Row: {
-          id: string
-          activity_id: string
+          group_id: string
+          joined_at: string
+          role: string
           user_id: string
-          storage_path: string
-          created_at: string
         }
         Insert: {
-          id?: string
-          activity_id: string
+          group_id: string
+          joined_at?: string
+          role?: string
           user_id: string
-          storage_path: string
-          created_at?: string
         }
         Update: {
-          id?: string
-          activity_id?: string
+          group_id?: string
+          joined_at?: string
+          role?: string
           user_id?: string
-          storage_path?: string
-          created_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "activity_photos_activity_id_fkey"
-            columns: ["activity_id"]
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "activities"
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activity_photos_user_id_fkey"
+            foreignKeyName: "group_members_user_id_profiles_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -334,56 +391,27 @@ export type Database = {
       }
       groups: {
         Row: {
-          id: string
-          name: string
-          invite_code: string | null
-          created_by: string
           created_at: string
+          created_by: string
+          id: string
+          invite_code: string | null
+          name: string
         }
         Insert: {
-          id?: string
-          name: string
-          invite_code?: string | null
-          created_by: string
           created_at?: string
+          created_by: string
+          id?: string
+          invite_code?: string | null
+          name: string
         }
         Update: {
-          id?: string
-          name?: string
-          invite_code?: string | null
-          created_by?: string
           created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string | null
+          name?: string
         }
         Relationships: []
-      }
-      group_members: {
-        Row: {
-          group_id: string
-          user_id: string
-          role: 'admin' | 'editor' | 'observer'
-          joined_at: string
-        }
-        Insert: {
-          group_id: string
-          user_id: string
-          role?: 'admin' | 'editor' | 'observer'
-          joined_at?: string
-        }
-        Update: {
-          group_id?: string
-          user_id?: string
-          role?: 'admin' | 'editor' | 'observer'
-          joined_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'group_members_user_id_profiles_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-        ]
       }
       profiles: {
         Row: {
@@ -392,6 +420,8 @@ export type Database = {
           display_name: string
           id: string
           onboarded: boolean
+          // Manually narrowed from the generated `string` (CHECK constraint
+          // status IN ('pending','active')) so AuthContext's Profile type lines up.
           status: 'pending' | 'active'
           updated_at: string
         }
@@ -415,26 +445,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_date_blocks: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          start_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_group_with_membership: {
-        Args: { p_name: string }
-        Returns: Json
-      }
+      create_group_with_membership: { Args: { p_name: string }; Returns: Json }
+      is_group_admin: { Args: { gid: string }; Returns: boolean }
+      is_group_member: { Args: { gid: string }; Returns: boolean }
       join_group_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
       }
-      is_group_member: {
-        Args: { gid: string }
-        Returns: boolean
-      }
-      is_group_admin: {
-        Args: { gid: string }
-        Returns: boolean
+      register_device_token: {
+        Args: { p_platform: string; p_token: string }
+        Returns: undefined
       }
       reset_activity_votes: {
         Args: { p_activity_id: string }

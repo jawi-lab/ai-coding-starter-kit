@@ -14,8 +14,10 @@ import { Separator } from '@/components/ui/separator'
 import { LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { isNativePlatform } from '@/lib/native/platform'
 import { ProfileSection } from './ProfileSection'
 import { AppearanceSection } from './AppearanceSection'
+import { PushNotificationSection } from './PushNotificationSection'
 import { CalendarConnectionSection } from './CalendarConnectionSection'
 import { DateBlocksSection } from './DateBlocksSection'
 import { ArchiveTab } from './ArchiveTab'
@@ -74,6 +76,14 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                 <Separator className="bg-line" />
 
                 <AppearanceSection />
+
+                {/* Push toggle — native only (PROJ-10); web has no push. */}
+                {isNativePlatform() && (
+                  <>
+                    <Separator className="bg-line" />
+                    <PushNotificationSection />
+                  </>
+                )}
 
                 <Separator className="bg-line" />
 

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { removeDeviceToken } from '@/lib/native/push'
 
 type Profile = {
   id: string
@@ -39,6 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function signOut() {
+    // Decouple this device's push token from the user before signing out (PROJ-10)
+    // so the old user no longer receives pushes here. No-op on the web.
+    await removeDeviceToken()
     try {
       // scope: 'local' clears the session from storage without depending on a
       // network call to revoke the token server-side. A failed/expired global
