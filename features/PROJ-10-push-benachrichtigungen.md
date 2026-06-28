@@ -1,6 +1,6 @@
 # PROJ-10: Push-Benachrichtigungen (FCM/APNs)
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-28
 **Last Updated:** 2026-06-28
 
@@ -353,5 +353,21 @@ Echte **APNs-Zustellung + iOS-Token-Anlage** sind nur auf einem **physischen iPh
 ### Production-Ready: **JA** (mit iOS-Hardware-Gate vor Store-Release)
 Keine Critical/High-Bugs. Alle Findings sind Low/optional. Server-Pipeline live und Android E2E-bewiesen; iOS Code-fertig, echte APNs-Zustellung steht als dokumentierter manueller Schritt aus.
 
-## Deployment
-_To be added by /deploy_
+## Deployment (/deploy, 2026-06-28)
+
+**Was live ging:**
+- **Edge Function `send-push` → v4** (Supabase `fogldssdmqgeffpuhvxd`, ACTIVE, `verify_jwt=false`). Bringt den **QA-10-1-Fix** in Produktion: Token-Cleanup löscht nur noch bei `UNREGISTERED`/`NOT_FOUND`/HTTP 404 — **nicht** mehr bei `INVALID_ARGUMENT` (das FCM auch bei fehlerhafter Nachricht liefert und sonst alle gültigen Empfänger-Tokens eines Sends gelöscht hätte). Andere Fehler werden jetzt geloggt (`console.error`), nicht gelöscht. (Vorher live: v3 mit dem alten Verhalten.)
+- **Web (Vercel `qt-voting-app`):** der Deep-Link-Pfad (`?activity=` in `groups/view`) ist über `origin/main` ausgeliefert. Auto-Deploy auf Push; Live-URL lädt sauber, keine Console-Errors.
+
+**Pre-Deployment-Checks:** `npm run build` (Static Export) grün · `npm run lint` exit 0 · QA „Production-Ready: JA" (keine Critical/High) · Working Tree clean, `origin/main` == HEAD · keine Secrets im Code (FCM-Service-Account + Webhook-Secret nur als Supabase-Secrets/Vault).
+
+**Post-Deployment-Verifikation:**
+- Edge Function v4-Inhalt erneut gelesen → Fix bestätigt live.
+- Production-URL `https://qt-voting-app.vercel.app` lädt (Titel „ZUSAMMEN"), keine Console-Errors/Warnings.
+
+**Offen (Release-Gate, kein Code-Bug):** echte **APNs-Zustellung auf physischem iPhone** — Apple Push Key (.p8) in Apple Developer anlegen → in Firebase → Cloud Messaging hochladen → On-Device-E2E-Test. Android ist End-to-End bewiesen; iOS ist code-fertig und im Simulator verifiziert. Siehe Open Questions `[~]`.
+
+- **Production URL:** https://qt-voting-app.vercel.app
+- **Edge Function:** `send-push` v4 (Supabase-Projekt `fogldssdmqgeffpuhvxd`)
+- **Deployed:** 2026-06-28
+- **Git tag:** `v1.10.0-PROJ-10`
