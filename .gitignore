@@ -42,6 +42,8 @@ yarn-error.log*
 # locally installed agent skills (npx skills) — personal, not team workflow
 .agents/
 .claude/skills/find-skills
+# personal idea-capture skill: contains private Notion workspace IDs, not team workflow
+.claude/skills/app-idee/
 
 # typescript
 *.tsbuildinfo

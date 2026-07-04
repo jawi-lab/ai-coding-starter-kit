@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatGermanDate, formatGermanDateRange } from './date-format'
+import { formatGermanDate, formatGermanDateRange, formatRelativeGerman } from './date-format'
 
 describe('formatGermanDate', () => {
   it('formats a date-only string in local time with a 2-digit year', () => {
@@ -44,5 +44,29 @@ describe('formatGermanDateRange', () => {
     expect(
       formatGermanDateRange('2026-06-21', '2026-06-23', { dateOnly: true }),
     ).toBe('21.06.26 – 23.06.26')
+  })
+})
+
+describe('formatRelativeGerman', () => {
+  const now = new Date('2026-07-04T12:00:00Z')
+
+  it('shows "gerade eben" for very recent times', () => {
+    expect(formatRelativeGerman('2026-07-04T11:59:30Z', now)).toBe('gerade eben')
+  })
+
+  it('shows minutes', () => {
+    expect(formatRelativeGerman('2026-07-04T11:55:00Z', now)).toBe('vor 5 Min.')
+  })
+
+  it('shows hours', () => {
+    expect(formatRelativeGerman('2026-07-04T09:00:00Z', now)).toBe('vor 3 Std.')
+  })
+
+  it('shows days', () => {
+    expect(formatRelativeGerman('2026-07-02T12:00:00Z', now)).toBe('vor 2 Tg.')
+  })
+
+  it('falls back to a full date beyond a week', () => {
+    expect(formatRelativeGerman('2026-06-01T12:00:00Z', now)).toBe('01.06.2026')
   })
 })

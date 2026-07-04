@@ -13,8 +13,11 @@ import { usePushPermission } from '@/hooks/usePushPermission'
  *  - denied (permanent)             → the OS dialog can't reappear; guide the user
  *                                     to the system settings instead of a dead end.
  * Renders nothing on the web, where push does not exist.
+ *
+ * `hideHeading` lets NotificationPreferencesSection (PROJ-12) embed the OS push
+ * activation under its own single "Benachrichtigungen" heading without a duplicate.
  */
-export function PushNotificationSection() {
+export function PushNotificationSection({ hideHeading = false }: { hideHeading?: boolean } = {}) {
   const { state, enabling, enable } = usePushPermission()
 
   if (state === 'unsupported') return null
@@ -23,9 +26,11 @@ export function PushNotificationSection() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-[12px] font-[800] text-ink-2 uppercase tracking-[0.06em]">
-        Benachrichtigungen
-      </h3>
+      {!hideHeading && (
+        <h3 className="text-[12px] font-[800] text-ink-2 uppercase tracking-[0.06em]">
+          Benachrichtigungen
+        </h3>
+      )}
 
       {state === 'loading' ? (
         <Skeleton className="h-10 w-full rounded-[10px] bg-surface" />

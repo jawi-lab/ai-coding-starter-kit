@@ -413,6 +413,93 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        // PROJ-12 in-app inbox. One row per recipient per event. Title/body are
+        // frozen German strings written server-side (send-push fan-out); the
+        // deep-link target ({group_id, activity_id, tab}) mirrors the PROJ-10
+        // push payload so the same navigation logic handles both. Client only
+        // ever reads its own rows and flips `read` to true.
+        Row: {
+          activity_id: string | null
+          body: string
+          created_at: string
+          event: string
+          group_id: string
+          id: string
+          read: boolean
+          tab: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_id?: string | null
+          body: string
+          created_at?: string
+          event: string
+          group_id: string
+          id?: string
+          read?: boolean
+          tab?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string | null
+          body?: string
+          created_at?: string
+          event?: string
+          group_id?: string
+          id?: string
+          read?: boolean
+          tab?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        // PROJ-12 per-type channel switches. Up to 5 rows per user (one per
+        // event). A missing row means the default (push on, email off) — the
+        // send-push fan-out treats "no row" identically, so no backfill needed.
+        Row: {
+          email_enabled: boolean
+          event: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          event: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean
+          event?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

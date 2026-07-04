@@ -19,6 +19,7 @@ import {
 import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { groupHref } from '@/lib/group-routes'
 import { Plus } from 'lucide-react'
 
@@ -82,6 +83,8 @@ function GroupsContent() {
             <Plus className="h-4 w-4" />
             Hinzufügen
           </Button>
+
+          <NotificationBell />
 
           <Button
             variant="ghost"

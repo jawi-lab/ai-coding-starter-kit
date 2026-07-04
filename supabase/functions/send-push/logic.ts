@@ -194,6 +194,111 @@ export function buildMessage(
   }
 }
 
+// --- PROJ-12 three-channel fan-out ------------------------------------------------
+// The same event that fired a push in PROJ-10 now fans out to three channels per
+// recipient: an in-app inbox row (always), a push (only if the push switch is on and a
+// device token exists) and an email (only if the email switch is on). Everything below
+// is pure data transformation; index.ts does the DB writes / Resend HTTP call.
+
+/** The two per-type switches for one (user × event) row. */
+export interface ChannelPreference {
+  push_enabled: boolean;
+  email_enabled: boolean;
+}
+
+/**
+ * Default when a user has no preference row for an event yet. Mirrors
+ * DEFAULT_PREFERENCE in src/lib/notification-types.ts: push on (keeps PROJ-10
+ * behaviour for existing users), email off (opt-in). "No row" is treated identically.
+ */
+export const DEFAULT_CHANNEL_PREFERENCE: ChannelPreference = {
+  push_enabled: true,
+  email_enabled: false,
+};
+
+/**
+ * Splits recipients into the push- and email-eligible subsets by consulting each
+ * recipient's stored preference (missing → default). In-app is not gated here — it is
+ * always written for every recipient by the caller (verlustfreie Historie).
+ */
+export function resolveChannels(
+  recipientIds: string[],
+  prefsByUser: Map<string, ChannelPreference>,
+): { pushUserIds: string[]; emailUserIds: string[] } {
+  const pushUserIds: string[] = [];
+  const emailUserIds: string[] = [];
+  for (const id of recipientIds) {
+    const pref = prefsByUser.get(id) ?? DEFAULT_CHANNEL_PREFERENCE;
+    if (pref.push_enabled) pushUserIds.push(id);
+    if (pref.email_enabled) emailUserIds.push(id);
+  }
+  return { pushUserIds, emailUserIds };
+}
+
+/**
+ * Builds the in-app path for a deep-link target, matching pushTargetToPath in
+ * src/lib/native/push.ts (trailing slash before the query for the static export).
+ * Used to turn the push target into an absolute email link.
+ */
+export function targetToPath(target: PushTargetData): string {
+  const params = new URLSearchParams();
+  params.set('id', target.group_id);
+  if (target.tab) params.set('tab', target.tab);
+  if (target.activity_id) params.set('activity', target.activity_id);
+  return `/groups/view/?${params.toString()}`;
+}
+
+const HTML_ESCAPE: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/** Minimal HTML-escape so a frozen title/body can never break the email markup. */
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => HTML_ESCAPE[ch]);
+}
+
+/**
+ * Builds the German transactional email for one notification. `deepLink` opens the
+ * right context (App/Web); `manageUrl` is the visible "Benachrichtigungen verwalten"
+ * link (into the app's settings). The login-free one-click unsubscribe lives in the
+ * List-Unsubscribe header (index.ts), not in the visible body.
+ */
+export function buildEmail(opts: {
+  title: string;
+  body: string;
+  deepLink: string;
+  manageUrl: string;
+}): { subject: string; html: string; text: string } {
+  const title = escapeHtml(opts.title);
+  const body = escapeHtml(opts.body);
+  const subject = `ZUSAMMEN: ${opts.title}`;
+
+  const html = `<!doctype html>
+<html lang="de">
+  <body style="margin:0;padding:24px;background:#faf6f0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1f2937;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+      <tr><td>
+        <h1 style="margin:0 0 12px;font-size:20px;color:#1f2937;">${title}</h1>
+        <p style="margin:0 0 24px;font-size:16px;line-height:1.5;">${body}</p>
+        <a href="${opts.deepLink}" style="display:inline-block;background:#c15f3c;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">In ZUSAMMEN öffnen</a>
+        <p style="margin:32px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
+          Du erhältst diese E-Mail, weil du Benachrichtigungen für dieses Ereignis aktiviert hast.<br>
+          <a href="${opts.manageUrl}" style="color:#6b7280;">Benachrichtigungen verwalten</a>
+        </p>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = `${opts.title}\n\n${opts.body}\n\nIn ZUSAMMEN öffnen: ${opts.deepLink}\n\nBenachrichtigungen verwalten: ${opts.manageUrl}`;
+
+  return { subject, html, text };
+}
+
 /**
  * Computes the final recipient set for an event from the current group members.
  * The actor is always removed (self-notification rule). For mention/responsibility

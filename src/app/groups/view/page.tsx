@@ -15,6 +15,7 @@ import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { GroupBottomNav } from '@/components/groups/GroupBottomNav'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
 import { GROUP_TABS, groupHref, resolveGroupTab } from '@/lib/group-routes'
 import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
@@ -86,6 +87,8 @@ function GroupView() {
           <h1 className="flex-1 text-[18px] font-[800] text-ink truncate leading-tight">
             {loading && !group ? '…' : group?.name ?? 'Gruppe'}
           </h1>
+
+          <NotificationBell />
 
           <button
             onClick={() => setSettingsOpen(true)}

@@ -26,7 +26,7 @@
 | PROJ-9 | Capacitor Native Apps (iOS + Android) | P1 | PROJ-1..PROJ-8 | Approved | [spec](PROJ-9-capacitor-native-apps.md) | 2026-06-21 |
 | PROJ-10 | Push-Benachrichtigungen (FCM/APNs) | P1 | PROJ-9 | Deployed | [spec](PROJ-10-push-benachrichtigungen.md) | 2026-06-21 |
 | PROJ-11 | OTA-Updates via Capgo | P2 | PROJ-9 | Roadmap | — | 2026-06-21 |
-| PROJ-12 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | P1 | PROJ-2, PROJ-8 | Roadmap | — | 2026-06-22 |
+| PROJ-12 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | P1 | PROJ-2, PROJ-8, PROJ-10 | In Progress | [spec](PROJ-12-benachrichtigungen-einstellungen.md) | 2026-06-22 |
 | PROJ-13 | Onboarding-Flow (Erst-Login) | P1 | PROJ-2, PROJ-3, PROJ-8, PROJ-9 | Deployed | [spec](PROJ-13-onboarding-flow.md) | 2026-06-27 |
 
 ## Next Available ID: PROJ-14

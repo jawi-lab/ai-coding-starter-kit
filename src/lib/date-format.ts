@@ -17,6 +17,26 @@ interface FormatDateOptions {
   dateOnly?: boolean
 }
 
+/**
+ * Compact German "time ago" for the notification inbox (PROJ-12): "gerade eben",
+ * "vor 5 Min.", "vor 3 Std.", "vor 2 Tg.", else a plain date. Kept dependency-free
+ * and deterministic (takes `now` for testing) so it works in the static export.
+ */
+export function formatRelativeGerman(value: string, now: Date = new Date()): string {
+  const then = new Date(value)
+  const diffMs = now.getTime() - then.getTime()
+  const diffSec = Math.floor(diffMs / 1000)
+
+  if (diffSec < 45) return 'gerade eben'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `vor ${diffMin} Min.`
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return `vor ${diffHour} Std.`
+  const diffDay = Math.floor(diffHour / 24)
+  if (diffDay < 7) return `vor ${diffDay} Tg.`
+  return formatGermanDate(value, { year: 'numeric' })
+}
+
 export function formatGermanDate(
   value: string,
   { year = '2-digit', dateOnly = false }: FormatDateOptions = {},

@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
+  buildEmail,
   buildMessage,
   buildPushTarget,
+  type ChannelPreference,
   classifyEvent,
+  escapeHtml,
   formatGermanDate,
+  resolveChannels,
   resolveRecipients,
+  targetToPath,
   type WebhookPayload,
 } from './logic';
 
@@ -231,5 +236,79 @@ describe('formatGermanDate', () => {
     expect(formatGermanDate('2026-12-01')).toBe('01.12.2026');
     expect(formatGermanDate(undefined)).toBe('');
     expect(formatGermanDate('später')).toBe('später');
+  });
+});
+
+describe('resolveChannels (PROJ-12 fan-out)', () => {
+  it('defaults a recipient with no preference row to push-on / email-off', () => {
+    const { pushUserIds, emailUserIds } = resolveChannels([OTHER], new Map());
+    expect(pushUserIds).toEqual([OTHER]);
+    expect(emailUserIds).toEqual([]);
+  });
+
+  it('honours per-recipient switches independently', () => {
+    const prefs = new Map<string, ChannelPreference>([
+      [OTHER, { push_enabled: false, email_enabled: true }],
+      [THIRD, { push_enabled: true, email_enabled: true }],
+    ]);
+    const { pushUserIds, emailUserIds } = resolveChannels([OTHER, THIRD, ACTOR], prefs);
+    // OTHER: push off, email on. THIRD: both on. ACTOR: no row → push on, email off.
+    expect(pushUserIds.sort()).toEqual([THIRD, ACTOR].sort());
+    expect(emailUserIds.sort()).toEqual([OTHER, THIRD].sort());
+  });
+
+  it('never sends push nor email when both switches are off', () => {
+    const prefs = new Map<string, ChannelPreference>([
+      [OTHER, { push_enabled: false, email_enabled: false }],
+    ]);
+    const { pushUserIds, emailUserIds } = resolveChannels([OTHER], prefs);
+    expect(pushUserIds).toEqual([]);
+    expect(emailUserIds).toEqual([]);
+  });
+});
+
+describe('targetToPath', () => {
+  it('mirrors pushTargetToPath: trailing slash, id + tab + activity params', () => {
+    expect(targetToPath({ group_id: GROUP, activity_id: ACTIVITY, tab: 'termine' })).toBe(
+      `/groups/view/?id=${GROUP}&tab=termine&activity=${ACTIVITY}`,
+    );
+  });
+});
+
+describe('escapeHtml', () => {
+  it('neutralises markup-breaking characters in frozen strings', () => {
+    expect(escapeHtml('A & B <c> "d" \'e\'')).toBe('A &amp; B &lt;c&gt; &quot;d&quot; &#39;e&#39;');
+  });
+});
+
+describe('buildEmail', () => {
+  const email = buildEmail({
+    title: 'Neuer Vorschlag',
+    body: 'Lea hat „Kino" vorgeschlagen',
+    deepLink: 'https://app.example/groups/view/?id=g',
+    manageUrl: 'https://app.example/groups/',
+  });
+
+  it('prefixes the subject and keeps the German body', () => {
+    expect(email.subject).toBe('ZUSAMMEN: Neuer Vorschlag');
+    expect(email.text).toContain('Lea hat „Kino" vorgeschlagen');
+  });
+
+  it('links both the deep-link and the manage URL', () => {
+    expect(email.html).toContain('https://app.example/groups/view/?id=g');
+    expect(email.html).toContain('https://app.example/groups/');
+    expect(email.html).toContain('Benachrichtigungen verwalten');
+  });
+
+  it('escapes untrusted content in the HTML body', () => {
+    const evil = buildEmail({
+      title: '<script>',
+      body: 'x & y',
+      deepLink: 'https://x',
+      manageUrl: 'https://y',
+    });
+    expect(evil.html).toContain('&lt;script&gt;');
+    expect(evil.html).toContain('x &amp; y');
+    expect(evil.html).not.toContain('<script>');
   });
 });

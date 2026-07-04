@@ -14,10 +14,9 @@ import { Separator } from '@/components/ui/separator'
 import { LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { isNativePlatform } from '@/lib/native/platform'
 import { ProfileSection } from './ProfileSection'
 import { AppearanceSection } from './AppearanceSection'
-import { PushNotificationSection } from './PushNotificationSection'
+import { NotificationPreferencesSection } from './NotificationPreferencesSection'
 import { CalendarConnectionSection } from './CalendarConnectionSection'
 import { DateBlocksSection } from './DateBlocksSection'
 import { ArchiveTab } from './ArchiveTab'
@@ -77,13 +76,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
                 <AppearanceSection />
 
-                {/* Push toggle — native only (PROJ-10); web has no push. */}
-                {isNativePlatform() && (
-                  <>
-                    <Separator className="bg-line" />
-                    <PushNotificationSection />
-                  </>
-                )}
+                <Separator className="bg-line" />
+
+                {/* Notifications (PROJ-12): OS push activation (native) + the
+                    per-type Push/E-Mail matrix. E-Mail switches work on web too. */}
+                <NotificationPreferencesSection />
 
                 <Separator className="bg-line" />
 
