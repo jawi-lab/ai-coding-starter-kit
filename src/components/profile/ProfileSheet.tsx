@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Separator } from '@/components/ui/separator'
 import { LogOut } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProfileSection } from './ProfileSection'
 import { AppearanceSection } from './AppearanceSection'
@@ -24,11 +24,27 @@ import { ArchiveTab } from './ArchiveTab'
 interface ProfileSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** When opened via the email "Benachrichtigungen verwalten" deep-link, scroll the
+      Profil tab to the notification settings section. */
+  scrollToNotifications?: boolean
 }
 
-export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
+export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: ProfileSheetProps) {
   const { signOut } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+
+  // Deep-link target (BUG-12-1): once the sheet has animated open, bring the
+  // "Benachrichtigungen" section into view. Profil is the default tab, so the anchor
+  // is already mounted.
+  useEffect(() => {
+    if (!open || !scrollToNotifications) return
+    const timer = setTimeout(() => {
+      document
+        .getElementById('notification-settings')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [open, scrollToNotifications])
 
   async function handleLogout() {
     setLogoutDialogOpen(false)
@@ -79,8 +95,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                 <Separator className="bg-line" />
 
                 {/* Notifications (PROJ-12): OS push activation (native) + the
-                    per-type Push/E-Mail matrix. E-Mail switches work on web too. */}
-                <NotificationPreferencesSection />
+                    per-type Push/E-Mail matrix. E-Mail switches work on web too.
+                    Anchor id is the email "verwalten" deep-link target (BUG-12-1). */}
+                <div id="notification-settings" className="scroll-mt-4">
+                  <NotificationPreferencesSection />
+                </div>
 
                 <Separator className="bg-line" />
 

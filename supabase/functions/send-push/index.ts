@@ -303,11 +303,19 @@ Deno.serve(async (req) => {
     activity_id: target.activity_id,
     tab: target.tab,
   }));
-  const { error: inboxError } = await supabase.from('notifications').insert(inboxRows);
-  if (inboxError) {
-    // Log but keep going — push/email are independent and should still be attempted.
-    console.error(`in-app insert failed: ${inboxError.message}`);
-  }
+  // Insert per recipient rather than as one batch: a single bad row (e.g. a recipient
+  // without a profiles row → FK violation) would sink the whole bulk insert and rob
+  // EVERY recipient of their entry, breaking the verlustfreie-Historie guarantee. Row
+  // isolation keeps every valid recipient's inbox entry. Errors are logged, never thrown
+  // — push/email are independent and should still be attempted.
+  let inboxWritten = 0;
+  await Promise.all(
+    inboxRows.map(async (row) => {
+      const { error } = await supabase.from('notifications').insert(row);
+      if (error) console.error(`in-app insert failed for ${row.user_id}: ${error.message}`);
+      else inboxWritten++;
+    }),
+  );
 
   // === Per-recipient preferences (missing row → default push-on / email-off) =======
   const { data: prefRows } = await supabase
@@ -369,7 +377,9 @@ Deno.serve(async (req) => {
     const unsubSecret = Deno.env.get('UNSUBSCRIBE_SIGNING_SECRET');
     const functionsBase = Deno.env.get('SUPABASE_URL');
     const deepLink = `${APP_BASE_URL}${targetToPath(target)}`;
-    const manageUrl = `${APP_BASE_URL}/groups/`;
+    // Deep-links into the profile's notification settings (the groups page opens the
+    // ProfileSheet and scrolls to the notification section on this param).
+    const manageUrl = `${APP_BASE_URL}/groups/?settings=notifications`;
     const { subject, html, text } = buildEmail({ title, body, deepLink, manageUrl });
 
     await Promise.all(
@@ -396,7 +406,7 @@ Deno.serve(async (req) => {
   return json({
     event: desc.event,
     recipients: recipientIds.length,
-    inbox: inboxError ? 0 : inboxRows.length,
+    inbox: inboxWritten,
     sent,
     cleaned,
     emailed,

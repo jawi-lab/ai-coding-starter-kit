@@ -1,6 +1,6 @@
 # PROJ-12: Benachrichtigungen & Einstellungen (In-App-Center + E-Mail + Pro-Typ-Schalter)
 
-## Status: In Progress
+## Status: Deployed
 **Created:** 2026-07-04
 **Last Updated:** 2026-07-04
 
@@ -344,7 +344,71 @@ Tabellen `notifications` + `notification_preferences` (RLS: nur eigene Zeilen; I
 - Sichtbarer „Benachrichtigungen verwalten"-Link zeigt aktuell auf `${APP_BASE_URL}/groups/` (App-Home) statt direkt in die Profil-Sektion — es existiert keine Route, die das ProfileSheet auf der Benachrichtigungs-Sektion öffnet. Login-freie Ein-Klick-Abmeldung läuft wie geplant über den `List-Unsubscribe`-Header (siehe angepasstes AC Zeile 68/Open Question).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Getestet am 2026-07-04.** Kombiniert: Code-Review aller neuen Dateien (Client-Hooks/Components + Edge Functions + Migration), Live-Verifikation der DB gegen Supabase-Projekt `fogldssdmqgeffpuhvxd`, Produktions-Build, Unit-/E2E-Suiten. Der reine Server-Fan-out (Push/E-Mail/Realtime) ist über Unit-Tests + DB-Introspektion abgedeckt; eine vollständige Ende-zu-Ende-E-Mail-Zustellung ist erst nach den offenen manuellen Resend/Secret-Schritten prüfbar (sauberes Degradieren bis dahin, siehe unten).
+
+### Zusammenfassung
+- **Akzeptanzkriterien:** 24 von 24 bestanden (3 davon eingeschränkt / erst nach manueller Resend-Einrichtung final verifizierbar — kein Blocker, da dokumentiert degradierend).
+- **Bugs:** 0 Critical · 0 High · 0 Medium · 3 Low.
+- **Security-Audit:** keine neuen Findings. RLS auf beiden Tabellen aktiv & korrekt; Insert/Delete der `notifications` nur Service-Rolle; Unsubscribe-Token HMAC-signiert (jetzt unit-getestet); `unsubscribe` fail-closed (503) ohne Secret, `send-push` 401 ohne Webhook-Secret.
+- **Regression:** `npm test` 267 grün (27 Dateien, inkl. 10 neue Security-Tests); `npm run build` grün (13 Routen static export); E2E-Suite grün (auth-guard-Regression bestanden, credential-abhängige Tests sauber übersprungen).
+- **Produktionsreife-Empfehlung: JA** — keine Critical/High-Bugs. Der E-Mail-Kanal bleibt bis zur manuellen Resend-/Secret-Einrichtung dormant (dokumentiert, degradiert sauber wie der FCM-Kanal ohne Key).
+
+### Automatisierte Tests
+- **Unit/Integration (Vitest): 267 passed / 27 Dateien.** Fan-out-Logik (`resolveChannels`, `targetToPath`, `escapeHtml`, `buildEmail`, `DEFAULT_CHANNEL_PREFERENCE`) in `send-push/logic.test.ts`; Badge-Kürzung/Defaults in `notification-types.test.ts`; relative Zeit in `date-format.test.ts`.
+- **NEU von /qa:** `supabase/functions/_shared/unsubscribe.test.ts` — 10 Tests für die sicherheitskritische HMAC-Signatur (`signUserId`/`verifyUserId`): Determinismus, Hex-Format, Schlüssel-Abhängigkeit, **Kein Cross-User-Forgery** (Token für User A validiert nicht für User B), Ablehnung bei falschem Secret/leerer Eingabe/falscher Länge. Diese Logik war zuvor ungetestet.
+- **E2E (Playwright): `tests/PROJ-12-benachrichtigungen-einstellungen.spec.ts` (NEU von /qa).** Auth-guard-Regression läuft credential-frei (bestanden); Glocke/Center + Präferenz-Matrix-Tests folgen dem etablierten Skip-Muster ohne `TEST_USER_EMAIL`/`TEST_USER_PASSWORD` und greifen in CI mit Credentials.
+
+### Live-Backend-Verifikation (Supabase MCP)
+| Prüfung | Ergebnis |
+|---|---|
+| `notifications` + `notification_preferences` existieren, RLS aktiv | ✅ beide `rls=true` |
+| `notifications` Policies | ✅ nur SELECT + UPDATE (kein INSERT/DELETE → Service-Rolle schreibt, Prune löscht) |
+| `notification_preferences` Policies | ✅ SELECT + INSERT + UPDATE (eigene Zeilen, `auth.uid()=user_id`) |
+| Realtime-Publikation enthält `notifications` | ✅ |
+| Cron-Job `proj12-prune-notifications` | ✅ aktiv, `0 3 * * *` (30-Tage-Prune) |
+| Indizes | ✅ `idx_notifications_user_created`, `idx_notifications_created_at` |
+| Security-Advisors nach DDL | ✅ keine neuen Findings für die 2 Tabellen (übrige Warnungen sind PROJ-10/älter) |
+
+### Akzeptanzkriterien (Detail)
+**In-App-Center:** Glocke in beiden Kopfzeilen ✅ · gruppenübergreifendes Badge mit „99+"-Kürzung ✅ (`formatBadgeCount`, getestet) · chronologische Liste, ungelesen hervorgehoben ✅ · Tap → gelesen + Deep-Link (wiederverwendet `parsePushTarget`/`pushTargetToPath`, Pfad identisch zu `targetToPath` im Server verifiziert) ✅ · „Alle als gelesen" nur bei ungelesenen sichtbar ✅ · Leerzustand „Alles ruhig hier" ✅ · Live via Realtime (Publikation + gefilterte Subscription vorhanden) ✅.
+
+**Ereignis→Kanal-Fan-out:** In-App-Eintrag für jeden Empfänger, immer & zuerst geschrieben ✅ · Push nur bei aktivem Schalter + Token, in try/catch gekapselt ✅ · Push-aus → kein Push, aber In-App bleibt ✅ · E-Mail nur bei aktivem Schalter (deutsche Mail, Auslöser+Titel+Deep-Link+Verwalten-Link) ✅* · E-Mail-Standard aus ✅ · Auslöser-Ausschluss zentral in `resolveRecipients` (getestet) ✅.
+
+**Pro-Typ-Einstellungen:** 5 Zeilen × Schalter im Profil ✅ · Defaults Push AN / E-Mail AUS ✅ · optimistisches Speichern, bleibt nach Neustart (upsert) ✅ · Web: E-Mail-Spalte voll nutzbar, Push-Spalte native-only ✅ · Fehler → Rollback + Toast ✅.
+
+**E-Mail-Kanal:** deutsche Mail mit Kontext-Link ✅* · Ein-Klick-Abmeldung login-frei über `List-Unsubscribe`-Header (HMAC, RFC 8058), sichtbarer Link ins Center — angepasste Semantik lt. Open Question Zeile 92, Abweichung dokumentiert ✅*.
+
+_* = Logik/Struktur verifiziert; finale Zustellung erst nach manueller Resend-Domain-/Secret-Einrichtung testbar._
+
+### Gefundene Bugs (alle Low)
+- **BUG-12-1 (Low, dokumentierte Abweichung):** Sichtbarer „Benachrichtigungen verwalten"-Link in der E-Mail zeigt auf `${APP_BASE_URL}/groups/` (App-Home) statt direkt in die Profil-Benachrichtigungs-Sektion — es existiert keine Route, die das ProfileSheet auf dieser Sektion öffnet (siehe Backend-Notes Zeile 344). Login-freie Abmeldung funktioniert unabhängig über den `List-Unsubscribe`-Header. UX-Detail, keine Funktionsverletzung.
+- **BUG-12-2 (Low):** Der In-App-Eintrag wird als **ein** Bulk-`insert` mit FK auf `profiles(id)` geschrieben. Fehlt für **einen** Empfänger die `profiles`-Zeile (FK-Verletzung), scheitert der **gesamte** Batch → kein Empfänger erhält einen Eintrag (nur geloggt). In der Praxis hat durch `handle_new_user` jeder Nutzer ein Profil → sehr geringe Wahrscheinlichkeit, aber das Alles-oder-nichts-Verhalten widerspricht der „verlustfreien Historie"-Garantie im Grenzfall. Empfehlung: Insert pro Empfänger oder `on conflict do nothing`/tolerantes Schreiben.
+- **BUG-12-3 (Low / Defense-in-Depth):** Die UPDATE-Policy auf `notifications` erlaubt dem Besitzer, **alle** Spalten der eigenen Zeilen zu ändern (nicht nur `read`). Nur eigene Daten betroffen (kein Cross-User-Schaden), aber ein Client könnte Titel/Body/Deep-Link der eigenen Historie manipulieren. Optional: Spalten-Whitelist per Trigger/`GRANT UPDATE (read)`.
+
+### Bug-Fixes (2026-07-04, nach QA)
+Alle drei Low-Bugs im Repo behoben, lokal verifiziert (`npm run build` grün, `npm test` 267 grün):
+- **BUG-12-1 behoben:** Neue Deep-Link-Route `?settings=notifications` auf `/groups` öffnet das ProfileSheet und scrollt zur „Benachrichtigungen"-Sektion (Anker `#notification-settings` in `ProfileSheet`, `scrollToNotifications`-Prop, Param-Handling in `groups/page.tsx`). E-Mail-`manageUrl` in `send-push/index.ts` zeigt jetzt dorthin.
+- **BUG-12-2 behoben:** In-App-Insert in `send-push/index.ts` von einem Bulk-`insert` auf resiliente Einzel-Inserts (`Promise.all`) umgestellt — ein fehlerhafter Empfänger isoliert, alle übrigen bekommen ihren Eintrag; Rückgabe zählt `inboxWritten`.
+- **BUG-12-3 behoben:** Neue Migration `20260704_proj12_notifications_update_read_only.sql` — `revoke update … / grant update (read)` beschränkt den `authenticated`-UPDATE auf die `read`-Spalte (Service-Rolle unberührt).
+
+**Production-Apply erledigt (2026-07-04, mit Nutzer-Freigabe):** DB-Migration live angewandt (verifiziert: `authenticated` hat UPDATE nur noch auf Spalte `read`) + `send-push` Edge Function **v9 ACTIVE** deployt (`verify_jwt=false` erhalten). BUG-12-2 und -3 sind damit live wirksam; BUG-12-1 (Frontend) geht mit dem nächsten Vercel-Deploy (`/deploy`) live.
+
+### Zu verifizieren nach manueller Einrichtung (kein Bug — offener Betriebs-Schritt)
+- **List-Unsubscribe One-Click gegen externe Mail-Clients:** Der `POST`-Endpunkt `unsubscribe` läuft mit `verify_jwt=false`. Beim ersten echten Resend-Versand bestätigen, dass Gmail/Apple-Mail den One-Click-POST (ohne Supabase-`apikey`) ohne Gateway-401 erreicht. Sichtbarer Weg (Center) ist davon unabhängig.
+- **E-Mail-Ende-zu-Ende:** nach `RESEND_API_KEY` + `RESEND_FROM` + DNS (SPF/DKIM) + `UNSUBSCRIBE_SIGNING_SECRET` einen echten Ereignis-Trigger auslösen und Zustellung/Deep-Link/Abmelde-Header prüfen.
+
+### Getestete Edge Cases
+Deep-Link auf gelöschten Inhalt (kein FK auf `group_id`/`activity_id` → Historie überlebt, Fallback via geteiltem `pushTargetToPath`) ✅ · fehlende Präferenz = Default (getestet in `resolveChannels`) ✅ · alle Kanäle aus → In-App trotzdem geschrieben ✅ · Push-/E-Mail-Fehler blockieren In-App nicht (Reihenfolge + try/catch verifiziert) ✅ · 30-Tage-Prune (Cron aktiv) ✅ · Badge sehr groß → „99+" ✅ · Realtime-Abbruch → `refetch` beim Öffnen ✅.
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed am 2026-07-04.**
+- **Production-URL:** https://qt-voting-app.vercel.app (Vercel, Auto-Deploy bei Push auf `main`)
+- **Backend (bereits vor dem Frontend-Deploy live in Supabase-Projekt `fogldssdmqgeffpuhvxd`):**
+  - Migration `20260704_proj12_notifications.sql` (Tabellen `notifications` + `notification_preferences`, RLS, Realtime, `pg_cron`-Prune) — angewandt.
+  - Migration `20260704_proj12_notifications_update_read_only.sql` (BUG-12-3: UPDATE nur auf `read`) — angewandt & verifiziert.
+  - Edge Functions: `send-push` **v9** (3-Kanal-Fan-out inkl. resilientem In-App-Insert / BUG-12-2 + manage-Deep-Link / BUG-12-1), `unsubscribe` **v1** — ACTIVE, `verify_jwt=false`.
+- **Frontend:** In-App-Glocke/Center, Pro-Typ-Matrix, `?settings=notifications`-Deep-Link (BUG-12-1) — mit diesem Vercel-Deploy live.
+- **Pre-Deploy-Gates:** `npm run build` grün · `npm test` 267 grün · keine Critical/High-Bugs · keine Secrets im Diff. (`npm run lint` ist projektweit defekt — `next lint` in Next 16 entfernt; TS-Type-Check im Build deckt Korrektheit ab.)
+- **Offener Betriebsschritt (E-Mail-Kanal ruht sauber bis dahin):** Resend-Domain (SPF/DKIM) + Supabase-Secrets `RESEND_API_KEY`, `RESEND_FROM`, `UNSUBSCRIBE_SIGNING_SECRET` setzen; danach echten Ereignis-Trigger + One-Click-Abmeldung einmalig prüfen.

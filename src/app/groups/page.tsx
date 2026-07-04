@@ -31,12 +31,23 @@ function GroupsContent() {
 
   const [addSheetOpen, setAddSheetOpen] = useState(false)
   const [profileSheetOpen, setProfileSheetOpen] = useState(false)
+  const [scrollToNotifications, setScrollToNotifications] = useState(false)
 
   // Open group from query param (e.g., after creation/join) → navigate to its page
   useEffect(() => {
     const groupParam = searchParams.get('group')
     if (groupParam) {
       router.replace(groupHref(groupParam))
+    }
+  }, [searchParams, router])
+
+  // Email "Benachrichtigungen verwalten" deep-link (BUG-12-1): open the profile
+  // sheet and scroll to the notification settings section, then clear the param.
+  useEffect(() => {
+    if (searchParams.get('settings') === 'notifications') {
+      setProfileSheetOpen(true)
+      setScrollToNotifications(true)
+      router.replace('/groups')
     }
   }, [searchParams, router])
 
@@ -134,7 +145,14 @@ function GroupsContent() {
       </main>
 
       {/* Profile Sheet */}
-      <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
+      <ProfileSheet
+        open={profileSheetOpen}
+        onOpenChange={(open) => {
+          setProfileSheetOpen(open)
+          if (!open) setScrollToNotifications(false)
+        }}
+        scrollToNotifications={scrollToNotifications}
+      />
 
       {/* Add group modal (inline onboarding) */}
       <ResponsiveModal open={addSheetOpen} onOpenChange={setAddSheetOpen}>
