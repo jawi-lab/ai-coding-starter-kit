@@ -27,7 +27,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | P1 | Capacitor Native Apps (iOS + Android) | Planned |
 | P1 | Push-Benachrichtigungen | Roadmap |
 | P1 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | Planned |
-| P2 | OTA-Updates (Capgo) | Roadmap |
+| P2 | OTA-Updates (Capgo) | Planned |
 
 ## Success Metrics
 

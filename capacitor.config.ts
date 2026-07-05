@@ -42,6 +42,28 @@ const config: CapacitorConfig = {
       backgroundColor: '#F8EBD9',
       showSpinner: false,
     },
+    // Over-the-air web-bundle updates via Capgo (PROJ-11). Ships the OTA
+    // *infrastructure*; the Capgo account + first live upload are a deliberate
+    // later manual step (analogous to the Apple push key in PROJ-10). With no
+    // published bundles the app simply runs its built-in `out/` bundle — never
+    // an error. See src/components/native/NativeUpdater.tsx + src/lib/native/ota.ts.
+    CapacitorUpdater: {
+      // Silent background check + download; the new bundle applies on the next
+      // cold start (matches the spec's non-intrusive UX). Critical bundles are
+      // marked in the Capgo dashboard to apply immediately.
+      autoUpdate: true,
+      // Auto-rollback safety net: a freshly applied bundle must call
+      // notifyAppReady() (NativeUpdater) within this window, or Capgo reverts to
+      // the last working version. 10 s = generous for slow/cold starts.
+      appReadyTimeout: 10000,
+      // Keep only the working bundle set: prune reverted/failed and previous
+      // bundles so a bad update leaves no storage cruft and rollback stays clean.
+      autoDeleteFailed: true,
+      autoDeletePrevious: true,
+      // Two fixed channels. Everyone defaults to `production`; a developer's test
+      // build self-assigns `beta` once (NEXT_PUBLIC_OTA_CHANNEL=beta → setChannel).
+      defaultChannel: 'production',
+    },
   },
 };
 
