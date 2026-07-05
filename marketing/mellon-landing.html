@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mellon — Erst abstimmen. Dann losziehen.</title>
+<meta name="description" content="Mellon bringt eure Freundesgruppe von der Idee zur Erinnerung: demokratisch abgestimmt, gemeinsam geplant, ohne Chaos im Gruppenchat.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   MELLON — Landing Mockup
+   Tokens 1:1 aus STYLEGUIDE.md abgeleitet (Light Mode).
+   Alle App-Screens sind CSS-Nachbauten der echten Komponenten
+   und können später gegen echte Screenshots getauscht werden.
+   ============================================================ */
+:root{
+  --bg:#F8EBD9; --surface:#FFFFFF; --surface-2:#FCF4E8;
+  --ink:#1B1714; --ink-2:#4F4840; --ink-3:#8B8175; --line:#E7DAC6;
+  --primary:#C8432D; --primary-600:#B0341F; --primary-soft:#F8E3DB;
+  --secondary:#1A3B78; --secondary-600:#142E5E; --secondary-soft:#DFE5F1;
+  --accent:#DC973A; --accent-soft:#F8E9CF;
+  --success:#2E8B57; --success-soft:#DCEEE2;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-pill:999px;
+  --shadow-sm:0 1px 2px rgba(27,23,20,.06);
+  --shadow-md:0 4px 14px rgba(27,23,20,.09);
+  --shadow-lg:0 14px 38px rgba(27,23,20,.12);
+  --cover-a:linear-gradient(135deg,#C8432D,#8F2A1B);
+  --cover-b:linear-gradient(135deg,#1A3B78,#10264C);
+  --cover-c:linear-gradient(135deg,#DC973A,#A9651A);
+  --cover-k:linear-gradient(135deg,#574F45,#2C2318);
+  --maxw:1160px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Archivo',system-ui,sans-serif;
+  background:var(--bg); color:var(--ink);
+  -webkit-font-smoothing:antialiased; line-height:1.6;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--primary);display:inline-flex;align-items:center;gap:8px;
+}
+.eyebrow::before{content:"";width:22px;height:1.5px;background:var(--primary);display:inline-block}
+.eyebrow.gold{color:var(--accent)}
+.eyebrow.gold::before{background:var(--accent)}
+.eyebrow.navy{color:var(--secondary)}
+.eyebrow.navy::before{background:var(--secondary)}
+.eyebrow.cream{color:var(--accent)}
+.eyebrow.cream::before{background:var(--accent)}
+
+/* ---------- Header ---------- */
+.hdr{
+  position:sticky;top:0;z-index:50;
+  background:rgba(248,235,217,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.hdr-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-.02em}
+.brand-mark{
+  width:30px;height:30px;border-radius:9px;background:var(--cover-a);
+  display:grid;place-items:center;color:#fff;font-weight:900;font-size:17px;
+  box-shadow:var(--shadow-sm);
+}
+.nav{display:flex;align-items:center;gap:30px}
+.nav a{font-size:14px;font-weight:600;color:var(--ink-2)}
+.nav a:hover{color:var(--ink)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.005em;
+  border-radius:var(--radius-md);padding:12px 24px;border:1.5px solid transparent;
+  cursor:pointer;transition:transform .12s ease,background .15s ease,box-shadow .15s ease;
+}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary-600)}
+.btn-primary:hover{background:var(--primary-600);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--bg)}
+.btn-sm{padding:9px 18px;font-size:14px}
+.nav .btn{margin-left:4px}
+.nav-links{display:contents}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(60% 55% at 82% 8%, rgba(220,151,58,.28), transparent 60%),
+    radial-gradient(55% 50% at 12% 92%, rgba(26,59,120,.10), transparent 60%);
+}
+.hero-in{
+  position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
+  align-items:center;padding:76px 0 84px;
+}
+.hero h1{
+  font-size:clamp(44px,6.2vw,72px);font-weight:900;line-height:1.02;letter-spacing:-.03em;
+  margin:20px 0 22px;
+}
+.hero h1 .u{
+  position:relative;white-space:nowrap;
+}
+.hero h1 .u::after{
+  content:"";position:absolute;left:-2px;right:-2px;bottom:.06em;height:.16em;
+  background:var(--accent);opacity:.55;border-radius:2px;z-index:-1;
+}
+.hero-sub{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:34ch;font-weight:400}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin:30px 0 18px}
+.store{
+  display:inline-flex;align-items:center;gap:11px;background:var(--ink);color:var(--bg);
+  border-radius:var(--radius-md);padding:11px 20px 11px 17px;transition:transform .12s ease;
+}
+.store:hover{transform:translateY(-1px)}
+.store svg{width:22px;height:22px;flex:none}
+.store .s-top{display:block;font-size:10px;font-weight:600;letter-spacing:.04em;opacity:.8;line-height:1.2}
+.store .s-btm{display:block;font-size:16px;font-weight:800;line-height:1.1;letter-spacing:-.01em}
+.hero-trust{display:flex;align-items:center;gap:12px;color:var(--ink-3);font-size:13.5px;font-weight:500}
+.avstack{display:flex}
+.avstack span{
+  width:28px;height:28px;border-radius:var(--radius-pill);border:2px solid var(--bg);
+  margin-left:-9px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800;
+}
+.avstack span:first-child{margin-left:0}
+
+/* ---------- Phone frame ---------- */
+.phone-col{display:flex;justify-content:center;position:relative}
+.phone{
+  position:relative;width:300px;flex:none;background:#0f0b07;border-radius:44px;padding:11px;
+  box-shadow:var(--shadow-lg),0 40px 80px -30px rgba(27,23,20,.5);
+}
+.phone-lg{width:322px}
+.phone::after{content:"";position:absolute;left:50%;top:20px;transform:translateX(-50%);
+  width:96px;height:24px;background:#0f0b07;border-radius:14px;z-index:5}
+.screen{
+  position:relative;background:var(--bg);border-radius:34px;overflow:hidden;height:632px;
+  display:flex;flex-direction:column;
+}
+.st-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 8px;font-size:12px;font-weight:700;color:var(--ink)}
+.st-bar .dots{display:flex;gap:4px;align-items:center}
+.st-bar .dots i{width:5px;height:5px;border-radius:50%;background:var(--ink);display:inline-block}
+.app-top{padding:6px 18px 12px;display:flex;align-items:center;justify-content:space-between}
+.app-top h3{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.app-top .grp{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+.app-body{flex:1;overflow:hidden;padding:0 16px}
+.tabbar{
+  display:flex;align-items:center;justify-content:space-around;padding:10px 14px 20px;
+  background:var(--surface);border-top:1px solid var(--line);
+}
+.tabbar .ti{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+.tabbar .ti.on{color:var(--primary)}
+.tabbar .ti svg{width:21px;height:21px}
+.tabbar .fab{
+  width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;margin-top:-22px;border:3px solid var(--surface);box-shadow:var(--shadow-md);
+}
+.tabbar .fab svg{width:24px;height:24px}
+
+/* vote card (hero screen) */
+.chips{display:flex;gap:7px;margin:4px 0 12px;overflow:hidden}
+.chip{
+  border-radius:var(--radius-pill);padding:6px 13px;font-size:12px;font-weight:700;
+  border:1.5px solid var(--line);background:var(--surface);color:var(--ink-2);white-space:nowrap;
+}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.vcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:13px;margin-bottom:12px;box-shadow:var(--shadow-sm);display:flex;gap:12px;align-items:center;
+}
+.vthumb{width:54px;height:54px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:24px}
+.vmain{flex:1;min-width:0}
+.vmain h4{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.vmeta{font-size:11.5px;color:var(--ink-3);font-weight:500;margin-top:1px}
+.vbar{height:6px;border-radius:99px;background:var(--surface-2);margin-top:9px;overflow:hidden;border:1px solid var(--line)}
+.vbar i{display:block;height:100%;border-radius:99px;background:var(--primary)}
+.vcount{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-top:5px}
+.votebtn{
+  width:46px;height:52px;border-radius:12px;flex:none;border:1.5px solid var(--line);
+  background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;color:var(--ink-2);
+}
+.votebtn.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.votebtn .n{font-size:15px;font-weight:800}
+.votebtn svg{width:15px;height:15px}
+/* unlock signature */
+.unlocked{
+  position:relative;border-color:var(--success);padding-top:36px;
+}
+.stamp{
+  position:absolute;top:11px;right:12px;background:var(--success-soft);color:var(--success);
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  padding:4px 9px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:4px;
+  opacity:0;transform:scale(.8);
+}
+.stamp svg{width:11px;height:11px}
+@keyframes fill{from{width:64%}to{width:100%}}
+@keyframes pop{0%{opacity:0;transform:scale(.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes tint{to{background:var(--success)}}
+.demo .vbar i{animation:fill 1.4s cubic-bezier(.5,0,.2,1) 1.2s forwards,tint .5s ease 2.5s forwards;width:64%}
+.demo .stamp{animation:pop .5s ease 2.55s forwards}
+.demo .u-count{animation:none}
+
+/* board screen */
+.board{display:flex;gap:11px;height:100%;overflow:hidden}
+.bcol{flex:none;width:132px}
+.bcol h5{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;color:var(--ink-2)}
+.bcol h5 .dot{width:8px;height:8px;border-radius:50%}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:9px;box-shadow:var(--shadow-sm)}
+.kcover{height:44px}
+.kbody{padding:9px 10px}
+.kbody h6{font-size:12.5px;font-weight:700;line-height:1.25;letter-spacing:-.01em}
+.kmeta{display:flex;align-items:center;gap:6px;margin-top:7px}
+.kav{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:800}
+.daterange{background:var(--secondary-soft);color:var(--secondary);font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:var(--radius-pill)}
+
+/* detail screen */
+.dcover{height:150px;margin:-0 -16px 0;border-radius:0;display:flex;align-items:flex-end;padding:16px;position:relative}
+.dcover .status{position:absolute;top:14px;left:16px;background:rgba(27,23,20,.5);color:#fff;font-size:10.5px;font-weight:700;padding:5px 11px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:6px}
+.dcover .status .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.dcover h3{color:#fff;font-size:23px;font-weight:900;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.dsec{padding:15px 2px 0}
+.dsec .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:8px}
+.calbtn{background:var(--success-soft);color:var(--success);border:1.5px solid var(--success);border-radius:var(--radius-md);padding:12px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.calbtn svg{width:16px;height:16px}
+.member{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)}
+.member .mav{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.member .mname{font-size:13px;font-weight:600}
+.member .role{margin-left:auto;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:var(--radius-pill)}
+.role.admin{background:var(--primary-soft);color:var(--primary)}
+.role.editor{background:var(--secondary-soft);color:var(--secondary)}
+
+/* ---------- generic section ---------- */
+.sec{padding:88px 0}
+.sec-head{max-width:640px}
+.sec-head h2{font-size:clamp(30px,3.8vw,44px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin:16px 0 0}
+.sec-head p{font-size:17px;color:var(--ink-2);margin-top:14px;max-width:52ch}
+
+/* problem */
+.problem{background:var(--secondary);color:#F2E9DA;position:relative;overflow:hidden}
+.problem .eyebrow{color:var(--accent)}
+.problem .eyebrow::before{background:var(--accent)}
+.problem h2{color:#fff}
+.problem p{color:rgba(242,233,218,.72)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.pcard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-lg);padding:26px 24px}
+.pcard .pn{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.04em}
+.pcard h4{font-size:20px;font-weight:800;margin:14px 0 8px;letter-spacing:-.01em;color:#fff}
+.pcard p{font-size:14.5px;color:rgba(242,233,218,.7);margin:0}
+
+/* steps */
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:52px}
+.step{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:28px;box-shadow:var(--shadow-sm);display:flex;gap:22px;align-items:flex-start;
+}
+.step .num{
+  font-size:15px;font-weight:900;color:var(--primary);flex:none;width:44px;height:44px;
+  border-radius:12px;background:var(--primary-soft);display:grid;place-items:center;letter-spacing:-.02em;
+}
+.step.s2 .num{color:var(--secondary);background:var(--secondary-soft)}
+.step.s3 .num{color:var(--accent);background:var(--accent-soft)}
+.step.s4 .num{color:var(--success);background:var(--success-soft)}
+.step h4{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-bottom:7px}
+.step p{font-size:15px;color:var(--ink-2);margin:0}
+
+/* features */
+.features{background:var(--surface-2)}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:26px;box-shadow:var(--shadow-sm);transition:transform .15s ease,box-shadow .15s ease}
+.fcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.ficon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;color:#fff;margin-bottom:16px}
+.ficon svg{width:23px;height:23px}
+.fcard h4{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-bottom:7px}
+.fcard p{font-size:14.5px;color:var(--ink-2);margin:0}
+
+/* screenshots band */
+.shots{background:var(--ink);color:var(--bg);overflow:hidden}
+.shots .eyebrow{color:var(--accent)}
+.shots .eyebrow::before{background:var(--accent)}
+.shots h2{color:#fff}
+.shots p{color:rgba(242,233,218,.66)}
+.shot-row{display:flex;gap:24px;justify-content:center;margin-top:56px;flex-wrap:wrap}
+.shot{display:flex;flex-direction:column;align-items:center;gap:16px}
+.shot .cap{font-size:13px;font-weight:600;color:rgba(242,233,218,.7);text-align:center;max-width:24ch}
+.shot .cap b{color:#fff;font-weight:800;display:block;font-size:15px;margin-bottom:2px}
+.shots .phone{transform:scale(.86);transform-origin:top center;margin-bottom:-40px}
+
+/* final cta */
+.final{background:var(--primary);color:#fff;text-align:center;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 120% at 50% -20%,rgba(255,255,255,.16),transparent 60%)}
+.final .in{position:relative;padding:96px 0}
+.final .eyebrow{color:#fff}
+.final .eyebrow::before{background:rgba(255,255,255,.7)}
+.final h2{font-size:clamp(34px,5vw,56px);font-weight:900;letter-spacing:-.03em;line-height:1.04;margin:18px auto 10px;max-width:16ch}
+.final p{font-size:18px;color:rgba(255,255,255,.86);max-width:44ch;margin:0 auto 32px}
+.final .hero-cta{justify-content:center}
+.final .store{background:#fff;color:var(--ink)}
+
+/* footer */
+.ft{background:var(--bg);border-top:1px solid var(--line);padding:44px 0 36px}
+.ft-in{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;flex-wrap:wrap}
+.ft .brand{font-size:20px}
+.ft .tag{font-size:13.5px;color:var(--ink-3);margin-top:10px;max-width:30ch}
+.ft-links{display:flex;gap:48px;flex-wrap:wrap}
+.ft-col h5{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin-bottom:14px}
+.ft-col a{display:block;font-size:14px;color:var(--ink-2);font-weight:500;margin-bottom:9px}
+.ft-col a:hover{color:var(--primary)}
+.ft-btm{display:flex;justify-content:space-between;align-items:center;margin-top:40px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:10px}
+
+@media (max-width:900px){
+  .hero-in{grid-template-columns:1fr;gap:48px;padding:52px 0 64px}
+  .phone-col{order:-1}
+  .hero-sub{max-width:none}
+  .steps{grid-template-columns:1fr}
+  .pgrid,.fgrid{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .sec{padding:64px 0}
+}
+@media (max-width:520px){
+  .wrap{padding:0 18px}
+  .phone{width:270px}
+  .fgrid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .demo .vbar i{animation:none;width:100%;background:var(--success)}
+  .demo .stamp{animation:none;opacity:1;transform:none}
+  html{scroll-behavior:auto}
+  .btn,.store,.fcard{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a href="#" class="brand"><span class="brand-mark">M</span>Mellon</a>
+    <nav class="nav">
+      <span class="nav-links">
+        <a href="#how">So funktioniert's</a>
+        <a href="#features">Features</a>
+        <a href="#shots">Screenshots</a>
+      </span>
+      <a href="#get" class="btn btn-primary btn-sm">App holen</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <span class="eyebrow">Mellon · elbisch für „Freund"</span>
+      <h1>Erst abstimmen.<br>Dann <span class="u">losziehen.</span></h1>
+      <p class="hero-sub">Mellon bringt eure Gruppe von der Idee zur Erinnerung — demokratisch abgestimmt, gemeinsam geplant, ohne Chaos im Gruppenchat.</p>
+      <div class="hero-cta">
+        <a href="#get" class="store">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 1c.1 1.2-.4 2.4-1.1 3.2-.8.9-2 1.6-3.2 1.5-.1-1.2.5-2.4 1.2-3.1C14.2 1.6 15.5 1 16.5 1zm3.4 16.3c-.6 1.4-.9 2-1.7 3.2-1.1 1.7-2.6 3.8-4.5 3.8-1.7 0-2.1-1.1-4.4-1.1-2.3 0-2.8 1.1-4.4 1.1-1.9 0-3.3-1.9-4.4-3.6C-.6 17.5-.9 12.2 1.4 9.4c1-1.4 2.7-2.3 4.3-2.3 1.7 0 2.7 1.1 4.1 1.1 1.3 0 2.1-1.1 4.1-1.1 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9.9 8.1z"/></svg>
+          <span><span class="s-top">Laden im</span><span class="s-btm">App Store</span></span>
+        </a>
+        <a href="#get" class="store">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.8c-.3.3-.5.8-.5 1.4v17.6c0 .6.2 1.1.5 1.4l.1.1L13.5 12v-.2L3.7 1.7l-.1.1zM17 15.3l-3.3-3.3v-.2L17 8.5l.1.1 3.9 2.2c1.1.6 1.1 1.7 0 2.3L17.1 15.2l-.1.1zM14.7 12.9l3.4 3.4-10-5.8 6.6 2.4zm3.4-5.2L14.7 11 8.1 4.4l10-5.7-3.4 3.4z"/></svg>
+          <span><span class="s-top">Jetzt bei</span><span class="s-btm">Google Play</span></span>
+        </a>
+      </div>
+      <div class="hero-trust">
+        <div class="avstack">
+          <span style="background:var(--primary)">L</span>
+          <span style="background:var(--secondary)">J</span>
+          <span style="background:var(--accent)">M</span>
+          <span style="background:#574F45">+4</span>
+        </div>
+        Gemacht für Gruppen von 3–10 Freund:innen.
+      </div>
+    </div>
+
+    <!-- HERO PHONE: Voting screen (Signature: Vote schaltet frei) -->
+    <div class="phone-col">
+      <div class="phone phone-lg demo">
+        <div class="screen">
+          <div class="st-bar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="app-top">
+            <div><h3>Was machen wir?</h3><span class="grp">Crew Weekend · 7 Mitglieder</span></div>
+          </div>
+          <div class="app-body">
+            <div class="chips">
+              <span class="chip on">Alle</span>
+              <span class="chip">Kurz</span>
+              <span class="chip">Tagestrip</span>
+              <span class="chip">Wochenende</span>
+            </div>
+            <!-- unlocked card = signature -->
+            <div class="vcard unlocked">
+              <div class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Freigeschaltet</div>
+              <div class="vthumb" style="background:var(--cover-c)">🏔️</div>
+              <div class="vmain">
+                <h4>Wandern am Königssee</h4>
+                <div class="vmeta">Tagestrip · von Lena</div>
+                <div class="vbar"><i></i></div>
+                <div class="vcount">5 / 5 Stimmen</div>
+              </div>
+              <div class="votebtn on">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                <span class="n">5</span>
+              </div>
+            </div>
+            <div class="vcard">
+              <div class="vthumb" style="background:var(--cover-b)">🎳</div>
+              <div class="vmain">
+                <h4>Bowling & Burger</h4>
+                <div class="vmeta">Kurz · von Jonas</div>
+                <div class="vbar"><i style="width:60%"></i></div>
+                <div class="vcount">3 / 5 Stimmen</div>
+              </div>
+              <div class="votebtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                <span class="n">3</span>
+              </div>
+            </div>
+            <div class="vcard">
+              <div class="vthumb" style="background:var(--cover-a)">🍕</div>
+              <div class="vmain">
+                <h4>Pizza-Abend bei Mira</h4>
+                <div class="vmeta">Kurz · von Mira</div>
+                <div class="vbar"><i style="width:40%"></i></div>
+                <div class="vcount">2 / 5 Stimmen</div>
+              </div>
+              <div class="votebtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                <span class="n">2</span>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="ti on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Übersicht</div>
+            <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>Board</div>
+            <div class="ti"><div class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+            <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</div>
+            <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEM ============ -->
+<section class="problem">
+  <div class="wrap sec">
+    <div class="sec-head">
+      <span class="eyebrow">Das Problem</span>
+      <h2>Der Gruppenchat entscheidet nichts.</h2>
+      <p>Zwischen 300 Nachrichten geht jede gute Idee unter. Mellon macht aus dem Durcheinander einen klaren Ablauf.</p>
+    </div>
+    <div class="pgrid">
+      <div class="pcard">
+        <div class="pn">01</div>
+        <h4>Viel Reden, keine Wahl</h4>
+        <p>Alle schlagen etwas vor, niemand legt sich fest. Am Ende passiert nichts.</p>
+      </div>
+      <div class="pcard">
+        <div class="pn">02</div>
+        <h4>Termine im Sand</h4>
+        <p>„Wer kann wann?" versickert nach der dritten Umfrage im Chat-Verlauf.</p>
+      </div>
+      <div class="pcard">
+        <div class="pn">03</div>
+        <h4>Erinnerungen verstreut</h4>
+        <p>Fotos und Pläne liegen bei zehn Leuten. Wiederfinden? Unmöglich.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">So funktioniert's</span>
+      <h2>Von der Idee bis zur Erinnerung — in vier Schritten.</h2>
+      <p>Ein klarer Weg, den die ganze Gruppe mitgeht. Kein Moderator, keine Doodle-Links, keine verlorenen Threads.</p>
+    </div>
+    <div class="steps">
+      <div class="step s1">
+        <div class="num">01</div>
+        <div><h4>Vorschlagen</h4><p>Jede:r wirft Ideen in die Gruppe — vom Kurztrip bis zum Filmabend.</p></div>
+      </div>
+      <div class="step s2">
+        <div class="num">02</div>
+        <div><h4>Abstimmen</h4><p>Die Gruppe voted. Genug Stimmen erreicht? Der Vorschlag wird freigeschaltet.</p></div>
+      </div>
+      <div class="step s3">
+        <div class="num">03</div>
+        <div><h4>Planen</h4><p>Auf dem Kanban-Board wandert die Aktivität vom Vorschlag bis zum fixen Termin.</p></div>
+      </div>
+      <div class="step s4">
+        <div class="num">04</div>
+        <div><h4>Erinnern</h4><p>Abgeschlossenes zieht ins Archiv — euer gemeinsames Album der Unternehmungen.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="sec features" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow navy">Features</span>
+      <h2>Alles, was eine Unternehmung braucht.</h2>
+    </div>
+    <div class="fgrid">
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-a)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></div>
+        <h4>Demokratisches Voting</h4>
+        <p>Jede Stimme zählt. Ab der eingestellten Schwelle schaltet sich der Plan frei.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-b)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg></div>
+        <h4>Kanban-Board</h4>
+        <p>Zu planen, in Planung, fertig — der Status der Gruppe immer auf einen Blick.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-c)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <h4>Kalender-Sync</h4>
+        <p>Steht der Termin, exportiert Mellon ihn direkt in deinen Kalender.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-k)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></div>
+        <h4>Erinnerungs-Archiv</h4>
+        <p>Jede abgeschlossene Unternehmung bleibt als geteilte Erinnerung erhalten.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-a)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+        <h4>Push-Benachrichtigungen</h4>
+        <p>Neue Vorschläge, erreichte Schwellen, fixe Termine — niemand verpasst was.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon" style="background:var(--cover-b)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
+        <h4>iOS &amp; Android</h4>
+        <p>Native Apps für beide Plattformen. Eine Gruppe, egal welches Gerät.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREENSHOTS ============ -->
+<section class="sec shots" id="shots">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Ein Blick in die App</span>
+      <h2>So fühlt sich gemeinsame Planung an.</h2>
+      <p>Warm, klar, für den Daumen gemacht. Hell- und Dunkelmodus inklusive.</p>
+    </div>
+    <div class="shot-row">
+      <!-- Board -->
+      <div class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="st-bar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+            <div class="app-top"><div><h3>Board</h3><span class="grp">Crew Weekend</span></div></div>
+            <div class="app-body">
+              <div class="board">
+                <div class="bcol">
+                  <h5><span class="dot" style="background:var(--primary)"></span>Zu planen</h5>
+                  <div class="kcard"><div class="kcover" style="background:var(--cover-c)"></div><div class="kbody"><h6>Wandern am Königssee</h6><div class="kmeta"><span class="kav" style="background:var(--primary)">L</span><span class="daterange">offen</span></div></div></div>
+                  <div class="kcard"><div class="kcover" style="background:var(--cover-b)"></div><div class="kbody"><h6>Bowling &amp; Burger</h6><div class="kmeta"><span class="kav" style="background:var(--secondary)">J</span></div></div></div>
+                </div>
+                <div class="bcol">
+                  <h5><span class="dot" style="background:var(--accent)"></span>In Planung</h5>
+                  <div class="kcard"><div class="kcover" style="background:var(--cover-a)"></div><div class="kbody"><h6>Grillen im Park</h6><div class="kmeta"><span class="kav" style="background:var(--accent)">M</span><span class="daterange">Sa, 12. Jul</span></div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Übersicht</div>
+              <div class="ti on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>Board</div>
+              <div class="ti"><div class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap"><b>Kanban-Board</b>Der Stand der Gruppe, Spalte für Spalte.</div>
+      </div>
+
+      <!-- Detail -->
+      <div class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="st-bar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+            <div class="app-body" style="padding:0;overflow:hidden">
+              <div class="dcover" style="background:var(--cover-a)">
+                <div class="status"><span class="dot"></span>In Planung</div>
+                <h3>Grillen im Park</h3>
+              </div>
+              <div style="padding:0 16px">
+                <div class="dsec">
+                  <div class="lbl">Termin</div>
+                  <div class="calbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Im Kalender · Sa, 12. Jul, 15:00</div>
+                </div>
+                <div class="dsec">
+                  <div class="lbl">Dabei · 4</div>
+                  <div class="member"><span class="mav" style="background:var(--primary)">M</span><span class="mname">Mira</span><span class="role admin">Admin</span></div>
+                  <div class="member"><span class="mav" style="background:var(--secondary)">J</span><span class="mname">Jonas</span><span class="role editor">Redakteur</span></div>
+                  <div class="member" style="border:none"><span class="mav" style="background:var(--accent)">L</span><span class="mname">Lena</span><span class="role editor">Redakteur</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="ti on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Übersicht</div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>Board</div>
+              <div class="ti"><div class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap"><b>Aktivitäts-Detail</b>Termin, Mitglieder und Kalender-Export an einem Ort.</div>
+      </div>
+
+      <!-- Archive (Dark) -->
+      <div class="shot">
+        <div class="phone">
+          <div class="screen" style="background:#15110C">
+            <div class="st-bar" style="color:#F2E9DA"><span>9:41</span><span class="dots"><i style="background:#F2E9DA"></i><i style="background:#F2E9DA"></i><i style="background:#F2E9DA"></i></span></div>
+            <div class="app-top"><div><h3 style="color:#F2E9DA">Archiv</h3><span class="grp" style="color:#857B6B">12 Erinnerungen</span></div></div>
+            <div class="app-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+                <div style="border-radius:14px;overflow:hidden;background:#211A12;border:1px solid #352B1F">
+                  <div style="height:78px;background:var(--cover-b)"></div>
+                  <div style="padding:9px 10px"><div style="font-size:12.5px;font-weight:700;color:#F2E9DA">Städtetrip Wien</div><div style="font-size:10.5px;color:#857B6B;font-weight:600;margin-top:2px">März 2026</div></div>
+                </div>
+                <div style="border-radius:14px;overflow:hidden;background:#211A12;border:1px solid #352B1F">
+                  <div style="height:78px;background:var(--cover-c)"></div>
+                  <div style="padding:9px 10px"><div style="font-size:12.5px;font-weight:700;color:#F2E9DA">Ski am Feldberg</div><div style="font-size:10.5px;color:#857B6B;font-weight:600;margin-top:2px">Feb 2026</div></div>
+                </div>
+                <div style="border-radius:14px;overflow:hidden;background:#211A12;border:1px solid #352B1F">
+                  <div style="height:78px;background:var(--cover-a)"></div>
+                  <div style="padding:9px 10px"><div style="font-size:12.5px;font-weight:700;color:#F2E9DA">Silvester-WG</div><div style="font-size:10.5px;color:#857B6B;font-weight:600;margin-top:2px">Dez 2025</div></div>
+                </div>
+                <div style="border-radius:14px;overflow:hidden;background:#211A12;border:1px solid #352B1F">
+                  <div style="height:78px;background:var(--cover-k)"></div>
+                  <div style="padding:9px 10px"><div style="font-size:12.5px;font-weight:700;color:#F2E9DA">Herbstwanderung</div><div style="font-size:10.5px;color:#857B6B;font-weight:600;margin-top:2px">Okt 2025</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar" style="background:#211A12;border-color:#352B1F">
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Übersicht</div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>Board</div>
+              <div class="ti"><div class="fab" style="border-color:#211A12"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+              <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</div>
+              <div class="ti on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap"><b>Erinnerungs-Archiv</b>Jede Unternehmung bleibt — auch im Dunkelmodus.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="final" id="get">
+  <div class="wrap in">
+    <span class="eyebrow">Sprich, Freund.</span>
+    <h2>Bereit für die nächste Unternehmung?</h2>
+    <p>Hol dir Mellon, lade deine Crew ein und lasst die Gruppe entscheiden.</p>
+    <div class="hero-cta">
+      <a href="#" class="store">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 1c.1 1.2-.4 2.4-1.1 3.2-.8.9-2 1.6-3.2 1.5-.1-1.2.5-2.4 1.2-3.1C14.2 1.6 15.5 1 16.5 1zm3.4 16.3c-.6 1.4-.9 2-1.7 3.2-1.1 1.7-2.6 3.8-4.5 3.8-1.7 0-2.1-1.1-4.4-1.1-2.3 0-2.8 1.1-4.4 1.1-1.9 0-3.3-1.9-4.4-3.6C-.6 17.5-.9 12.2 1.4 9.4c1-1.4 2.7-2.3 4.3-2.3 1.7 0 2.7 1.1 4.1 1.1 1.3 0 2.1-1.1 4.1-1.1 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9.9 8.1z"/></svg>
+        <span><span class="s-top">Laden im</span><span class="s-btm">App Store</span></span>
+      </a>
+      <a href="#" class="store">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.8c-.3.3-.5.8-.5 1.4v17.6c0 .6.2 1.1.5 1.4l.1.1L13.5 12v-.2L3.7 1.7l-.1.1zM17 15.3l-3.3-3.3v-.2L17 8.5l.1.1 3.9 2.2c1.1.6 1.1 1.7 0 2.3L17.1 15.2z"/></svg>
+        <span><span class="s-top">Jetzt bei</span><span class="s-btm">Google Play</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ft">
+  <div class="wrap">
+    <div class="ft-in">
+      <div>
+        <div class="brand"><span class="brand-mark">M</span>Mellon</div>
+        <p class="tag">Von der gemeinsamen Idee bis zur geteilten Erinnerung — in einer App.</p>
+      </div>
+      <div class="ft-links">
+        <div class="ft-col">
+          <h5>Produkt</h5>
+          <a href="#how">So funktioniert's</a>
+          <a href="#features">Features</a>
+          <a href="#shots">Screenshots</a>
+        </div>
+        <div class="ft-col">
+          <h5>Rechtliches</h5>
+          <a href="#">Datenschutz</a>
+          <a href="#">Impressum</a>
+          <a href="#">AGB</a>
+        </div>
+        <div class="ft-col">
+          <h5>Kontakt</h5>
+          <a href="#">Support</a>
+          <a href="#">Feedback</a>
+        </div>
+      </div>
+    </div>
+    <div class="ft-btm">
+      <span>© 2026 Mellon. Alle Rechte vorbehalten.</span>
+      <span>Gemacht für Freund:innen. „Mellon" — elbisch für „Freund".</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

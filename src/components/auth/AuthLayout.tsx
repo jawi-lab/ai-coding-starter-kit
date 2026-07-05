@@ -13,8 +13,8 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
           <img
-            src="/logo.png"
-            alt="ZUSAMMEN"
+            src="/logo-login.png"
+            alt="Mellon"
             className="h-28 w-28 rounded-[30px] object-cover"
           />
         </div>

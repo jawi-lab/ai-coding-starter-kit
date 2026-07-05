@@ -81,7 +81,7 @@ function GroupsContent() {
       <header className="bg-bg border-b border-line px-4 h-bar-safe flex items-center justify-between sticky top-0 z-10">
         <img
           src="/logo.png"
-          alt="ZUSAMMEN"
+          alt="Mellon"
           className="h-10 w-10 rounded-[30px] object-cover"
         />
         <div className="flex items-center gap-2">
