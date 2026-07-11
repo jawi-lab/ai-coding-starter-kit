@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { useGroups } from '@/hooks/useGroups'
+import { MAX_GROUP_NAME_LENGTH, groupNameSchema } from '@/lib/group-types'
 import { useRouter } from 'next/navigation'
 
 interface CreateGroupFormProps {
@@ -20,9 +21,8 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
   const [error, setError] = useState<string | null>(null)
 
   function validate(): string | null {
-    if (!name.trim()) return 'Gruppenname ist erforderlich'
-    if (name.trim().length > 50) return 'Gruppenname darf maximal 50 Zeichen lang sein'
-    return null
+    const result = groupNameSchema.safeParse(name)
+    return result.success ? null : result.error.issues[0].message
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -71,7 +71,7 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
             setName(e.target.value)
             if (error) setError(null)
           }}
-          maxLength={50}
+          maxLength={MAX_GROUP_NAME_LENGTH}
           autoFocus
           className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px]
                      focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
@@ -83,7 +83,7 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
             {error}
           </p>
         )}
-        <p className="text-[12px] text-ink-3">{name.length}/50 Zeichen</p>
+        <p className="text-[12px] text-ink-3">{name.length}/{MAX_GROUP_NAME_LENGTH} Zeichen</p>
       </div>
 
       <Button

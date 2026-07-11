@@ -2,7 +2,25 @@
 
 ## Status: Approved
 **Created:** 2026-06-26
-**Last Updated:** 2026-06-28
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – UI-Überarbeitung in Native übernommen
+- Web-Änderungen (persistente Bottom-Nav ohne FAB, Top-Bar-"+", Home-Aufgaben,
+  Master-Toggle, Gruppenname-Limit, Kalender-Fix) wurden per `npm run build` +
+  `npx cap sync` in iOS und Android übernommen. Safe-Area/Notch-Handling über die
+  bestehenden `pt-safe`/`pb-safe`-Utilities; ProposalFormSheet zusätzlich mit
+  `useKeyboardInset` (Tastatur-Overlay).
+- **Native gegengeprüft (2026-07-11):**
+  - **iOS** (iPhone 17, iOS 26, Debug-Build via externem DerivedData + GIT_CONFIG-
+    Override, Router-Fix aktiv): Home mit „Meine Aufgaben", Gruppenliste und
+    persistenter Bottom-Nav rendern korrekt; Content unter der Dynamic Island,
+    Nav über dem Home-Indicator (Safe-Area ok), Light-Mode.
+  - **Android** (Emulator `ZUSAMMEN_Pixel7`, API 36, foojay/ProGuard-Fixes,
+    `assembleDebug`): Home + Bottom-Nav, Gruppe-erstellen-Flow mit 20-Zeichen-
+    Zähler und die Gruppen-Top-Bar (Name mittig, rotes „+" links neben der Glocke,
+    Personen-Icon) rendern korrekt, Safe-Area über der Gesten-Bar ok.
+  - iCloud-Geisterdateien (`* 2.*`) vor jedem Build entfernt (brechen sonst
+    `mergeDebugResources` / iOS-Bundle).
 
 ## Dependencies
 - Requires: PROJ-1..PROJ-8 — die vollständige Web-App muss fertig sein (PRD-Constraint Abschnitt 17, verbindlich). Alle P0-Features sind Deployed. ✓

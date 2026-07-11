@@ -2,7 +2,19 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-25
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – UI-Feinschliff & abhakbare Verantwortlichkeiten
+- **"Zum Kalender hinzufügen" bei abgeschlossenen Aktivitäten ausgeblendet.**
+  Der iCal-Export ergibt für vergangene (Status `abgeschlossen`) Aktivitäten
+  keinen Sinn. `ActivityDetailSheet` rendert den Button jetzt nur noch bei
+  `start_date && status !== 'abgeschlossen'` (`showCalendarExport`).
+- **Verantwortlichkeiten sind abhakbar** (neue Spalten `done`/`completed_at` in
+  `activity_responsibilities`, Migration `20260711_proj6_responsibility_done.sql`,
+  neue UPDATE-RLS für Gruppenmitglieder). Jede Zeile hat eine Checkbox
+  (`toggleDone`), erledigte werden durchgestrichen. "Offen" = `done = false`.
+  Gruppenübergreifende Ansicht offener Aufgaben siehe PROJ-8 ("Meine Aufgaben"
+  auf Home).
 
 ## Bugfix (2026-06-25/26) – iOS-Kommentar-Composer verschiebt sich
 - **Symptom (iPhone):** Beim Fokussieren des Kommentar-Editors verschob sich das

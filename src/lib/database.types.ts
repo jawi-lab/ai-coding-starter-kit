@@ -178,24 +178,30 @@ export type Database = {
         Row: {
           activity_id: string
           assigned_user_id: string
+          completed_at: string | null
           created_at: string
           created_by: string
+          done: boolean
           id: string
           label: string
         }
         Insert: {
           activity_id: string
           assigned_user_id: string
+          completed_at?: string | null
           created_at?: string
           created_by: string
+          done?: boolean
           id?: string
           label: string
         }
         Update: {
           activity_id?: string
           assigned_user_id?: string
+          completed_at?: string | null
           created_at?: string
           created_by?: string
+          done?: boolean
           id?: string
           label?: string
         }

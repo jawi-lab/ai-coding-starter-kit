@@ -4,7 +4,6 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { ArrowLeft, Settings } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -18,6 +17,8 @@ import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
 import { GROUP_TABS, groupHref, resolveGroupTab } from '@/lib/group-routes'
+import { truncateName } from '@/lib/group-types'
+import { setLastGroupId } from '@/lib/last-group'
 import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
 import { PlanungTab } from '@/components/groups/tabs/PlanungTab'
 import { TermineTab } from '@/components/groups/tabs/TermineTab'
@@ -56,6 +57,12 @@ function GroupView() {
     if (!groupId) router.replace('/groups')
   }, [groupId, router])
 
+  // Zuletzt geöffnete Gruppe merken, damit die persistente Bottom-Nav auf Home
+  // sinnvolle Tab-Ziele hat (Vorschläge/Board/Termine → diese Gruppe).
+  useEffect(() => {
+    if (groupId) setLastGroupId(groupId)
+  }, [groupId])
+
   // Deep-Link aus einem Push-Tap (PROJ-10): `?activity=<id>` öffnet direkt das
   // Detail-Sheet dieser Aktivität. Danach strippen wir den Param, damit das
   // Schließen des Sheets es nicht erneut öffnet. Ein nicht mehr existierender
@@ -75,28 +82,16 @@ function GroupView() {
     <div className="h-[100dvh] overflow-hidden bg-bg flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 bg-bg border-b border-line pt-safe">
-        <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center gap-3">
-          <button
-            onClick={() => router.push('/groups')}
-            className="h-9 w-9 -ml-1.5 rounded-[8px] flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
-            aria-label="Zurück zu meinen Gruppen"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-
-          <h1 className="flex-1 text-[18px] font-[800] text-ink truncate leading-tight">
-            {loading && !group ? '…' : group?.name ?? 'Gruppe'}
+        <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center relative">
+          {/* Gruppenname mittig — hart auf 20 Zeichen gekürzt (siehe truncateName).
+              Kein Zurück-Pfeil mehr — „Home" in der Bottom-Nav ersetzt ihn. */}
+          <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[45%] text-center text-[18px] font-[800] text-ink truncate leading-tight">
+            {loading && !group ? '…' : group ? truncateName(group.name) : 'Gruppe'}
           </h1>
 
-          <NotificationBell />
-
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="h-9 w-9 -mr-1.5 rounded-[8px] flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
-            aria-label="Einstellungen"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
+          <div className="ml-auto flex items-center gap-1">
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Top-Tab-Navigation — nur Desktop. Mobil übernimmt die Bottom-Nav. */}
@@ -156,6 +151,7 @@ function GroupView() {
               openActivityDetail: setDetailActivityId,
               refetchGroup: refetch,
               openCreateProposal,
+              openGroupSettings: () => setSettingsOpen(true),
               registerProposalsRefetch,
             }}
           >
@@ -169,10 +165,8 @@ function GroupView() {
       {/* Bottom-Navigation — nur mobil/nativ. Desktop nutzt die oberen Tabs. */}
       {group && (
         <GroupBottomNav
-          groupId={groupId}
-          activeSeg={activeSeg}
-          canCreate={canCreate}
-          onCreate={openCreateProposal}
+          active={activeSeg}
+          targetGroupId={groupId}
           onProfile={() => setProfileOpen(true)}
         />
       )}

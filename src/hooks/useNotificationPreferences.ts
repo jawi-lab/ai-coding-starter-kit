@@ -115,5 +115,46 @@ export function useNotificationPreferences() {
     [userId, preferences],
   )
 
-  return { preferences, loading, savingKey, toggle }
+  /**
+   * Master switch for a channel: sets the same value on ALL events at once via a
+   * single batch upsert. Keeps the other channel per event untouched. Optimistic
+   * with rollback + toast, mirroring `toggle()`.
+   */
+  const toggleAll = useCallback(
+    async (channel: NotificationChannel, value: boolean) => {
+      if (!userId) return
+
+      const column = channel === 'push' ? 'push_enabled' : 'email_enabled'
+      const previous = preferences
+      const next = {} as PreferenceMap
+      for (const event of NOTIFICATION_EVENTS) {
+        next[event] = { ...previous[event], [column]: value }
+      }
+
+      setPreferences(next)
+      setSavingKey(`all:${channel}`)
+
+      const now = new Date().toISOString()
+      const { error } = await supabase.from('notification_preferences').upsert(
+        NOTIFICATION_EVENTS.map((event) => ({
+          user_id: userId,
+          event,
+          push_enabled: next[event].push_enabled,
+          email_enabled: next[event].email_enabled,
+          updated_at: now,
+        })),
+        { onConflict: 'user_id,event' },
+      )
+
+      setSavingKey(null)
+
+      if (error) {
+        setPreferences(previous)
+        toast.error('Einstellung konnte nicht gespeichert werden')
+      }
+    },
+    [userId, preferences],
+  )
+
+  return { preferences, loading, savingKey, toggle, toggleAll }
 }

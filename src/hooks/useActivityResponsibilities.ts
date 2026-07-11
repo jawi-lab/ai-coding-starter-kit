@@ -10,6 +10,7 @@ interface UseActivityResponsibilitiesResult {
   error: string | null
   addResponsibility: (input: CreateResponsibilityInput) => Promise<boolean>
   deleteResponsibility: (responsibilityId: string) => Promise<boolean>
+  toggleDone: (responsibilityId: string, done: boolean) => Promise<boolean>
 }
 
 export function useActivityResponsibilities(
@@ -71,5 +72,26 @@ export function useActivityResponsibilities(
     return true
   }
 
-  return { responsibilities, loading, error, addResponsibility, deleteResponsibility }
+  async function toggleDone(responsibilityId: string, done: boolean): Promise<boolean> {
+    // Optimistisch aktualisieren, damit das Häkchen sofort reagiert.
+    setResponsibilities((prev) =>
+      prev.map((r) =>
+        r.id === responsibilityId
+          ? { ...r, done, completed_at: done ? new Date().toISOString() : null }
+          : r
+      )
+    )
+    const { error: err } = await supabase
+      .from('activity_responsibilities')
+      .update({ done, completed_at: done ? new Date().toISOString() : null })
+      .eq('id', responsibilityId)
+
+    if (err) {
+      await fetchResponsibilities() // Rollback auf Serverstand
+      return false
+    }
+    return true
+  }
+
+  return { responsibilities, loading, error, addResponsibility, deleteResponsibility, toggleDone }
 }

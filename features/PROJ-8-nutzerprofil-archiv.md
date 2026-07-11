@@ -2,7 +2,23 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-23 (QA)
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – Home mit "Meine Aufgaben"
+- Home (`/groups`) zeigt jetzt zusätzlich zur Gruppenliste den Abschnitt
+  **"Meine Aufgaben"**: gruppenübergreifend alle offenen (`done = false`) mir
+  zugewiesenen Verantwortlichkeiten (`MyTasksSection` +
+  `useMyOpenResponsibilities`). Abhaken erledigt die Aufgabe (verschwindet),
+  Klick öffnet die zugehörige Aktivität. Abgeschlossene Aktivitäten sind
+  ausgeklammert. Datenmodell/Checkbox siehe PROJ-6.
+- Persönliches Profil-Icon (Bottom-Nav "Profil") unverändert; das Zahnrad in der
+  Gruppen-Top-Bar wurde zu einem Personen-Icon (`Users`) → siehe PROJ-5.
+- **Home-Header minimiert**: „+ Hinzufügen", Profil-Avatar UND das Logo entfernt —
+  der Home-Header zeigt nur noch die Glocke (rechts). Profil bleibt über die
+  Bottom-Nav ("Profil") erreichbar.
+- **„+ Hinzufügen" nach unten verschoben**: sitzt jetzt als gestrichelter Button
+  **unter der Gruppenliste** im Bereich „Meine Gruppen" und öffnet weiterhin den
+  Add-Group-Dialog (`OnboardingScreen` → Gruppe erstellen/beitreten).
 
 ## Dependencies
 - PROJ-2 (Authentifizierung & User Accounts) — Supabase Auth Session, bestehende Login/Logout-Flows

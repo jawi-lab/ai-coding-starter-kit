@@ -19,6 +19,7 @@ import { LeaveGroupDialog } from './LeaveGroupDialog'
 import { DeleteGroupDialog } from './DeleteGroupDialog'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
 import { useAuth } from '@/contexts/AuthContext'
+import { MAX_GROUP_NAME_LENGTH, groupNameSchema } from '@/lib/group-types'
 
 interface GroupDetailSheetProps {
   groupId: string | null
@@ -77,16 +78,13 @@ export function GroupDetailSheet({
   }
 
   async function saveName() {
-    if (!nameInput.trim()) {
-      setNameError('Gruppenname ist erforderlich')
-      return
-    }
-    if (nameInput.trim().length > 50) {
-      setNameError('Gruppenname darf maximal 50 Zeichen lang sein')
+    const parsed = groupNameSchema.safeParse(nameInput)
+    if (!parsed.success) {
+      setNameError(parsed.error.issues[0].message)
       return
     }
     setNameSaving(true)
-    const { error } = await updateGroupName(nameInput.trim())
+    const { error } = await updateGroupName(parsed.data)
     setNameSaving(false)
     if (error) {
       setNameError(error)
@@ -120,7 +118,7 @@ export function GroupDetailSheet({
                     if (nameError) setNameError(null)
                   }}
                   onKeyDown={handleNameKeyDown}
-                  maxLength={50}
+                  maxLength={MAX_GROUP_NAME_LENGTH}
                   className="h-9 text-[17px] font-[800] border-[1.5px] border-secondary bg-surface rounded-md
                              focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
                   aria-invalid={!!nameError}

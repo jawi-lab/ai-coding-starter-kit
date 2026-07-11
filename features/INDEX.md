@@ -28,5 +28,6 @@
 | PROJ-11 | OTA-Updates via Capgo | P2 | PROJ-9 | Deployed | [spec](PROJ-11-ota-updates-capgo.md) | 2026-06-21 |
 | PROJ-12 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | P1 | PROJ-2, PROJ-8, PROJ-10 | Deployed | [spec](PROJ-12-benachrichtigungen-einstellungen.md) | 2026-06-22 |
 | PROJ-13 | Onboarding-Flow (Erst-Login) | P1 | PROJ-2, PROJ-3, PROJ-8, PROJ-9 | Deployed | [spec](PROJ-13-onboarding-flow.md) | 2026-06-27 |
+| PROJ-14 | Umfragen in Aktivitäten (offen, Mehrfachauswahl) | P1 | PROJ-4, PROJ-6, PROJ-12 | Roadmap | — | 2026-07-11 |
 
-## Next Available ID: PROJ-14
+## Next Available ID: PROJ-15

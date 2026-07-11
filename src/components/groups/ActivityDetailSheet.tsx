@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/lib/supabase'
 import { getPublicUrl } from '@/lib/storage'
 import { exportToIcal } from '@/lib/ical-export'
@@ -198,7 +199,7 @@ export function ActivityDetailSheet({
   // ── Data hooks ─────────────────────────────────────────────────────────────
   const { activity, loading: activityLoading, updateActivity, reload } = useActivityDetail(activityId)
   const { comments, loading: commentsLoading, addComment, deleteComment } = useActivityComments(activityId)
-  const { responsibilities, loading: respLoading, addResponsibility, deleteResponsibility } = useActivityResponsibilities(activityId)
+  const { responsibilities, loading: respLoading, addResponsibility, deleteResponsibility, toggleDone } = useActivityResponsibilities(activityId)
   const { photos, loading: photosLoading, uploadPhoto, deletePhoto, userPhotoCount } = useActivityPhotos(activityId, currentUserId)
 
   // ── Members (for @-mentions + responsibility assignment) ───────────────────
@@ -643,10 +644,14 @@ export function ActivityDetailSheet({
     </div>
   ) : null
 
+  // Abgeschlossene Aktivitäten liegen in der Vergangenheit — der iCal-Export
+  // ("Zum Kalender hinzufügen") ergibt dort keinen Sinn und wird ausgeblendet.
+  const showCalendarExport = !!activity?.start_date && status !== 'abgeschlossen'
+
   const calendarSection =
-    activity && (activity.start_date || (!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen'))) ? (
+    activity && (showCalendarExport || (!readOnly && canEdit && (status === 'in_planung' || status === 'planung_abgeschlossen'))) ? (
       <div className="flex flex-col gap-2">
-        {activity.start_date && (
+        {showCalendarExport && (
           <Button
             variant="outline"
             onClick={handleIcalExport}
@@ -690,6 +695,13 @@ export function ActivityDetailSheet({
           key={resp.id}
           className="flex items-center gap-3 bg-surface border border-line rounded-[12px] px-3 py-2.5"
         >
+          <Checkbox
+            checked={resp.done}
+            disabled={responsibilitiesReadOnly}
+            onCheckedChange={(v) => toggleDone(resp.id, v === true)}
+            aria-label={`"${resp.label}" als erledigt markieren`}
+            className="flex-shrink-0"
+          />
           <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage src={resp.assigned_user.avatar_url ?? undefined} />
             <AvatarFallback className="text-[11px] font-[700] bg-secondary-soft text-secondary">
@@ -697,7 +709,7 @@ export function ActivityDetailSheet({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-[13.5px] font-[700] text-ink truncate">{resp.label}</p>
+            <p className={`text-[13.5px] font-[700] truncate ${resp.done ? 'text-ink-3 line-through' : 'text-ink'}`}>{resp.label}</p>
             <p className="text-[12px] text-ink-3 truncate">{resp.assigned_user.display_name}</p>
           </div>
           {!responsibilitiesReadOnly && (isAdmin || resp.created_by === currentUserId) && (

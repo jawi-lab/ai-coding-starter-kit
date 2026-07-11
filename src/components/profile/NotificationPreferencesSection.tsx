@@ -16,8 +16,12 @@ import { PushNotificationSection } from './PushNotificationSection'
  * optimistically with rollback + a toast on failure (handled in the hook).
  */
 export function NotificationPreferencesSection() {
-  const { preferences, loading, savingKey, toggle } = useNotificationPreferences()
+  const { preferences, loading, savingKey, toggle, toggleAll } = useNotificationPreferences()
   const showPush = isNativePlatform()
+
+  // "Alle an"-Zustand pro Kanal für den Master-Schalter.
+  const allPush = NOTIFICATION_EVENTS.every((e) => preferences[e].push_enabled)
+  const allEmail = NOTIFICATION_EVENTS.every((e) => preferences[e].email_enabled)
 
   return (
     <div className="space-y-4">
@@ -46,6 +50,38 @@ export function NotificationPreferencesSection() {
             E-Mail
           </span>
         </div>
+
+        {/* Master-Schalter: aktiviert/deaktiviert alle Ereignisse eines Kanals. */}
+        {!loading && (
+          <div className="flex items-center gap-3 py-2.5 border-y border-line">
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-[800] text-ink">Alle Benachrichtigungen</p>
+              <p className="text-[11px] text-ink-3 leading-snug">
+                Schaltet jede Zeile darunter gemeinsam an oder aus
+              </p>
+            </div>
+
+            {showPush && (
+              <div className="w-11 flex justify-center">
+                <Switch
+                  checked={allPush}
+                  onCheckedChange={(v) => toggleAll('push', v)}
+                  disabled={savingKey === 'all:push'}
+                  aria-label="Alle Push-Benachrichtigungen"
+                />
+              </div>
+            )}
+
+            <div className="w-11 flex justify-center">
+              <Switch
+                checked={allEmail}
+                onCheckedChange={(v) => toggleAll('email', v)}
+                disabled={savingKey === 'all:email'}
+                aria-label="Alle E-Mail-Benachrichtigungen"
+              />
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-2">

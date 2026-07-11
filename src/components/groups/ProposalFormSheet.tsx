@@ -23,6 +23,8 @@ import { Loader2, Minus, Plus, ImageOff } from 'lucide-react'
 import { useOgImage } from '@/hooks/useOgImage'
 import { useCreateProposal } from '@/hooks/useCreateProposal'
 import { useEditProposal } from '@/hooks/useEditProposal'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import type { ActivityWithInitiator, DurationCategory } from '@/lib/activity-types'
 import { DURATION_CATEGORY_LABELS, PLACEHOLDER_IMAGE } from '@/lib/activity-types'
 
@@ -65,6 +67,10 @@ export function ProposalFormSheet({
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+
+  // Sheet über die iOS-/Android-Tastatur heben, damit Felder & Button erreichbar bleiben.
+  const isMobile = useIsMobile()
+  const keyboard = useKeyboardInset(isMobile && open)
 
   const { createProposal } = useCreateProposal(groupId)
   const { editProposal } = useEditProposal(proposal?.id ?? '')
@@ -163,6 +169,11 @@ export function ProposalFormSheet({
       <ResponsiveModalContent
         size="md"
         className="rounded-t-[24px] bg-bg border-line p-0"
+        style={
+          keyboard.inset > 0
+            ? { bottom: keyboard.inset, height: keyboard.height, maxHeight: 'none' }
+            : undefined
+        }
       >
         <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
           <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">{title}</ResponsiveModalTitle>

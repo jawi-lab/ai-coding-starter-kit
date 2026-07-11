@@ -2,7 +2,14 @@
 
 ## Status: Deployed
 **Created:** 2026-07-04
-**Last Updated:** 2026-07-04
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – Master-Schalter "Alle Benachrichtigungen"
+- Über der Pro-Typ-Matrix gibt es jetzt einen **Master-Schalter pro Kanal**
+  ("Alle Benachrichtigungen"): schaltet alle Ereignisse einer Spalte gemeinsam
+  an/aus. `useNotificationPreferences.toggleAll(channel, value)` macht ein
+  Batch-Upsert aller Events (`onConflict: user_id,event`), optimistisch mit
+  Rollback. `checked` = alle Events des Kanals aktiv. Kein Schema-Change.
 
 ## Dependencies
 - Requires: **PROJ-2 (Authentifizierung & User Accounts)** — Benachrichtigungen und Einstellungen sind pro eingeloggtem Nutzer; RLS pro `user_id`.

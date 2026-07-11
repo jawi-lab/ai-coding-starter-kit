@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,7 +29,7 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
 
 export function VorschlaegeTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
+  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, openGroupSettings, registerProposalsRefetch } =
     useGroupShell()
 
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
@@ -123,12 +123,43 @@ export function VorschlaegeTab() {
               ))}
             </div>
           )}
+
+          {/* Gruppen-Einstellungen — ersetzt das frühere Personen-Icon aus der Top-Bar. */}
+          {!loading && (
+            <div className="mt-5 flex justify-center">
+              <Button
+                variant="outline"
+                onClick={openGroupSettings}
+                className="w-full md:w-auto h-11 px-5 border-line text-ink-2 rounded-[14px]
+                           gap-2 font-semibold hover:bg-surface-2 hover:text-ink"
+              >
+                <Users className="h-4 w-4" />
+                Gruppe
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Desktop-FAB (neuer Vorschlag). Auf Mobil übernimmt der zentrale +-Button der Bottom-Nav. */}
+      {/* Desktop-FAB (neuer Vorschlag) — unten rechts. */}
       {canCreate && (
         <div className="hidden md:block absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-10">
+          <Button
+            onClick={openCreateProposal}
+            aria-label="Vorschlag hinzufügen"
+            className="h-14 w-14 p-0 bg-primary hover:bg-primary-600 text-white
+                       rounded-full border border-primary-600 shadow-lg
+                       flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile-FAB (neuer Vorschlag) — schwebt unten rechts über der Liste,
+          direkt über der Bottom-Nav. */}
+      {canCreate && (
+        <div className="md:hidden absolute bottom-4 right-4 z-10">
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"

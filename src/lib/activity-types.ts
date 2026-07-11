@@ -93,10 +93,26 @@ export interface ActivityResponsibility {
   assigned_user_id: string
   created_by: string
   created_at: string
+  done: boolean
+  completed_at: string | null
   assigned_user: {
     id: string
     display_name: string
     avatar_url: string | null
+  }
+}
+
+/** Eine offene Verantwortlichkeit inkl. Kontext der zugehörigen Aktivität (Home). */
+export interface MyOpenResponsibility {
+  id: string
+  activity_id: string
+  label: string
+  done: boolean
+  activity: {
+    id: string
+    name: string
+    group_id: string
+    status: ActivityStatus
   }
 }
 

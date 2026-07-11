@@ -2,7 +2,14 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-25
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – Gruppenname max. 20 Zeichen
+- Gruppenname ist jetzt auf **20 Zeichen** begrenzt (vorher 50). Zentral in
+  `src/lib/group-types.ts` (`MAX_GROUP_NAME_LENGTH`, `groupNameSchema` via Zod,
+  `truncateName`). Erzwungen beim Erstellen (`CreateGroupForm`) und Umbenennen
+  (`GroupDetailSheet`) via `maxLength` + Schema-Validierung; die Top-Bar zeigt
+  den Namen mittig und kürzt ihn per `truncateName`.
 
 ## QA Live-Review Fixes (2026-06-25)
 - **BUG-1 (Critical) – Mitgliederliste lädt nicht (HTTP 400, PGRST200).** Die

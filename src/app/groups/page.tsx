@@ -7,9 +7,9 @@ import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useGroups } from '@/hooks/useGroups'
 import { useAuth } from '@/contexts/AuthContext'
 import { GroupCard } from '@/components/groups/GroupCard'
-import { getInitials } from '@/lib/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -17,21 +17,30 @@ import {
   ResponsiveModalTitle,
 } from '@/components/ui/responsive-modal'
 import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { GroupBottomNav } from '@/components/groups/GroupBottomNav'
+import { MyTasksSection } from '@/components/profile/MyTasksSection'
 import { groupHref } from '@/lib/group-routes'
-import { Plus } from 'lucide-react'
+import { getLastGroupId } from '@/lib/last-group'
 
 function GroupsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { profile } = useAuth()
+  const { user } = useAuth()
   const { groups, loading, error } = useGroups()
 
   const [addSheetOpen, setAddSheetOpen] = useState(false)
   const [profileSheetOpen, setProfileSheetOpen] = useState(false)
   const [scrollToNotifications, setScrollToNotifications] = useState(false)
+
+  // Zielgruppe für die persistenten Bottom-Nav-Tabs: zuletzt geöffnete Gruppe
+  // (localStorage, erst nach Mount lesbar), Fallback = erste Gruppe.
+  const [lastGroupId, setLastGroupId] = useState<string | null>(null)
+  useEffect(() => {
+    setLastGroupId(getLastGroupId())
+  }, [])
+  const navTargetGroupId = lastGroupId ?? groups[0]?.id ?? null
 
   // Open group from query param (e.g., after creation/join) → navigate to its page
   useEffect(() => {
@@ -68,8 +77,6 @@ function GroupsContent() {
     }
   }, [loading, error, groups.length, router])
 
-  const initials = getInitials(profile?.display_name)
-
   function handleAddGroupSuccess(groupId: string) {
     setAddSheetOpen(false)
     router.push(groupHref(groupId))
@@ -78,46 +85,14 @@ function GroupsContent() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Header */}
-      <header className="bg-bg border-b border-line px-4 h-bar-safe flex items-center justify-between sticky top-0 z-10">
-        <img
-          src="/logo.png"
-          alt="Mellon"
-          className="h-10 w-10 rounded-[30px] object-cover"
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setAddSheetOpen(true)}
-            className="h-8 px-3 rounded-md text-[13px] font-semibold text-ink-2 hover:text-ink hover:bg-surface-2 gap-1.5"
-          >
-            <Plus className="h-4 w-4" />
-            Hinzufügen
-          </Button>
-
-          <NotificationBell />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setProfileSheetOpen(true)}
-            className="rounded-full h-9 w-9"
-            aria-label="Profil öffnen"
-          >
-            <Avatar className="h-8 w-8">
-              {profile?.avatar_url && (
-                <AvatarImage src={profile.avatar_url} alt={profile.display_name} />
-              )}
-              <AvatarFallback className="bg-primary text-white text-xs font-[800]">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </div>
+      <header className="bg-bg border-b border-line px-4 h-bar-safe flex items-center justify-end sticky top-0 z-10">
+        <NotificationBell />
       </header>
 
       {/* Main content */}
-      <main className="px-4 py-6 max-w-6xl mx-auto">
+      <main className="px-4 py-6 max-w-6xl mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
+        <MyTasksSection userId={user?.id ?? null} />
+
         <div className="mb-5">
           <h1 className="text-[24px] font-[900] text-ink">Meine Gruppen</h1>
           <p className="text-[14px] text-ink-2 mt-0.5">
@@ -142,7 +117,30 @@ function GroupsContent() {
             ))}
           </div>
         )}
+
+        {/* Gruppe erstellen/beitreten — unter der Gruppenliste (statt im Header). */}
+        {!loading && (
+          <Button
+            variant="outline"
+            onClick={() => setAddSheetOpen(true)}
+            className="mt-3 w-full md:w-auto h-12 px-4 border-dashed border-line text-ink-2
+                       rounded-[18px] gap-1.5 font-semibold hover:bg-surface-2 hover:text-ink"
+          >
+            <Plus className="h-4 w-4" />
+            Hinzufügen
+          </Button>
+        )}
       </main>
+
+      {/* Persistente Bottom-Navigation — nur mobil. Home ist aktiv; die Gruppen-Tabs
+          zeigen auf die zuletzt geöffnete Gruppe. */}
+      <div className="md:hidden fixed inset-x-0 bottom-0 z-20">
+        <GroupBottomNav
+          active="home"
+          targetGroupId={navTargetGroupId}
+          onProfile={() => setProfileSheetOpen(true)}
+        />
+      </div>
 
       {/* Profile Sheet */}
       <ProfileSheet

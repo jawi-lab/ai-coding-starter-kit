@@ -1,40 +1,67 @@
 'use client'
 
 import Link from 'next/link'
-import { CalendarDays, Columns3, List, Plus, User, type LucideIcon } from 'lucide-react'
+import { CalendarDays, Columns3, Home, List, User, type LucideIcon } from 'lucide-react'
 import { groupHref } from '@/lib/group-routes'
 import type { GroupTab } from '@/lib/group-routes'
 
+export type BottomNavActive = 'home' | GroupTab
+
 interface GroupBottomNavProps {
-  groupId: string
-  activeSeg: GroupTab
-  canCreate: boolean
-  onCreate: () => void
+  /** Which item is highlighted. `home` = Gruppenliste, sonst der aktive Gruppen-Tab. */
+  active: BottomNavActive
+  /**
+   * Gruppe, auf die die Tabs (Vorschläge/Board/Termine) zeigen. Innerhalb einer
+   * Gruppe ist das die aktuelle Gruppe; auf Home die zuletzt geöffnete (bzw.
+   * erste) Gruppe. Ist keine Gruppe verfügbar, sind die Tabs deaktiviert.
+   */
+  targetGroupId: string | null
   onProfile: () => void
 }
 
 /**
- * Native-feeling bottom navigation for the group view (PROJ-9). Mobile only —
- * the desktop layout keeps the top tab bar (`md:hidden` here / `hidden md:flex`
- * there), so a screen never shows both. Five slots:
+ * Persistente Bottom-Navigation der App (PROJ-9). Mobil/nativ sichtbar
+ * (`md:hidden`) — Desktop nutzt die oberen Tabs. Fünf Slots, ohne schwebenden
+ * FAB (der "neuer Vorschlag"-+ sitzt jetzt in der Top-Bar der Vorschläge-Seite):
  *
- *   Übersicht · Board · ( + ) · Termine · Profil
+ *   Home · Vorschläge · Board · Termine · Profil
  *
- * The centre `+` is the single "neuer Vorschlag" entry point on mobile (the
- * per-tab FAB is hidden on mobile), Profil opens the account sheet, and Übersicht/
- * Board/Termine switch the group tab via soft navigation (next/link).
+ * Home führt zur Gruppenliste (`/groups`), die Gruppen-Tabs navigieren in die
+ * Zielgruppe, Profil öffnet das Konto-Sheet.
  */
 function NavLink({
   href,
   icon: Icon,
   label,
   active,
+  disabled,
 }: {
   href: string
   icon: LucideIcon
   label: string
   active: boolean
+  disabled?: boolean
 }) {
+  const inner = (
+    <>
+      <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
+      <span className={`text-[10.5px] leading-none ${active ? 'font-[800]' : 'font-[600]'}`}>
+        {label}
+      </span>
+    </>
+  )
+
+  if (disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-ink-3 opacity-40 pointer-events-none"
+      >
+        {inner}
+      </span>
+    )
+  }
+
   return (
     <Link
       href={href}
@@ -43,10 +70,7 @@ function NavLink({
       className={`flex flex-1 flex-col items-center justify-center gap-1 h-full transition-colors
         ${active ? 'text-primary' : 'text-ink-3 hover:text-ink-2'}`}
     >
-      <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
-      <span className={`text-[10.5px] leading-none ${active ? 'font-[800]' : 'font-[600]'}`}>
-        {label}
-      </span>
+      {inner}
     </Link>
   )
 }
@@ -71,48 +95,37 @@ function NavButton({
   )
 }
 
-export function GroupBottomNav({
-  groupId,
-  activeSeg,
-  canCreate,
-  onCreate,
-  onProfile,
-}: GroupBottomNavProps) {
+export function GroupBottomNav({ active, targetGroupId, onProfile }: GroupBottomNavProps) {
+  const tabsDisabled = !targetGroupId
   return (
     <nav className="md:hidden flex-shrink-0 bg-surface border-t border-line pb-safe">
       <div className="max-w-md mx-auto w-full h-16 px-1 flex items-stretch">
         <NavLink
-          href={groupHref(groupId, 'vorschlaege')}
-          icon={List}
-          label="Übersicht"
-          active={activeSeg === 'vorschlaege'}
+          href="/groups"
+          icon={Home}
+          label="Home"
+          active={active === 'home'}
         />
         <NavLink
-          href={groupHref(groupId, 'planung')}
+          href={targetGroupId ? groupHref(targetGroupId, 'vorschlaege') : '#'}
+          icon={List}
+          label="Vorschläge"
+          active={active === 'vorschlaege'}
+          disabled={tabsDisabled}
+        />
+        <NavLink
+          href={targetGroupId ? groupHref(targetGroupId, 'planung') : '#'}
           icon={Columns3}
           label="Board"
-          active={activeSeg === 'planung'}
+          active={active === 'planung'}
+          disabled={tabsDisabled}
         />
-
-        {/* Zentraler „neuer Vorschlag"-Button — schwebt über der Leiste */}
-        <div className="flex-1 flex items-start justify-center">
-          <button
-            onClick={onCreate}
-            disabled={!canCreate}
-            aria-label="Neuer Vorschlag"
-            className="-mt-5 h-14 w-14 rounded-full bg-primary text-white flex items-center justify-center
-                       border border-primary-600 ring-4 ring-surface shadow-lg
-                       active:scale-95 transition-transform disabled:opacity-40 disabled:pointer-events-none"
-          >
-            <Plus className="h-7 w-7" strokeWidth={2.5} />
-          </button>
-        </div>
-
         <NavLink
-          href={groupHref(groupId, 'termine')}
+          href={targetGroupId ? groupHref(targetGroupId, 'termine') : '#'}
           icon={CalendarDays}
           label="Termine"
-          active={activeSeg === 'termine'}
+          active={active === 'termine'}
+          disabled={tabsDisabled}
         />
         <NavButton icon={User} label="Profil" onClick={onProfile} />
       </div>

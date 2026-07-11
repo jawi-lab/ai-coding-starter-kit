@@ -2,7 +2,23 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-22
+**Last Updated:** 2026-07-11
+
+## Änderung (2026-07-11) – Persistente Bottom-Navigation & Top-Bar-Umbau
+- Die mobile Bottom-Nav ist jetzt **app-weit persistent** (auch auf Home/
+  Gruppenliste) und heißt: **Home · Vorschläge · Board · Termine · Profil**.
+  Der "neuer Vorschlag"-Button ist ein **schwebender roter FAB unten rechts** auf
+  dem Vorschläge-Tab (mobil + Desktop), der über der Liste und über der Bottom-Nav
+  schwebt. `GroupBottomNav` wurde generalisiert (Props `active` + `targetGroupId`);
+  die Gruppen-Tabs zeigen auf die zuletzt geöffnete Gruppe (`src/lib/last-group.ts`,
+  Fallback = erste Gruppe).
+- Tab-Label "Übersicht" → **"Vorschläge"** (`GROUP_TABS`).
+- **Top-Bar minimiert**: Gruppenname mittig; **kein Zurück-Pfeil** mehr (Home in
+  der Bottom-Nav) und **kein Icon rechts** außer der Glocke — das frühere
+  Zahnrad/Personen-Icon ist raus.
+- **Gruppen-Einstellungen via „Gruppe"-Button** unter den Aktivitäten auf dem
+  Vorschläge-Tab (öffnet `GroupDetailSheet` über `openGroupSettings` im
+  `GroupShellContext`) — ersetzt das entfernte Top-Bar-Icon.
 
 ## Deployment
 - **Production URL:** https://ai-coding-starter-kit-ebon.vercel.app

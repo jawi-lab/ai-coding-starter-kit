@@ -12,7 +12,7 @@
 // Archiv lebt im Profil-Sheet; der Gruppen-Archiv-Tab war nur ein Platzhalter und
 // hätte diese Funktion gedoppelt.
 export const GROUP_TABS = [
-  { seg: 'vorschlaege', label: 'Übersicht' },
+  { seg: 'vorschlaege', label: 'Vorschläge' },
   { seg: 'planung', label: 'Board' },
   { seg: 'termine', label: 'Termine' },
 ] as const
