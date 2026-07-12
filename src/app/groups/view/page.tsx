@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,10 +12,11 @@ import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { GroupBottomNav } from '@/components/groups/GroupBottomNav'
+import { DesktopSidebar } from '@/components/groups/DesktopSidebar'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
-import { GROUP_TABS, groupHref, resolveGroupTab } from '@/lib/group-routes'
+import { groupHref, resolveGroupTab } from '@/lib/group-routes'
 import { truncateName } from '@/lib/group-types'
 import { setLastGroupId } from '@/lib/last-group'
 import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
@@ -79,13 +79,23 @@ function GroupView() {
   if (!groupId) return null
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-bg flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-bg flex">
+      {/* Desktop-Sidebar (Mellon) — mobil übernimmt die Bottom-Nav. */}
+      <DesktopSidebar
+        active={activeSeg}
+        targetGroupId={groupId}
+        groupName={group?.name ?? null}
+        onProfile={() => setProfileOpen(true)}
+      />
+
+      <div className="flex-1 min-w-0 flex flex-col">
       {/* Header */}
-      <header className="flex-shrink-0 bg-bg border-b border-line pt-safe">
+      <header className="flex-shrink-0 bg-bg pt-safe">
         <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center relative">
           {/* Gruppenname mittig — hart auf 20 Zeichen gekürzt (siehe truncateName).
-              Kein Zurück-Pfeil mehr — „Home" in der Bottom-Nav ersetzt ihn. */}
-          <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[45%] text-center text-[18px] font-[800] text-ink truncate leading-tight">
+              Kein Zurück-Pfeil mehr — „Home" in der Bottom-Nav ersetzt ihn.
+              Nutzer-Inhalt → Display-Serif (Mellon). */}
+          <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[45%] text-center font-serif font-medium text-[19px] tracking-[-0.015em] text-ink truncate leading-tight">
             {loading && !group ? '…' : group ? truncateName(group.name) : 'Gruppe'}
           </h1>
 
@@ -93,27 +103,6 @@ function GroupView() {
             <NotificationBell />
           </div>
         </div>
-
-        {/* Top-Tab-Navigation — nur Desktop. Mobil übernimmt die Bottom-Nav. */}
-        <nav className="max-w-5xl mx-auto w-full px-4 hidden md:flex gap-1">
-          {GROUP_TABS.map((tab) => {
-            const active = activeSeg === tab.seg
-            return (
-              <Link
-                key={tab.seg}
-                href={groupHref(groupId, tab.seg)}
-                replace
-                className={`pb-2.5 px-1 mr-3 text-[14px] border-b-2 transition-colors
-                  ${active
-                    ? 'font-[700] text-primary border-primary'
-                    : 'font-[600] text-ink-3 border-transparent hover:text-ink-2'
-                  }`}
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </nav>
       </header>
 
       {/* Body */}
@@ -125,17 +114,14 @@ function GroupView() {
             <p className="text-[13px] text-ink-3 max-w-[260px]">
               Diese Gruppe existiert nicht mehr oder du bist kein Mitglied.
             </p>
-            <Button
-              onClick={() => router.push('/groups')}
-              className="mt-1 bg-primary hover:bg-primary-600 text-white rounded-[12px]"
-            >
+            <Button onClick={() => router.push('/groups')} className="mt-1">
               Zu meinen Gruppen
             </Button>
           </div>
         ) : loading && !group ? (
           <div className="max-w-5xl mx-auto w-full px-4 py-5 space-y-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
+              <Skeleton key={i} className="h-[88px] w-full rounded-lg bg-surface" />
             ))}
           </div>
         ) : (
@@ -162,7 +148,7 @@ function GroupView() {
         )}
       </div>
 
-      {/* Bottom-Navigation — nur mobil/nativ. Desktop nutzt die oberen Tabs. */}
+      {/* Bottom-Navigation — nur mobil/nativ. Desktop nutzt die Sidebar. */}
       {group && (
         <GroupBottomNav
           active={activeSeg}
@@ -170,6 +156,7 @@ function GroupView() {
           onProfile={() => setProfileOpen(true)}
         />
       )}
+      </div>
 
       {/* Zentrales „neuer Vorschlag"-Sheet (einziger Erstellen-Einstieg) */}
       <ProposalFormSheet
@@ -214,7 +201,7 @@ function GroupViewFallback() {
     <div className="h-[100dvh] bg-bg flex flex-col">
       <div className="max-w-5xl mx-auto w-full px-4 py-5 space-y-3">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
+          <Skeleton key={i} className="h-[88px] w-full rounded-lg bg-surface" />
         ))}
       </div>
     </div>

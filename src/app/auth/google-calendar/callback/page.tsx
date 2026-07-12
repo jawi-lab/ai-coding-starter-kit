@@ -58,7 +58,7 @@ export default function GoogleCalendarCallbackPage() {
           <p className="text-[14px] text-ink-2">{errorMessage}</p>
           <a
             href="/groups"
-            className="inline-block px-5 py-2.5 bg-primary text-white text-[14px] font-[700] rounded-[12px] hover:bg-primary-600 transition-colors"
+            className="inline-block px-5 py-2.5 bg-primary text-white text-[14px] font-[700] rounded-md hover:bg-primary/90 transition-colors"
           >
             Zurück zur App
           </a>

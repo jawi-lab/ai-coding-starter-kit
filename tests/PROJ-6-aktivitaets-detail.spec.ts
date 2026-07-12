@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 async function openFirstGroup(page: Page): Promise<boolean> {
   await page.goto('/groups')
   await page.waitForSelector('main', { timeout: 5000 })
-  const firstCard = page.locator('button.rounded-\\[18px\\]').first()
+  const firstCard = page.locator('button.rounded-lg').first()
   if ((await firstCard.count()) === 0) return false
   await firstCard.click()
   await page.waitForTimeout(600)
@@ -30,10 +30,10 @@ async function openGroupAndClickFirstProposalCard(page: Page): Promise<boolean> 
 
   // The "Vorschläge" tab should be active by default
   // Click the first ProposalCard body (not the action menu)
-  const firstCard = page.locator('[class*="rounded-\\[18px\\]"]').filter({ hasText: /\// }).first()
+  const firstCard = page.locator('[class*="rounded-lg"]').filter({ hasText: /\// }).first()
   if ((await firstCard.count()) === 0) {
     // Try a broader selector for proposal cards
-    const cards = page.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const cards = page.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     if ((await cards.count()) === 0) return false
     await cards.first().click()
   } else {
@@ -100,7 +100,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     if (!opened) { test.skip(true, 'No group cards'); return }
 
     // Find any proposal card and click it
-    const proposalCards = page.locator('[data-radix-scroll-area-viewport] [class*="rounded-\\[18px\\]"], [class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[data-radix-scroll-area-viewport] [class*="rounded-lg"], [class*="overflow-y-auto"] [class*="rounded-lg"]')
     const count = await proposalCards.count()
     if (count === 0) { test.skip(true, 'No proposal cards found'); return }
 
@@ -124,7 +124,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     await page.waitForTimeout(800)
 
     // Find a Kanban card
-    const kanbanCards = page.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = page.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     const count = await kanbanCards.count()
     if (count === 0) { test.skip(true, 'No kanban cards found'); return }
 
@@ -140,7 +140,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     const count = await proposalCards.count()
     if (count === 0) { test.skip(true, 'No proposal cards found'); return }
 
@@ -151,11 +151,11 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     await expect(sheet).toBeVisible({ timeout: 5000 })
 
     // Hero should contain a status badge (text like "Vorschlag", "Zu Planen", "In Planung", etc.)
-    const statusBadge = sheet.locator('[class*="uppercase"][class*="tracking"]')
+    const statusBadge = sheet.locator('span[class*="rounded-pill"][class*="tracking"]')
     await expect(statusBadge.first()).toBeVisible({ timeout: 3000 })
 
     // Sheet header should show the activity name
-    const headerName = sheet.locator('p[class*="font-\\[800\\]"]').first()
+    const headerName = sheet.locator('p[class*="font-serif"]').first()
     await expect(headerName).toBeVisible()
     const name = await headerName.textContent()
     expect(name?.trim()).not.toBe('')
@@ -166,7 +166,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards found'); return }
 
     await proposalCards.first().click()
@@ -184,7 +184,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards found'); return }
 
     await proposalCards.first().click()
@@ -215,7 +215,7 @@ test.describe('PROJ-6 — Kommentare', () => {
   async function openDetailSheet(page: Page): Promise<boolean> {
     const opened = await openFirstGroup(page)
     if (!opened) return false
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) return false
     await proposalCards.first().click()
     await page.waitForTimeout(800)
@@ -271,7 +271,7 @@ test.describe('PROJ-6 — Kommentare', () => {
 
     // Either empty state OR existing comments — both are valid
     const emptyState = sheet.locator('p', { hasText: /Noch keine Kommentare/ })
-    const existingComment = sheet.locator('[class*="rounded-\\[10px\\]"]').filter({ hasText: /.+/ })
+    const existingComment = sheet.locator('[class*="rounded-sm"]').filter({ hasText: /.+/ })
     const hasEmpty = (await emptyState.count()) > 0
     const hasComments = (await existingComment.count()) > 0
     expect(hasEmpty || hasComments).toBe(true)
@@ -307,7 +307,7 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     if (!opened) { test.skip(true, 'No group cards'); return }
 
     // Look for a proposal card (vorschlag status)
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards found'); return }
 
     await proposalCards.first().click()
@@ -317,7 +317,7 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
 
     // Check the hero for "Vorschlag" badge
-    const statusBadge = sheet.locator('[class*="uppercase"][class*="tracking"]').first()
+    const statusBadge = sheet.locator('span[class*="rounded-pill"][class*="tracking"]').first()
     const badgeText = await statusBadge.textContent()
 
     if (badgeText?.trim() === 'Vorschlag') {
@@ -344,7 +344,7 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
 
     // Look for "In Planung" column header and its first card
     const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     const count = await kanbanCards.count()
     if (count === 0) { test.skip(true, 'No in_planung cards found'); return }
 
@@ -369,7 +369,7 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     await page.waitForTimeout(800)
 
     const abgeschlossenColumn = page.locator('div', { hasText: /^Abgeschlossen$/ }).first()
-    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     if ((await kanbanCards.count()) === 0) { test.skip(true, 'No abgeschlossen cards found'); return }
 
     await kanbanCards.first().click()
@@ -402,7 +402,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards'); return }
     await proposalCards.first().click()
     await page.waitForTimeout(800)
@@ -426,7 +426,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards'); return }
     await proposalCards.first().click()
     await page.waitForTimeout(800)
@@ -458,7 +458,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards'); return }
     await proposalCards.first().click()
     await page.waitForTimeout(800)
@@ -505,7 +505,7 @@ test.describe('PROJ-6 — Verantwortlichkeiten', () => {
 
     // Look for an in_planung card
     const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     if ((await kanbanCards.count()) === 0) { test.skip(true, 'No in_planung cards'); return }
 
     await kanbanCards.first().click()
@@ -536,7 +536,7 @@ test.describe('PROJ-6 — Verantwortlichkeiten', () => {
     await page.waitForTimeout(800)
 
     const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     if ((await kanbanCards.count()) === 0) { test.skip(true, 'No in_planung cards'); return }
 
     await kanbanCards.first().click()
@@ -572,7 +572,7 @@ test.describe('PROJ-6 — Foto-Galerie', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-\\[18px\\]"]')
+    const proposalCards = page.locator('[class*="overflow-y-auto"] [class*="rounded-lg"]')
     if ((await proposalCards.count()) === 0) { test.skip(true, 'No proposal cards'); return }
 
     await proposalCards.first().click()
@@ -581,7 +581,7 @@ test.describe('PROJ-6 — Foto-Galerie', () => {
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
     if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
 
-    const statusBadge = sheet.locator('[class*="uppercase"][class*="tracking"]').first()
+    const statusBadge = sheet.locator('span[class*="rounded-pill"][class*="tracking"]').first()
     const badgeText = (await statusBadge.textContent())?.trim()
 
     if (badgeText === 'Abgeschlossen') {
@@ -604,7 +604,7 @@ test.describe('PROJ-6 — Foto-Galerie', () => {
     await page.waitForTimeout(800)
 
     const abgeschlossenColumn = page.locator('div', { hasText: /^Abgeschlossen$/ }).first()
-    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-\\[18px\\]"][class*="cursor-pointer"]')
+    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
     if ((await kanbanCards.count()) === 0) { test.skip(true, 'No abgeschlossen cards'); return }
 
     await kanbanCards.first().click()

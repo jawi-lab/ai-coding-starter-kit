@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>ZUSAMMEN</string>
+        <string>Mellon</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -59,10 +59,10 @@
 		</dict>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>ZUSAMMEN benötigt Zugriff auf die Kamera, damit du ein Foto für dein Profilbild aufnehmen kannst.</string>
+	<string>Mellon benötigt Zugriff auf die Kamera, damit du ein Foto für dein Profilbild aufnehmen kannst.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>ZUSAMMEN benötigt Zugriff auf deine Fotos, damit du ein Bild für dein Profilbild auswählen kannst.</string>
+	<string>Mellon benötigt Zugriff auf deine Fotos, damit du ein Bild für dein Profilbild auswählen kannst.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>ZUSAMMEN benötigt Zugriff, um Fotos in deiner Mediathek zu speichern.</string>
+	<string>Mellon benötigt Zugriff, um Fotos in deiner Mediathek zu speichern.</string>
 </dict>
 </plist>

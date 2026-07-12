@@ -47,7 +47,7 @@ export function DeleteGroupDialog({ onDelete, onSuccess }: DeleteGroupDialogProp
           Gruppe löschen
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="rounded-[18px] bg-surface border-line max-w-sm">
+      <AlertDialogContent className="rounded-lg bg-surface border-line max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[18px] font-[800] text-ink">
             Gruppe unwiderruflich löschen?

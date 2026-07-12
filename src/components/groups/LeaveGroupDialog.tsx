@@ -109,7 +109,7 @@ export function LeaveGroupDialog({
 
       {/* Simple leave confirmation (non-admin or already another admin) */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="rounded-[18px] bg-surface border-line max-w-sm">
+        <AlertDialogContent className="rounded-lg bg-surface border-line max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[18px] font-[800] text-ink">
               Gruppe verlassen?
@@ -136,7 +136,7 @@ export function LeaveGroupDialog({
 
       {/* Admin transfer dialog */}
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-        <DialogContent className="rounded-[18px] bg-surface border-line max-w-sm">
+        <DialogContent className="rounded-lg bg-surface border-line max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-[18px] font-[800] text-ink">
               Admin-Rechte übertragen
@@ -155,7 +155,7 @@ export function LeaveGroupDialog({
                   <button
                     key={member.user_id}
                     onClick={() => setSelectedNewAdmin(member.user_id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-colors text-left
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm transition-colors text-left
                       ${selectedNewAdmin === member.user_id
                         ? 'bg-primary-soft border border-primary'
                         : 'hover:bg-surface-2 border border-transparent'
@@ -191,7 +191,7 @@ export function LeaveGroupDialog({
             <Button
               onClick={handleTransferAndLeave}
               disabled={!selectedNewAdmin || submitting}
-              className="rounded-md bg-primary hover:bg-primary-600 text-white border-primary-600"
+              className="rounded-md bg-primary hover:bg-primary/90 text-white"
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

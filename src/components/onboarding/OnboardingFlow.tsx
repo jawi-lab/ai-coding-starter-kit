@@ -56,8 +56,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ArrowLeft className="h-5 w-5" />
             </button>
           ) : (
-            <span className="text-[13px] font-[800] uppercase tracking-[0.14em] text-primary">
-              Zusammen
+            <span className="text-[13px] font-[800] tracking-[0.06em] text-primary">
+              Mellon
             </span>
           )}
 

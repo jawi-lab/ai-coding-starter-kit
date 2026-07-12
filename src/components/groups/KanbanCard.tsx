@@ -56,7 +56,7 @@ export function KanbanCard({
         onDragStartActivity?.(activity)
       }}
       onDragEnd={() => onDragEndActivity?.()}
-      className={`bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform
+      className={`bg-surface border border-line rounded-lg overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition-transform
         ${draggable ? 'md:cursor-grab md:active:cursor-grabbing' : ''}
         ${isDragging ? 'opacity-40' : ''}`}
       onClick={() => onOpenDetail?.(activity)}
@@ -87,7 +87,7 @@ export function KanbanCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-52 bg-surface border-line rounded-[12px]"
+                className="w-52 bg-surface border-line rounded-md"
               >
                 {activity.status === 'zu_planen' && (
                   <DropdownMenuItem
@@ -123,17 +123,17 @@ export function KanbanCard({
       </div>
 
       {/* Body */}
-      <div className="px-3 py-2.5 flex flex-col gap-1">
-        <p className="text-[14px] font-[700] text-ink leading-snug line-clamp-2">
+      <div className="px-3.5 py-3 flex flex-col gap-1.5">
+        <p className="font-serif font-medium text-[16px] tracking-[-0.015em] text-ink leading-snug line-clamp-2">
           {activity.name}
         </p>
-        <p className="text-[12px] text-ink-3 truncate">
+        <p className="text-[12px] font-semibold text-ink-2 truncate">
           {activity.initiator.display_name}
         </p>
         {dateRange && (
-          <p className="text-[11.5px] font-[600] text-secondary truncate">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-pill bg-primary-soft px-2.5 py-1 text-[11.5px] font-bold text-primary truncate">
             {dateRange}
-          </p>
+          </span>
         )}
       </div>
     </div>

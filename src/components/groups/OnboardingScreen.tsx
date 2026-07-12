@@ -21,7 +21,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
       <div className="w-full max-w-sm space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
-          <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3">
+          <span className="text-[12px] font-bold tracking-[0.06em] text-ink-3">
             Willkommen
           </span>
           <h1 className="text-[28px] font-black text-ink leading-tight">
@@ -45,7 +45,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
           <div className="space-y-3">
             <button
               onClick={() => setPanel('create')}
-              className="w-full bg-surface border border-line rounded-[18px] p-5 text-left
+              className="w-full bg-surface border border-line rounded-lg p-5 text-left
                          flex items-center gap-4 hover:border-primary hover:shadow-md
                          transition-all duration-150 active:scale-[0.98] group"
             >
@@ -62,7 +62,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
 
             <button
               onClick={() => setPanel('join')}
-              className="w-full bg-surface border border-line rounded-[18px] p-5 text-left
+              className="w-full bg-surface border border-line rounded-lg p-5 text-left
                          flex items-center gap-4 hover:border-secondary hover:shadow-md
                          transition-all duration-150 active:scale-[0.98] group"
             >
@@ -80,13 +80,13 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
         )}
 
         {panel === 'create' && (
-          <div className="bg-surface border border-line rounded-[18px] p-6">
+          <div className="bg-surface border border-line rounded-lg p-6">
             <CreateGroupForm onSuccess={onSuccess} />
           </div>
         )}
 
         {panel === 'join' && (
-          <div className="bg-surface border border-line rounded-[18px] p-6">
+          <div className="bg-surface border border-line rounded-lg p-6">
             <JoinGroupForm onSuccess={onSuccess} />
           </div>
         )}

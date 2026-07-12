@@ -70,7 +70,7 @@ export function ProposalCard({
 
   return (
     <div
-      className="bg-surface border border-line rounded-[18px] overflow-hidden shadow-sm flex items-stretch gap-0 cursor-pointer active:scale-[0.99] transition-transform"
+      className="bg-surface border border-line rounded-lg overflow-hidden shadow-sm flex items-stretch gap-0 cursor-pointer active:scale-[0.99] transition-transform"
       onClick={() => onOpenDetail?.(proposal)}
     >
       {/* Cover image */}
@@ -90,7 +90,7 @@ export function ProposalCard({
       <div className="flex-1 min-w-0 px-3 py-3 flex flex-col justify-between gap-2">
         {/* Top row: name + actions */}
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[14.5px] font-[700] text-ink leading-snug line-clamp-2 flex-1 min-w-0">
+          <p className="font-serif font-medium text-[16.5px] tracking-[-0.015em] text-ink leading-snug line-clamp-2 flex-1 min-w-0">
             {proposal.name}
           </p>
 
@@ -108,7 +108,7 @@ export function ProposalCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-48 bg-surface border-line rounded-[12px]"
+                className="w-48 bg-surface border-line rounded-md"
               >
                 <DropdownMenuItem
                   onClick={() => onEdit(proposal)}
@@ -144,8 +144,8 @@ export function ProposalCard({
           </span>
           <span className="text-ink-3 text-[11px]">·</span>
           <span
-            className="text-[10.5px] font-[800] uppercase tracking-[0.06em] px-2 py-0.5 rounded-pill
-                       bg-accent-soft text-accent"
+            className="text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill
+                       bg-accent-soft text-secondary"
           >
             {DURATION_CATEGORY_LABELS[proposal.duration_category]}
           </span>
@@ -168,10 +168,10 @@ export function ProposalCard({
             onClick={e => { e.stopPropagation(); handleVote() }}
             disabled={isPending}
             aria-label={displayVoted ? 'Vote entfernen' : 'Upvoten'}
-            className={`flex-shrink-0 h-8 w-8 rounded-[10px] flex items-center justify-center transition-all
+            className={`flex-shrink-0 h-9 w-9 rounded-pill flex items-center justify-center shadow-float transition-all
               ${displayVoted
-                ? 'bg-primary-soft text-primary border-[1.5px] border-primary/30'
-                : 'bg-surface-2 text-ink-3 border-[1.5px] border-line hover:border-primary/30 hover:text-primary/70'
+                ? 'bg-primary text-white'
+                : 'bg-surface text-blush hover:text-primary'
               }
               ${isPending ? 'opacity-50 cursor-not-allowed' : 'active:scale-90'}`}
           >

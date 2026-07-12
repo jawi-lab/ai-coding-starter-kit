@@ -17,7 +17,7 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
   return (
     <div className="flex flex-1 flex-col">
       <div className="text-center">
-        <h1 className="text-[28px] font-[900] text-ink">
+        <h1 className="text-[28px] font-extrabold text-ink">
           {panel === 'choose'
             ? 'Wie möchtest du starten?'
             : panel === 'create'
@@ -38,7 +38,7 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
           <div className="space-y-3">
             <button
               onClick={() => setPanel('create')}
-              className="group flex w-full items-center gap-4 rounded-[18px] border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-primary hover:shadow-md active:scale-[0.98]"
+              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-primary hover:shadow-md active:scale-[0.98]"
             >
               <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-pill bg-primary-soft transition-colors group-hover:bg-primary">
                 <Users className="h-5 w-5 text-primary transition-colors group-hover:text-white" />
@@ -54,7 +54,7 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
 
             <button
               onClick={() => setPanel('join')}
-              className="group flex w-full items-center gap-4 rounded-[18px] border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-secondary hover:shadow-md active:scale-[0.98]"
+              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-secondary hover:shadow-md active:scale-[0.98]"
             >
               <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-pill bg-secondary-soft transition-colors group-hover:bg-secondary">
                 <KeyRound className="h-5 w-5 text-secondary transition-colors group-hover:text-white" />
@@ -71,13 +71,13 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
         )}
 
         {panel === 'create' && (
-          <div className="rounded-[18px] border border-line bg-surface p-6">
+          <div className="rounded-lg border border-line bg-surface p-6">
             <CreateGroupForm onSuccess={onSuccess} />
           </div>
         )}
 
         {panel === 'join' && (
-          <div className="rounded-[18px] border border-line bg-surface p-6">
+          <div className="rounded-lg border border-line bg-surface p-6">
             <JoinGroupForm onSuccess={onSuccess} />
           </div>
         )}

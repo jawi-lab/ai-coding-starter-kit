@@ -60,11 +60,12 @@ const STATUS_LABELS: Record<ActivityStatus, string> = {
   abgeschlossen: 'Abgeschlossen',
 }
 
+/* Mellon-Status-Farben: Zu Planen = Blush, In Planung = Gold, fertig = Gruen. */
 const STATUS_BADGE: Record<ActivityStatus, string> = {
-  vorschlag: 'bg-accent-soft text-accent border border-accent/20',
-  zu_planen: 'bg-secondary-soft text-secondary border border-secondary/20',
-  geplant: 'bg-secondary-soft text-secondary border border-secondary/20',
-  in_planung: 'bg-secondary-soft text-secondary border border-secondary/20',
+  vorschlag: 'bg-accent-soft text-secondary border border-secondary/20',
+  zu_planen: 'bg-blush-soft text-blush border border-blush/20',
+  geplant: 'bg-blush-soft text-blush border border-blush/20',
+  in_planung: 'bg-accent-soft text-secondary border border-secondary/20',
   planung_abgeschlossen: 'bg-success-soft text-success border border-success/20',
   abgeschlossen: 'bg-success-soft text-success border border-success/20',
 }
@@ -519,7 +520,7 @@ export function ActivityDetailSheet({
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 flex flex-col gap-1.5">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[10.5px] font-[800] uppercase tracking-[0.06em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
+          <span className={`text-[10.5px] font-semibold tracking-[0.06em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
             {STATUS_LABELS[activity.status]}
           </span>
           {formatDateRange(activity.start_date, activity.end_date) && (
@@ -528,7 +529,7 @@ export function ActivityDetailSheet({
             </span>
           )}
         </div>
-        <p className="text-[18px] font-[800] text-white leading-tight">
+        <p className="font-serif font-medium text-[22px] tracking-[-0.015em] text-white leading-tight">
           {activity.name}
         </p>
         <p className="text-[12px] text-white/70">
@@ -539,9 +540,9 @@ export function ActivityDetailSheet({
   ) : null
 
   const editFormSection = (
-    <div className="space-y-3 bg-surface border border-line rounded-[14px] p-4">
+    <div className="space-y-3 bg-surface border border-line rounded-md p-4">
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
           Name *
         </label>
         <Input
@@ -555,7 +556,7 @@ export function ActivityDetailSheet({
         )}
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
           Beschreibung
         </label>
         <Textarea
@@ -566,7 +567,7 @@ export function ActivityDetailSheet({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
           Ort
         </label>
         <Input
@@ -577,7 +578,7 @@ export function ActivityDetailSheet({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 uppercase tracking-[0.05em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
           Link / URL
         </label>
         <Input
@@ -601,7 +602,7 @@ export function ActivityDetailSheet({
           size="sm"
           onClick={handleSaveEdit}
           disabled={savingEdit}
-          className="flex-1 bg-primary hover:bg-primary-600 text-white text-[13px] gap-1"
+          className="flex-1 bg-primary hover:bg-primary/90 text-white text-[13px] gap-1"
         >
           <Check className="h-3.5 w-3.5" />
           {savingEdit ? 'Speichern…' : 'Speichern'}
@@ -656,7 +657,7 @@ export function ActivityDetailSheet({
           <Button
             variant="outline"
             onClick={handleIcalExport}
-            className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+            className="w-full justify-start gap-2 border-line text-ink-2 rounded-md hover:bg-surface-2 text-[13.5px]"
           >
             <CalendarPlus className="h-4 w-4 text-secondary flex-shrink-0" />
             Zum Kalender hinzufügen
@@ -666,7 +667,7 @@ export function ActivityDetailSheet({
           <Button
             variant="outline"
             onClick={() => setDateFinderOpen(true)}
-            className="w-full justify-start gap-2 border-line text-ink-2 rounded-[12px] hover:bg-surface-2 text-[13.5px]"
+            className="w-full justify-start gap-2 border-line text-ink-2 rounded-md hover:bg-surface-2 text-[13.5px]"
           >
             <CalendarClock className="h-4 w-4 text-secondary flex-shrink-0" />
             Termin anpassen
@@ -677,14 +678,14 @@ export function ActivityDetailSheet({
 
   const responsibilitiesSection = showResponsibilities ? (
     <div className="space-y-3">
-      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
         Verantwortlichkeiten
       </h3>
 
       {respLoading ? (
         <div className="space-y-2">
           {[1, 2].map(i => (
-            <Skeleton key={i} className="h-[44px] w-full rounded-[12px] bg-surface" />
+            <Skeleton key={i} className="h-[44px] w-full rounded-md bg-surface" />
           ))}
         </div>
       ) : responsibilities.length === 0 && !addingResp && (
@@ -694,7 +695,7 @@ export function ActivityDetailSheet({
       {responsibilities.map(resp => (
         <div
           key={resp.id}
-          className="flex items-center gap-3 bg-surface border border-line rounded-[12px] px-3 py-2.5"
+          className="flex items-center gap-3 bg-surface border border-line rounded-md px-3 py-2.5"
         >
           <Checkbox
             checked={resp.done}
@@ -727,7 +728,7 @@ export function ActivityDetailSheet({
 
       {/* Add responsibility form */}
       {!responsibilitiesReadOnly && addingResp && (
-        <div className="bg-surface border border-line rounded-[12px] p-3 space-y-2.5">
+        <div className="bg-surface border border-line rounded-md p-3 space-y-2.5">
           <Input
             value={newRespLabel}
             onChange={e => setNewRespLabel(e.target.value)}
@@ -759,7 +760,7 @@ export function ActivityDetailSheet({
               size="sm"
               disabled={!newRespLabel.trim() || !newRespUserId || savingResp}
               onClick={handleAddResponsibility}
-              className="flex-1 bg-primary hover:bg-primary-600 text-white text-[12.5px]"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white text-[12.5px]"
             >
               {savingResp ? 'Speichern…' : 'Hinzufügen'}
             </Button>
@@ -770,7 +771,7 @@ export function ActivityDetailSheet({
       {!responsibilitiesReadOnly && !addingResp && (
         <button
           onClick={() => setAddingResp(true)}
-          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors"
+          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary/80 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Verantwortlichkeit hinzufügen
@@ -795,14 +796,14 @@ export function ActivityDetailSheet({
 
   const photosSection = showPhotos ? (
     <div className="space-y-3">
-      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
         Erinnerungsfotos
       </h3>
 
       {photosLoading ? (
         <div className="grid grid-cols-3 gap-2">
           {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="aspect-square rounded-[10px] bg-surface" />
+            <Skeleton key={i} className="aspect-square rounded-sm bg-surface" />
           ))}
         </div>
       ) : photos.length === 0 && (
@@ -814,7 +815,7 @@ export function ActivityDetailSheet({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map(photo => (
-            <div key={photo.id} className="relative aspect-square rounded-[10px] overflow-hidden bg-surface-2">
+            <div key={photo.id} className="relative aspect-square rounded-sm overflow-hidden bg-surface-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={getPhotoUrl(photo.storage_path)}
@@ -855,7 +856,7 @@ export function ActivityDetailSheet({
         <button
           onClick={() => photoInputRef.current?.click()}
           disabled={uploadingPhoto}
-          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           {uploadingPhoto ? 'Wird hochgeladen…' : 'Foto hinzufügen'}
@@ -866,7 +867,7 @@ export function ActivityDetailSheet({
 
   const commentsSection = (
     <div className="space-y-4">
-      <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
         Kommentare
       </h3>
 
@@ -908,7 +909,7 @@ export function ActivityDetailSheet({
                     })}
                   </span>
                 </div>
-                <div className="bg-surface border border-line rounded-[10px] px-3 py-2.5">
+                <div className="bg-surface border border-line rounded-sm px-3 py-2.5">
                   <TiptapRenderer content={comment.content} />
                 </div>
               </div>
@@ -930,7 +931,7 @@ export function ActivityDetailSheet({
   )
 
   const infoPanel = activity ? (
-    <div className="bg-surface border border-line rounded-[14px] px-4">
+    <div className="bg-surface border border-line rounded-md px-4">
       <div className="flex items-center justify-between py-2.5 border-b border-line">
         <span className="text-[13px] text-ink-3 font-[600]">Status</span>
         <span className="text-[13px] text-ink font-[700]">{STATUS_LABELS[activity.status]}</span>
@@ -952,7 +953,7 @@ export function ActivityDetailSheet({
     <>
       {/* Mention dropdown */}
       {mentionOpen && mentionItems.length > 0 && (
-        <div className="mb-2 bg-surface border border-line rounded-[12px] shadow-lg overflow-hidden max-h-44 overflow-y-auto">
+        <div className="mb-2 bg-surface border border-line rounded-md shadow-lg overflow-hidden max-h-44 overflow-y-auto">
           {mentionItems.map(member => (
             <button
               key={member.user_id}
@@ -981,7 +982,7 @@ export function ActivityDetailSheet({
       <div className="flex items-center gap-1 mb-2">
         <button
           onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBold().run() }}
-          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] font-[900] transition-colors
+          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] font-extrabold transition-colors
             ${editor?.isActive('bold') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
           aria-label="Fett"
         >
@@ -1038,7 +1039,7 @@ export function ActivityDetailSheet({
 
       {/* Editor + Send */}
       <div className="flex items-end gap-2">
-        <div className="flex-1 bg-surface border border-line rounded-[12px] px-3 py-2 min-h-[40px] max-h-[120px] overflow-y-auto">
+        <div className="flex-1 bg-surface border border-line rounded-md px-3 py-2 min-h-[40px] max-h-[120px] overflow-y-auto">
           <EditorContent
             editor={editor}
             className="tiptap-editor text-[14px] text-ink outline-none"
@@ -1047,10 +1048,10 @@ export function ActivityDetailSheet({
         <button
           onClick={handleSendComment}
           disabled={isEditorEmpty || sendingComment}
-          className={`flex-shrink-0 h-9 w-9 rounded-[10px] flex items-center justify-center transition-all
+          className={`flex-shrink-0 h-9 w-9 rounded-sm flex items-center justify-center transition-all
             ${isEditorEmpty || sendingComment
               ? 'bg-surface-2 text-ink-3 cursor-not-allowed'
-              : 'bg-primary text-white hover:bg-primary-600 active:scale-95'
+              : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
             }`}
           aria-label="Senden"
         >
@@ -1087,7 +1088,7 @@ export function ActivityDetailSheet({
             >
               <X className="h-4 w-4" />
             </button>
-            <p className="flex-1 text-[17px] font-[800] text-ink truncate">
+            <p className="flex-1 font-serif font-medium text-[18px] tracking-[-0.015em] text-ink truncate">
               {activity?.name ?? ''}
             </p>
             {canEdit && (
@@ -1111,7 +1112,7 @@ export function ActivityDetailSheet({
             {/* Loading state */}
             {activityLoading && (
               <div className="px-5 pt-5 space-y-4">
-                <Skeleton className="h-[160px] w-full rounded-[14px] bg-surface" />
+                <Skeleton className="h-[160px] w-full rounded-md bg-surface" />
                 <Skeleton className="h-5 w-2/3 rounded bg-surface" />
                 <Skeleton className="h-4 w-full rounded bg-surface" />
               </div>
@@ -1142,7 +1143,7 @@ export function ActivityDetailSheet({
             ) : (
               /* ── Desktop: two columns ── */
               <div className="p-5">
-                <div className="rounded-[14px] overflow-hidden">
+                <div className="rounded-md overflow-hidden">
                   {heroSection}
                 </div>
                 <div className="mt-5 grid grid-cols-[1fr_300px] gap-6 items-start">
@@ -1151,7 +1152,7 @@ export function ActivityDetailSheet({
                     {editing ? editFormSection : infoSection}
                     {commentsSection}
                     {!readOnly && (
-                      <div className="border border-line rounded-[14px] bg-surface p-3">
+                      <div className="border border-line rounded-md bg-surface p-3">
                         {composerInner}
                       </div>
                     )}
@@ -1180,7 +1181,7 @@ export function ActivityDetailSheet({
 
       {/* ── Responsibility delete dialog ── */}
       <AlertDialog open={!!deleteRespTarget} onOpenChange={open => !open && setDeleteRespTarget(null)}>
-        <AlertDialogContent className="bg-surface border-line rounded-[18px]">
+        <AlertDialogContent className="bg-surface border-line rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Verantwortlichkeit löschen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">
@@ -1201,7 +1202,7 @@ export function ActivityDetailSheet({
 
       {/* ── Photo delete dialog ── */}
       <AlertDialog open={!!deletePhotoTarget} onOpenChange={open => !open && setDeletePhotoTarget(null)}>
-        <AlertDialogContent className="bg-surface border-line rounded-[18px]">
+        <AlertDialogContent className="bg-surface border-line rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Foto löschen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">
@@ -1222,7 +1223,7 @@ export function ActivityDetailSheet({
 
       {/* ── Comment delete dialog ── */}
       <AlertDialog open={!!deleteCommentTarget} onOpenChange={open => !open && setDeleteCommentTarget(null)}>
-        <AlertDialogContent className="bg-surface border-line rounded-[18px]">
+        <AlertDialogContent className="bg-surface border-line rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Kommentar löschen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">

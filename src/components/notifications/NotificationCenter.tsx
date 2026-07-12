@@ -48,7 +48,7 @@ export function NotificationCenter({
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent
         size="md"
-        className="h-[85dvh] md:h-[70vh] bg-bg border-line p-0 rounded-t-[24px]"
+        className="h-[85dvh] md:h-[70vh] bg-bg border-line p-0 rounded-t-[30px]"
         hideClose
       >
         <ResponsiveModalHeader className="px-5 pt-5 pb-3 border-b border-line flex-shrink-0 flex-row items-center justify-between space-y-0">
@@ -61,7 +61,7 @@ export function NotificationCenter({
           {unreadCount > 0 && (
             <button
               onClick={onMarkAllRead}
-              className="flex items-center gap-1.5 text-[12px] font-[700] text-primary hover:text-primary-600 transition-colors"
+              className="flex items-center gap-1.5 text-[12px] font-[700] text-primary hover:text-primary/80 transition-colors"
             >
               <CheckCheck className="h-3.5 w-3.5" />
               Alle als gelesen

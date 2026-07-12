@@ -54,7 +54,7 @@ export function MemberRow({
   const initials = getInitials(member.profile.display_name)
 
   const avatarColor =
-    member.role === 'admin' ? 'bg-primary' : member.role === 'editor' ? 'bg-secondary' : 'bg-accent'
+    member.role === 'admin' ? 'bg-primary' : member.role === 'editor' ? 'bg-secondary' : 'bg-blush'
 
   async function handleRemove() {
     setRemoving(true)
@@ -82,11 +82,11 @@ export function MemberRow({
             )}
           </div>
           <span
-            className={`inline-flex items-center gap-1 text-[10.5px] font-[800] uppercase tracking-[0.06em]
+            className={`inline-flex items-center gap-1 text-[10.5px] font-semibold tracking-[0.06em]
               px-2 py-0.5 rounded-pill mt-0.5
               ${member.role === 'admin' ? 'bg-primary-soft text-primary' : ''}
               ${member.role === 'editor' ? 'bg-secondary-soft text-secondary' : ''}
-              ${member.role === 'observer' ? 'bg-accent-soft text-accent' : ''}
+              ${member.role === 'observer' ? 'bg-blush-soft text-blush' : ''}
             `}
           >
             {ROLE_ICONS[member.role]}
@@ -106,8 +106,8 @@ export function MemberRow({
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-[12px] bg-surface border-line">
-              <DropdownMenuLabel className="text-[11px] text-ink-3 font-semibold uppercase tracking-wide">
+            <DropdownMenuContent align="end" className="w-48 rounded-md bg-surface border-line">
+              <DropdownMenuLabel className="text-[11px] text-ink-3 font-semibold tracking-[0.06em]">
                 Rolle ändern
               </DropdownMenuLabel>
               {(['admin', 'editor', 'observer'] as GroupRole[])
@@ -119,11 +119,11 @@ export function MemberRow({
                     className="text-[14px] text-ink cursor-pointer"
                   >
                     <span
-                      className={`mr-2 inline-flex items-center gap-1 text-[10px] font-[800] uppercase
+                      className={`mr-2 inline-flex items-center gap-1 text-[10px] font-[800]
                         px-1.5 py-0.5 rounded-pill
                         ${role === 'admin' ? 'bg-primary-soft text-primary' : ''}
                         ${role === 'editor' ? 'bg-secondary-soft text-secondary' : ''}
-                        ${role === 'observer' ? 'bg-accent-soft text-accent' : ''}
+                        ${role === 'observer' ? 'bg-blush-soft text-blush' : ''}
                       `}
                     >
                       {ROLE_LABELS[role]}
@@ -144,7 +144,7 @@ export function MemberRow({
       </div>
 
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
-        <AlertDialogContent className="rounded-[18px] bg-surface border-line max-w-sm">
+        <AlertDialogContent className="rounded-lg bg-surface border-line max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[18px] font-[800] text-ink">
               {member.profile.display_name} entfernen?

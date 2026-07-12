@@ -374,7 +374,7 @@ Deno.serve(async (req) => {
   let emailed = 0;
   const resendKey = Deno.env.get('RESEND_API_KEY');
   if (emailUserIds.length > 0 && resendKey) {
-    const from = Deno.env.get('RESEND_FROM') ?? 'ZUSAMMEN <onboarding@resend.dev>';
+    const from = Deno.env.get('RESEND_FROM') ?? 'Mellon <onboarding@resend.dev>';
     const unsubSecret = Deno.env.get('UNSUBSCRIBE_SIGNING_SECRET');
     const functionsBase = Deno.env.get('SUPABASE_URL');
     const deepLink = `${APP_BASE_URL}${targetToPath(target)}`;

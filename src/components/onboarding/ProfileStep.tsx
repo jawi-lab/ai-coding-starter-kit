@@ -85,7 +85,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
     <div className="flex flex-1 flex-col">
       <div className="flex-1">
         <div className="text-center">
-          <h1 className="text-[28px] font-[900] text-ink">Dein Profil</h1>
+          <h1 className="text-[28px] font-extrabold text-ink">Dein Profil</h1>
           <p className="mt-1.5 text-[15px] text-ink-2">
             Wie sollen dich deine Freunde nennen?
           </p>
@@ -128,7 +128,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
         <div className="mt-8 space-y-2">
           <label
             htmlFor="onboarding-name"
-            className="text-[12px] font-[800] uppercase tracking-[0.08em] text-ink-3"
+            className="text-[12px] font-semibold tracking-[0.06em] text-ink-3"
           >
             Name / Nickname
           </label>
@@ -141,7 +141,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
             }}
             maxLength={50}
             placeholder="z.B. Alex Müller"
-            className="h-12 rounded-[14px] border-line bg-surface text-[15px] text-ink"
+            className="h-12 rounded-md border-line bg-surface text-[15px] text-ink"
             onKeyDown={e => {
               if (e.key === 'Enter') handleContinue()
             }}
@@ -149,7 +149,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
           {error && <p className="text-[12px] text-error">{error}</p>}
         </div>
 
-        <div className="mt-4 flex items-start gap-2 rounded-[14px] bg-surface-2 p-3">
+        <div className="mt-4 flex items-start gap-2 rounded-md bg-surface-2 p-3">
           <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-3" />
           <p className="text-[13px] leading-snug text-ink-2">
             Dein Profil ist für Gruppenmitglieder sichtbar.
@@ -161,7 +161,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
         <Button
           onClick={handleContinue}
           disabled={saving}
-          className="h-12 w-full rounded-[14px] bg-primary text-[15px] font-[700] text-white hover:bg-primary-600"
+          className="h-12 w-full rounded-pill bg-primary text-[15px] font-[700] text-white hover:bg-primary/90"
         >
           {saving ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

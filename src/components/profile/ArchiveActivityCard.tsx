@@ -20,7 +20,7 @@ export function ArchiveActivityCard({ activity, onClick }: ArchiveActivityCardPr
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-surface border border-line rounded-[18px] overflow-hidden hover:border-primary/30 transition-colors active:scale-[0.99]"
+      className="w-full text-left bg-surface border border-line rounded-lg overflow-hidden hover:border-primary/30 transition-colors active:scale-[0.99]"
     >
       {/* Cover image */}
       <div className="relative h-[110px] w-full">
@@ -41,7 +41,7 @@ export function ArchiveActivityCard({ activity, onClick }: ArchiveActivityCardPr
 
       {/* Content */}
       <div className="px-3.5 py-3">
-        <p className="text-[14.5px] font-[800] text-ink leading-snug line-clamp-1">
+        <p className="font-serif font-medium text-[16.5px] tracking-[-0.015em] text-ink leading-snug line-clamp-1">
           {activity.name}
         </p>
         <div className="mt-1 flex items-center gap-3 flex-wrap">

@@ -18,7 +18,7 @@ export default function SignupPage() {
   return (
     <AuthLayout
       title="Konto erstellen"
-      subtitle="Werde Teil von ZUSAMMEN."
+      subtitle="Werde Teil von Mellon."
     >
       <SignupForm />
     </AuthLayout>

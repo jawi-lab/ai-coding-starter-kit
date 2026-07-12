@@ -48,7 +48,7 @@ export function KanbanColumn({
 
   return (
     <div
-      className={`flex flex-col min-h-0 rounded-[14px] transition-colors
+      className={`flex flex-col min-h-0 rounded-md transition-colors
         ${canDrop && isOver ? 'bg-primary-soft ring-2 ring-primary/40' : ''}`}
       onDragOver={(e) => {
         if (!onDropActivity || !draggingStatus) return
@@ -64,9 +64,14 @@ export function KanbanColumn({
         onDropActivity(status)
       }}
     >
-      {/* Column header */}
+      {/* Column header — Mellon-Status-Dot + Label */}
       <div className="flex items-center gap-2 mb-3 flex-shrink-0 px-1 pt-1">
-        <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
+        <span
+          aria-hidden
+          className="h-[7px] w-[7px] rounded-pill flex-shrink-0"
+          style={{ background: `var(--status-${status.replace(/_/g, '-').replace('planung-abgeschlossen', 'abgestimmt')})` }}
+        />
+        <h3 className="text-[13px] font-bold text-ink tracking-[0.06em]">
           {KANBAN_COLUMN_LABELS[status]}
         </h3>
         <span className="text-[12px] font-[700] text-ink-3 tabular-nums">
@@ -76,7 +81,7 @@ export function KanbanColumn({
 
       {/* Cards or empty state */}
       {activities.length === 0 ? (
-        <div className="flex-1 rounded-[14px] border border-dashed border-line bg-surface-2 flex items-center justify-center py-8 px-4">
+        <div className="flex-1 rounded-md border border-dashed border-line bg-surface-2 flex items-center justify-center py-8 px-4">
           <p className="text-[13px] text-ink-3 text-center leading-snug">
             {canDrop ? 'Hier ablegen' : 'Noch keine Aktivitäten hier'}
           </p>

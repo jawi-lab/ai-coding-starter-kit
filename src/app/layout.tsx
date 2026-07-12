@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Hanken_Grotesk, Source_Serif_4 } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NativeAuthListener } from "@/components/native/NativeAuthListener";
 import { NativeStatusBar } from "@/components/native/NativeStatusBar";
@@ -12,15 +12,22 @@ import { NativeUpdater } from "@/components/native/NativeUpdater";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const archivo = Archivo({
+const hanken = Hanken_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-archivo",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-hanken",
+  display: "swap",
+});
+
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-source-serif",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "ZUSAMMEN",
+  title: "Mellon",
   description: "Gemeinsam planen, abstimmen und Erinnerungen teilen.",
 };
 
@@ -40,12 +47,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" className={archivo.variable} suppressHydrationWarning>
+    <html
+      lang="de"
+      className={`${hanken.variable} ${sourceSerif.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        {/* Apply the persisted/system theme before paint to avoid a flash. */}
+        {/* Apply the persisted/system theme before paint to avoid a flash.
+            Falls back to the legacy 'zusammen-theme' key from before the
+            Mellon rename so existing users keep their choice. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('zusammen-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('mellon-theme')||localStorage.getItem('zusammen-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
           }}
         />
       </head>

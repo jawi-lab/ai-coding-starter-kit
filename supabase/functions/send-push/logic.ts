@@ -301,7 +301,7 @@ export function buildEmail(opts: {
 }): { subject: string; html: string; text: string } {
   const title = escapeHtml(opts.title);
   const body = escapeHtml(opts.body);
-  const subject = `ZUSAMMEN: ${opts.title}`;
+  const subject = `Mellon: ${opts.title}`;
 
   const html = `<!doctype html>
 <html lang="de">
@@ -310,7 +310,7 @@ export function buildEmail(opts: {
       <tr><td>
         <h1 style="margin:0 0 12px;font-size:20px;color:#1f2937;">${title}</h1>
         <p style="margin:0 0 24px;font-size:16px;line-height:1.5;">${body}</p>
-        <a href="${opts.deepLink}" style="display:inline-block;background:#c15f3c;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">In ZUSAMMEN öffnen</a>
+        <a href="${opts.deepLink}" style="display:inline-block;background:#1E4634;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">In Mellon öffnen</a>
         <p style="margin:32px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
           Du erhältst diese E-Mail, weil du Benachrichtigungen für dieses Ereignis aktiviert hast.<br>
           <a href="${opts.manageUrl}" style="color:#6b7280;">Benachrichtigungen verwalten</a>
@@ -320,7 +320,7 @@ export function buildEmail(opts: {
   </body>
 </html>`;
 
-  const text = `${opts.title}\n\n${opts.body}\n\nIn ZUSAMMEN öffnen: ${opts.deepLink}\n\nBenachrichtigungen verwalten: ${opts.manageUrl}`;
+  const text = `${opts.title}\n\n${opts.body}\n\nIn Mellon öffnen: ${opts.deepLink}\n\nBenachrichtigungen verwalten: ${opts.manageUrl}`;
 
   return { subject, html, text };
 }

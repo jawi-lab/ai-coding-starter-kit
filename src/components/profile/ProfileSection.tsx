@@ -86,7 +86,7 @@ export function ProfileSection() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-[12px] font-[800] text-ink-2 uppercase tracking-[0.06em]">
+      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
         Profil
       </h3>
 
@@ -156,7 +156,7 @@ export function ProfileSection() {
                   size="sm"
                   onClick={handleSave}
                   disabled={saving}
-                  className="h-7 px-2.5 bg-primary hover:bg-primary-600 text-white text-[12px]"
+                  className="h-7 px-2.5 bg-primary hover:bg-primary/90 text-white text-[12px]"
                 >
                   {saving ? (
                     <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />

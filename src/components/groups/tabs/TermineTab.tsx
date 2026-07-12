@@ -33,12 +33,12 @@ function TermineCard({
   return (
     <button
       onClick={onOpen}
-      className="w-full text-left bg-surface border border-line rounded-[18px] p-3.5 flex items-center gap-3.5
+      className="w-full text-left bg-surface border border-line rounded-lg p-3.5 flex items-center gap-3.5
                  hover:bg-surface-2 active:scale-[0.99] transition-all"
     >
       {/* Datums-Block */}
-      <div className="flex-shrink-0 w-14 h-14 rounded-[14px] bg-primary-soft flex flex-col items-center justify-center">
-        <span className="text-[10px] font-[800] uppercase tracking-wide text-primary leading-none">
+      <div className="flex-shrink-0 w-14 h-14 rounded-md bg-primary-soft flex flex-col items-center justify-center">
+        <span className="text-[10px] font-[800] tracking-[0.06em] text-primary leading-none">
           {activity.start_date ? weekday(activity.start_date) : '—'}
         </span>
         <CalendarDays className="h-5 w-5 text-primary mt-1" strokeWidth={2.2} />
@@ -60,7 +60,7 @@ function TermineCard({
             </span>
           )}
           {label && (
-            <span className="text-[10.5px] font-[700] uppercase tracking-[0.05em] text-ink-3 px-2 py-0.5 rounded-pill bg-surface-2 flex-shrink-0">
+            <span className="text-[10.5px] font-[700] tracking-[0.06em] text-ink-3 px-2 py-0.5 rounded-pill bg-surface-2 flex-shrink-0">
               {label}
             </span>
           )}
@@ -82,7 +82,7 @@ export function TermineTab() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-[84px] w-full rounded-[18px] bg-surface" />
+              <Skeleton key={i} className="h-[84px] w-full rounded-lg bg-surface" />
             ))}
           </div>
         ) : activities.length === 0 ? (

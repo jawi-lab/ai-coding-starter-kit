@@ -29,24 +29,24 @@ export function CalendarConnectionSection() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-[12px] font-[800] text-ink-2 uppercase tracking-[0.06em]">
+      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
         Kalender-Verbindung
       </h3>
 
       {loading ? (
-        <Skeleton className="h-10 w-full rounded-[10px] bg-surface" />
+        <Skeleton className="h-10 w-full rounded-sm bg-surface" />
       ) : connection ? (
         <div className="space-y-2">
           {isExpired ? (
-            <div className="flex items-start gap-3 bg-accent-soft border border-accent/30 rounded-[12px] px-3.5 py-3">
-              <TriangleAlert className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 bg-accent-soft border border-secondary/30 rounded-md px-3.5 py-3">
+              <TriangleAlert className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-[700] text-ink">Kalender-Verbindung abgelaufen</p>
                 <p className="text-[12px] text-ink-2 mt-0.5">Erneut verbinden, damit deine Verfügbarkeit berücksichtigt wird.</p>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3 bg-surface border border-line rounded-[12px] px-3.5 py-3">
+            <div className="flex items-center gap-3 bg-surface border border-line rounded-md px-3.5 py-3">
               <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-[600] text-ink">Verbunden</p>
@@ -61,7 +61,7 @@ export function CalendarConnectionSection() {
                 size="sm"
                 onClick={handleConnect}
                 disabled={connecting}
-                className="flex-1 bg-primary hover:bg-primary-600 text-white text-[12.5px]"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white text-[12.5px]"
               >
                 {connecting ? 'Verbinden…' : 'Erneut verbinden'}
               </Button>
@@ -86,7 +86,7 @@ export function CalendarConnectionSection() {
             size="sm"
             onClick={handleConnect}
             disabled={connecting}
-            className="flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-white text-[13px] rounded-[10px]"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-[13px] rounded-pill"
           >
             <Calendar className="h-4 w-4" />
             {connecting ? 'Verbinden…' : 'Google Kalender verbinden'}
@@ -95,7 +95,7 @@ export function CalendarConnectionSection() {
       )}
 
       <AlertDialog open={disconnectDialogOpen} onOpenChange={setDisconnectDialogOpen}>
-        <AlertDialogContent className="bg-surface border-line rounded-[18px]">
+        <AlertDialogContent className="bg-surface border-line rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Google Kalender trennen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">

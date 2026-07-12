@@ -14,13 +14,13 @@ export function AppearanceSection() {
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[12px] font-[700] uppercase tracking-[0.08em] text-ink-3">
+      <p className="text-[12px] font-[700] tracking-[0.06em] text-ink-3">
         Darstellung
       </p>
       <div
         role="radiogroup"
         aria-label="Farbschema"
-        className="flex gap-1 bg-surface-2 rounded-[10px] p-0.5"
+        className="flex gap-1 bg-surface-2 rounded-pill p-0.5"
       >
         {OPTIONS.map(({ value, label, Icon }) => {
           const active = theme === value

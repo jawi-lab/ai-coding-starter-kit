@@ -199,7 +199,7 @@ export function DateFinderSheet({
 
           {/* Missing calendar banner */}
           {!availLoading && !availError && totalMembers > 0 && membersWithoutCalendar > 0 && (
-            <div className="mx-4 mt-4 flex items-start gap-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-[12px] px-3.5 py-2.5">
+            <div className="mx-4 mt-4 flex items-start gap-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md px-3.5 py-2.5">
               <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-[12.5px] text-amber-800 dark:text-amber-200 leading-snug">
                 {membersWithoutCalendar === 1
@@ -226,14 +226,14 @@ export function DateFinderSheet({
 
           {/* Error state */}
           {availError && (
-            <div className="mx-4 mt-6 flex flex-col items-center gap-3 bg-surface border border-line rounded-[14px] p-5 text-center">
+            <div className="mx-4 mt-6 flex flex-col items-center gap-3 bg-surface border border-line rounded-md p-5 text-center">
               <AlertTriangle className="h-6 w-6 text-ink-3" />
               <p className="text-[14px] text-ink-2">{availError}</p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={refresh}
-                className="border-line text-ink-2 rounded-[10px]"
+                className="border-line text-ink-2 rounded-pill"
               >
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                 Erneut versuchen
@@ -245,8 +245,8 @@ export function DateFinderSheet({
           {availLoading && (
             <div className="px-4 mt-4 space-y-3">
               <Skeleton className="h-5 w-36 rounded bg-surface" />
-              <Skeleton className="h-[260px] w-full rounded-[14px] bg-surface" />
-              <Skeleton className="h-[260px] w-full rounded-[14px] bg-surface" />
+              <Skeleton className="h-[260px] w-full rounded-md bg-surface" />
+              <Skeleton className="h-[260px] w-full rounded-md bg-surface" />
             </div>
           )}
 
@@ -294,7 +294,7 @@ export function DateFinderSheet({
         <div className="flex-shrink-0 border-t border-line bg-bg px-4 pt-3 pb-5">
           {/* Selected range preview */}
           {dateRange?.from && (
-            <div className="flex items-center gap-2 mb-3 bg-secondary-soft rounded-[10px] px-3 py-2">
+            <div className="flex items-center gap-2 mb-3 bg-secondary-soft rounded-sm px-3 py-2">
               <CalendarDays className="h-4 w-4 text-secondary flex-shrink-0" />
               <p className="text-[13px] font-[700] text-secondary truncate">
                 {formatDateRange(dateRange.from, dateRange.to ?? dateRange.from)}
@@ -307,14 +307,14 @@ export function DateFinderSheet({
               variant="outline"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 border-line text-ink-2 rounded-[12px] hover:bg-surface-2"
+              className="flex-1 border-line text-ink-2 rounded-md hover:bg-surface-2"
             >
               Abbrechen
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!canConfirm}
-              className="flex-1 bg-primary hover:bg-primary-600 text-white font-[700] rounded-[12px] border border-primary-600"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white font-[700] rounded-md"
             >
               {saving
                 ? 'Wird gespeichert…'

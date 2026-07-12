@@ -31,7 +31,7 @@ export function ConfirmStatusDialog({
 }: ConfirmStatusDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent className="bg-surface border-line rounded-[18px] sm:max-w-[360px]">
+      <DialogContent className="bg-surface border-line rounded-lg sm:max-w-[360px]">
         <DialogHeader>
           <DialogTitle className="text-[17px] font-[800] text-ink text-left">
             {title}
@@ -50,14 +50,14 @@ export function ConfirmStatusDialog({
             variant="outline"
             onClick={onCancel}
             disabled={loading}
-            className="border-line text-ink-2 rounded-[12px] hover:bg-surface-2"
+            className="border-line text-ink-2 rounded-md hover:bg-surface-2"
           >
             Abbrechen
           </Button>
           <Button
             onClick={onConfirm}
             disabled={loading}
-            className="bg-primary hover:bg-primary-600 text-white font-[700] rounded-[12px] border border-primary-600"
+            className="bg-primary hover:bg-primary/90 text-white font-[700] rounded-md"
           >
             {loading ? 'Wird gespeichert…' : confirmLabel}
           </Button>

@@ -98,8 +98,8 @@ function NavButton({
 export function GroupBottomNav({ active, targetGroupId, onProfile }: GroupBottomNavProps) {
   const tabsDisabled = !targetGroupId
   return (
-    <nav className="md:hidden flex-shrink-0 bg-surface border-t border-line pb-safe">
-      <div className="max-w-md mx-auto w-full h-16 px-1 flex items-stretch">
+    <nav className="md:hidden flex-shrink-0 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <div className="glass max-w-md mx-auto w-full h-[64px] px-2 flex items-stretch rounded-pill">
         <NavLink
           href="/groups"
           icon={Home}

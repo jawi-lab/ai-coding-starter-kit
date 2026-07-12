@@ -52,7 +52,7 @@ export function MemberList({
 
   return (
     <div>
-      <span className="text-[11px] font-[800] uppercase tracking-[0.1em] text-ink-3 block mb-1 px-1">
+      <span className="text-[11px] font-semibold tracking-[0.06em] text-ink-3 block mb-1 px-1">
         Mitglieder ({members.length})
       </span>
       <div>

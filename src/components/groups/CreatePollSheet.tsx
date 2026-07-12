@@ -30,8 +30,8 @@ interface CreatePollSheetProps {
 }
 
 const INPUT_CLASS =
-  'h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-[12px] px-[14px] ' +
-  'focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]'
+  'h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px] ' +
+  'focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]'
 
 export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProps) {
   const [question, setQuestion] = useState('')
@@ -114,7 +114,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
     <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveModalContent
         size="md"
-        className="rounded-t-[24px] bg-bg border-line p-0"
+        className="rounded-t-[30px] bg-bg border-line p-0"
         style={
           keyboard.inset > 0
             ? { bottom: keyboard.inset, height: keyboard.height, maxHeight: 'none' }
@@ -133,7 +133,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Frage */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Frage <span className="text-error">*</span>
             </Label>
             <Input
@@ -155,7 +155,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
 
           {/* Optionen */}
           <div className="space-y-2">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Antwortoptionen <span className="text-error">*</span>
             </Label>
             {options.map((value, index) => (
@@ -171,7 +171,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
                   <button
                     type="button"
                     onClick={() => removeOption(index)}
-                    className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-[10px] text-ink-3 hover:text-error hover:bg-error-soft transition-colors"
+                    className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-sm text-ink-3 hover:text-error hover:bg-error-soft transition-colors"
                     aria-label={`Option ${index + 1} entfernen`}
                   >
                     <X className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
               <button
                 type="button"
                 onClick={addOption}
-                className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary-600 transition-colors pt-0.5"
+                className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary/80 transition-colors pt-0.5"
               >
                 <Plus className="h-4 w-4" />
                 Option hinzufügen
@@ -201,14 +201,14 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 h-12 border-[1.5px] border-line text-ink font-[700] text-[15px] rounded-[12px]"
+              className="flex-1 h-12 border-[1.5px] border-line text-ink font-[700] text-[15px] rounded-md"
             >
               Abbrechen
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1 h-12 bg-primary hover:bg-primary-600 text-white font-[700] text-[15px] rounded-[12px] border border-primary-600"
+              className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white font-[700] text-[15px] rounded-md"
             >
               {submitting ? (
                 <>

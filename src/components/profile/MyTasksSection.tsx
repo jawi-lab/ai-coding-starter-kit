@@ -30,14 +30,14 @@ export function MyTasksSection({ userId }: { userId: string | null }) {
 
   return (
     <section className="mb-6">
-      <h2 className="text-[13px] font-[800] text-ink-2 uppercase tracking-[0.06em] mb-2.5">
+      <h2 className="text-[13px] font-[800] text-ink-2 tracking-[0.06em] mb-2.5">
         Meine Aufgaben
       </h2>
 
       {loading ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <Skeleton key={i} className="h-[52px] w-full rounded-[14px] bg-surface" />
+            <Skeleton key={i} className="h-[52px] w-full rounded-md bg-surface" />
           ))}
         </div>
       ) : (
@@ -45,7 +45,7 @@ export function MyTasksSection({ userId }: { userId: string | null }) {
           {responsibilities.map((r) => (
             <div
               key={r.id}
-              className="flex items-center gap-3 bg-surface border border-line rounded-[14px] px-3.5 py-3"
+              className="flex items-center gap-3 bg-surface border border-line rounded-md px-3.5 py-3"
             >
               <Checkbox
                 checked={r.done}

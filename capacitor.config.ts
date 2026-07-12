@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 import { KeyboardResize } from '@capacitor/keyboard';
 
 /**
- * Capacitor configuration for ZUSAMMEN (PROJ-9).
+ * Capacitor configuration for Mellon (PROJ-9).
  *
  * The native shell loads the locally bundled static export (`out/`, produced by
  * `npm run build` with `output: 'export'`) instead of the remote Vercel URL —
@@ -14,7 +14,7 @@ import { KeyboardResize } from '@capacitor/keyboard';
  */
 const config: CapacitorConfig = {
   appId: 'com.zusammen.app',
-  appName: 'ZUSAMMEN',
+  appName: 'Mellon',
   webDir: 'out',
   plugins: {
     // The WebView extends under the status bar (overlaysWebView); content is
@@ -36,7 +36,7 @@ const config: CapacitorConfig = {
       resize: KeyboardResize.None,
     },
     // Use the brand cream as the splash background; the auto-generated splash
-    // assets (npx @capacitor/assets) center the ZUSAMMEN logo on it.
+    // assets (npx @capacitor/assets) center the Mellon logo on it.
     SplashScreen: {
       launchShowDuration: 600,
       backgroundColor: '#F8EBD9',

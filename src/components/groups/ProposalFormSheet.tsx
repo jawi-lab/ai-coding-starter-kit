@@ -168,7 +168,7 @@ export function ProposalFormSheet({
     <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveModalContent
         size="md"
-        className="rounded-t-[24px] bg-bg border-line p-0"
+        className="rounded-t-[30px] bg-bg border-line p-0"
         style={
           keyboard.inset > 0
             ? { bottom: keyboard.inset, height: keyboard.height, maxHeight: 'none' }
@@ -185,7 +185,7 @@ export function ProposalFormSheet({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Name <span className="text-error">*</span>
             </Label>
             <Input
@@ -193,8 +193,8 @@ export function ProposalFormSheet({
               onChange={(e) => set('name', e.target.value)}
               placeholder="z. B. Klettern im Kletterzentrum"
               maxLength={200}
-              className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-[12px] px-[14px]
-                         focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
+              className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px]
+                         focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
               aria-invalid={!!errors.name}
             />
             {errors.name && <p className="text-[12.5px] text-error">{errors.name}</p>}
@@ -203,7 +203,7 @@ export function ProposalFormSheet({
 
           {/* Dauer-Kategorie */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Dauer-Kategorie <span className="text-error">*</span>
             </Label>
             <Select
@@ -211,13 +211,13 @@ export function ProposalFormSheet({
               onValueChange={(v) => set('duration_category', v as DurationCategory)}
             >
               <SelectTrigger
-                className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-[12px] px-[14px]
-                           focus:ring-0 focus:border-secondary focus:shadow-[0_0_0_3px_var(--secondary-soft)]
-                           data-[state=open]:border-secondary"
+                className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px]
+                           focus:ring-0 focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)]
+                           data-[state=open]:border-primary"
               >
                 <SelectValue placeholder="Kategorie wählen…" />
               </SelectTrigger>
-              <SelectContent className="bg-surface border-line rounded-[12px]">
+              <SelectContent className="bg-surface border-line rounded-md">
                 {(Object.entries(DURATION_CATEGORY_LABELS) as [DurationCategory, string][]).map(
                   ([value, label]) => (
                     <SelectItem key={value} value={value} className="text-[15px] rounded-[8px]">
@@ -234,10 +234,10 @@ export function ProposalFormSheet({
 
           {/* Benötigte Upvotes – Stepper */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Benötigte Upvotes <span className="text-error">*</span>
             </Label>
-            <div className="flex items-center gap-0 border-[1.5px] border-line bg-surface rounded-[12px] h-11 overflow-hidden w-fit">
+            <div className="flex items-center gap-0 border-[1.5px] border-line bg-surface rounded-md h-11 overflow-hidden w-fit">
               <button
                 type="button"
                 onClick={() => set('required_votes', Math.max(1, values.required_votes - 1))}
@@ -266,7 +266,7 @@ export function ProposalFormSheet({
 
           {/* URL (optional) */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Link <span className="text-[11px] font-[500] normal-case tracking-normal text-ink-3">(optional)</span>
             </Label>
             <Input
@@ -274,8 +274,8 @@ export function ProposalFormSheet({
               value={values.url}
               onChange={(e) => set('url', e.target.value)}
               placeholder="https://…"
-              className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-[12px] px-[14px]
-                         focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
+              className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px]
+                         focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
               aria-invalid={!!errors.url}
             />
             {errors.url && <p className="text-[12.5px] text-error">{errors.url}</p>}
@@ -284,11 +284,11 @@ export function ProposalFormSheet({
             {values.url.trim() && (
               <div className="mt-2">
                 {ogLoading ? (
-                  <div className="h-[120px] rounded-[12px] bg-surface-2 border border-line flex items-center justify-center">
+                  <div className="h-[120px] rounded-md bg-surface-2 border border-line flex items-center justify-center">
                     <Loader2 className="h-5 w-5 animate-spin text-ink-3" />
                   </div>
                 ) : ogImageUrl ? (
-                  <div className="relative rounded-[12px] overflow-hidden border border-line">
+                  <div className="relative rounded-md overflow-hidden border border-line">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={ogImageUrl}
@@ -311,7 +311,7 @@ export function ProposalFormSheet({
 
           {/* Beschreibung (optional) */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 uppercase tracking-[0.07em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
               Beschreibung <span className="text-[11px] font-[500] normal-case tracking-normal text-ink-3">(optional)</span>
             </Label>
             <Textarea
@@ -319,13 +319,13 @@ export function ProposalFormSheet({
               onChange={(e) => set('description', e.target.value)}
               placeholder="Was ist das für eine Aktivität? Was sollte die Gruppe wissen?"
               rows={3}
-              className="text-[15px] border-[1.5px] border-line bg-surface rounded-[12px] px-[14px] py-3 resize-none
-                         focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
+              className="text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px] py-3 resize-none
+                         focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
             />
           </div>
 
           {apiError && (
-            <p className="text-[13px] text-error bg-error/10 rounded-[10px] px-3 py-2">
+            <p className="text-[13px] text-error bg-error/10 rounded-sm px-3 py-2">
               {apiError}
             </p>
           )}
@@ -335,8 +335,8 @@ export function ProposalFormSheet({
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full h-12 bg-primary hover:bg-primary-600 text-white font-[700] text-[15px]
-                         rounded-[12px] border border-primary-600 tracking-[0.01em]"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-[700] text-[15px]
+                         rounded-md tracking-[0.01em]"
             >
               {submitting ? (
                 <>

@@ -20,6 +20,7 @@ import { OnboardingScreen } from '@/components/groups/OnboardingScreen'
 import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { GroupBottomNav } from '@/components/groups/GroupBottomNav'
+import { DesktopSidebar } from '@/components/groups/DesktopSidebar'
 import { MyTasksSection } from '@/components/profile/MyTasksSection'
 import { groupHref } from '@/lib/group-routes'
 import { getLastGroupId } from '@/lib/last-group'
@@ -83,18 +84,28 @@ function GroupsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg md:flex">
+      {/* Desktop-Sidebar (Mellon) — mobil übernimmt die Bottom-Nav. */}
+      <div className="hidden md:block md:sticky md:top-0 md:h-screen">
+        <DesktopSidebar
+          active="home"
+          targetGroupId={navTargetGroupId}
+          onProfile={() => setProfileSheetOpen(true)}
+        />
+      </div>
+
+      <div className="flex-1 min-w-0">
       {/* Header */}
-      <header className="bg-bg border-b border-line px-4 h-bar-safe flex items-center justify-end sticky top-0 z-10">
+      <header className="bg-bg px-4 h-bar-safe flex items-center justify-end sticky top-0 z-10">
         <NotificationBell />
       </header>
 
       {/* Main content */}
-      <main className="px-4 py-6 max-w-6xl mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
+      <main className="px-4 py-6 max-w-6xl mx-auto pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
         <MyTasksSection userId={user?.id ?? null} />
 
         <div className="mb-5">
-          <h1 className="text-[24px] font-[900] text-ink">Meine Gruppen</h1>
+          <h1 className="text-[24px] font-extrabold text-ink">Meine Gruppen</h1>
           <p className="text-[14px] text-ink-2 mt-0.5">
             {loading ? ' ' : `${groups.length} ${groups.length === 1 ? 'Gruppe' : 'Gruppen'}`}
           </p>
@@ -103,7 +114,7 @@ function GroupsContent() {
         {loading ? (
           <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-[74px] w-full rounded-[18px] bg-surface" />
+              <Skeleton key={i} className="h-[74px] w-full rounded-lg bg-surface" />
             ))}
           </div>
         ) : (
@@ -123,8 +134,8 @@ function GroupsContent() {
           <Button
             variant="outline"
             onClick={() => setAddSheetOpen(true)}
-            className="mt-3 w-full md:w-auto h-12 px-4 border-dashed border-line text-ink-2
-                       rounded-[18px] gap-1.5 font-semibold hover:bg-surface-2 hover:text-ink"
+            className="mt-3 w-full md:w-auto h-12 px-5 border-dashed border-line text-ink-2
+                       gap-1.5 font-semibold hover:bg-surface-2 hover:text-ink"
           >
             <Plus className="h-4 w-4" />
             Hinzufügen
@@ -156,7 +167,7 @@ function GroupsContent() {
       <ResponsiveModal open={addSheetOpen} onOpenChange={setAddSheetOpen}>
         <ResponsiveModalContent
           size="md"
-          className="rounded-t-[24px] bg-bg border-line p-0 max-h-[90dvh]"
+          className="bg-bg border-line p-0 max-h-[90dvh]"
         >
           <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
             <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">Gruppe hinzufügen</ResponsiveModalTitle>
@@ -166,6 +177,7 @@ function GroupsContent() {
           </div>
         </ResponsiveModalContent>
       </ResponsiveModal>
+      </div>
     </div>
   )
 }

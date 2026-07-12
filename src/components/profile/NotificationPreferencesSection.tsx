@@ -25,7 +25,7 @@ export function NotificationPreferencesSection() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-[12px] font-[800] text-ink-2 uppercase tracking-[0.06em]">
+      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
         Benachrichtigungen
       </h3>
 
@@ -42,11 +42,11 @@ export function NotificationPreferencesSection() {
         <div className="flex items-center gap-3 pb-1.5">
           <div className="flex-1" />
           {showPush && (
-            <span className="w-11 text-center text-[10px] font-[800] text-ink-3 uppercase tracking-[0.06em]">
+            <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.06em]">
               Push
             </span>
           )}
-          <span className="w-11 text-center text-[10px] font-[800] text-ink-3 uppercase tracking-[0.06em]">
+          <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.06em]">
             E-Mail
           </span>
         </div>
@@ -86,7 +86,7 @@ export function NotificationPreferencesSection() {
         {loading ? (
           <div className="space-y-2">
             {NOTIFICATION_EVENTS.map((event) => (
-              <Skeleton key={event} className="h-10 w-full rounded-[10px] bg-surface" />
+              <Skeleton key={event} className="h-10 w-full rounded-sm bg-surface" />
             ))}
           </div>
         ) : (

@@ -1,8 +1,8 @@
-# Product Requirements Document – ZUSAMMEN
+# Product Requirements Document – Mellon
 
 ## Vision
 
-ZUSAMMEN ist eine Mobile-First-App, in der Freundesgruppen Unternehmungen demokratisch per Voting auswählen, über ein Kanban-Board planen, Termine per Kalender-Sync finden und Aktivitäten nach Abschluss als persönliche Erinnerung archivieren. Ziel: von der gemeinsamen Idee bis zur geteilten Erinnerung — in einer App, ohne Chaos im Gruppen-Chat.
+Mellon (ehemals ZUSAMMEN) ist eine Mobile-First-App, in der Freundesgruppen Unternehmungen demokratisch per Voting auswählen, über ein Kanban-Board planen, Termine per Kalender-Sync finden und Aktivitäten nach Abschluss als persönliche Erinnerung archivieren. Ziel: von der gemeinsamen Idee bis zur geteilten Erinnerung — in einer App, ohne Chaos im Gruppen-Chat.
 
 ## Target Users
 

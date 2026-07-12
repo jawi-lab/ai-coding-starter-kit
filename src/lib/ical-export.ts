@@ -24,7 +24,7 @@ export function buildIcalContent(opts: IcalExportOptions): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ZUSAMMEN//ZUSAMMEN//DE',
+    'PRODID:-//Mellon//Mellon//DE',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

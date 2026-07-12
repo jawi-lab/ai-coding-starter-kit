@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Static Export (PROJ-9): erzeugt einen statischen out/-Ordner für die
-  // Capacitor-Hülle. ZUSAMMEN läuft komplett client-seitig (keine API-Routes,
+  // Capacitor-Hülle. Mellon läuft komplett client-seitig (keine API-Routes,
   // keine Server-Logik) → Export ist machbar. Web-Version auf Vercel bleibt
   // unverändert lauffähig.
   output: "export",

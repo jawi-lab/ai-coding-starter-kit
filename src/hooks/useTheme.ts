@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'light' | 'dark' | 'system'
 
-export const THEME_STORAGE_KEY = 'zusammen-theme'
+export const THEME_STORAGE_KEY = 'mellon-theme'
+
+/** Pre-rename key — read once as fallback so existing users keep their choice. */
+const LEGACY_THEME_STORAGE_KEY = 'zusammen-theme'
 
 function systemPrefersDark(): boolean {
   return (
@@ -30,7 +33,10 @@ export function useTheme() {
 
   // Hydrate from storage on mount.
   useEffect(() => {
-    const stored = (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ?? 'system'
+    const stored =
+      (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ??
+      (localStorage.getItem(LEGACY_THEME_STORAGE_KEY) as Theme | null) ??
+      'system'
     setThemeState(stored)
     applyTheme(stored)
   }, [])

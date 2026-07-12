@@ -36,7 +36,7 @@ export function DeletePollDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && !loading && onCancel()}>
-      <AlertDialogContent className="bg-surface border-line rounded-[18px] max-w-sm mx-4">
+      <AlertDialogContent className="bg-surface border-line rounded-lg max-w-sm mx-4">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[18px] font-[800] text-ink">
             Umfrage löschen?
@@ -48,14 +48,14 @@ export function DeletePollDialog({
         <AlertDialogFooter>
           <AlertDialogCancel
             onClick={onCancel}
-            className="rounded-[12px] border-[1.5px] border-line text-ink font-semibold hover:bg-surface-2"
+            className="rounded-md border-[1.5px] border-line text-ink font-semibold hover:bg-surface-2"
           >
             Abbrechen
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={loading}
-            className="rounded-[12px] bg-error text-white font-semibold border-[1.5px] border-error hover:opacity-90 disabled:opacity-40"
+            className="rounded-md bg-error text-white font-semibold border-[1.5px] border-error hover:opacity-90 disabled:opacity-40"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
             Löschen

@@ -29,7 +29,7 @@ const ResponsiveModalOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-[rgba(23,32,27,.45)] backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -41,15 +41,15 @@ const contentVariants = cva(
   cn(
     // shared — overflow-hidden clips child backgrounds (e.g. a bg-bg footer)
     // to the rounded corners; without it square child rects paint over them.
-    "fixed z-50 flex flex-col overflow-hidden bg-background shadow-lg transition ease-in-out",
+    "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-lg transition ease-in-out",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=closed]:duration-300 data-[state=open]:duration-500",
-    // mobile: bottom sheet
-    "inset-x-0 bottom-0 max-h-[92dvh] rounded-t-[20px] border-t",
+    // mobile: bottom sheet (Mellon: 30px top radius)
+    "inset-x-0 bottom-0 max-h-[92dvh] rounded-t-[30px]",
     "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
     // desktop: centered modal
     "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
-    "md:w-[calc(100%-2rem)] md:h-auto md:max-h-[88vh] md:rounded-[18px] md:border",
+    "md:w-[calc(100%-2rem)] md:h-auto md:max-h-[88vh] md:rounded-[30px] md:border md:border-line",
     "md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0",
     "md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95",
     "md:data-[state=closed]:duration-200 md:data-[state=open]:duration-200"

@@ -41,7 +41,7 @@ function FriendsIllustration() {
       <span className="absolute -bottom-4 -left-3 flex h-11 w-11 rotate-[-6deg] items-center justify-center rounded-pill bg-[#DC973A] text-white shadow-md">
         <CalendarHeart className="h-5 w-5" />
       </span>
-      <span className="absolute -bottom-2 right-6 inline-flex rotate-[-4deg] items-center rounded-pill border border-line bg-surface px-3 py-1 text-[11px] font-[800] uppercase tracking-[0.12em] text-ink-2 shadow-sm">
+      <span className="absolute -bottom-2 right-6 inline-flex rotate-[-4deg] items-center rounded-pill border border-line bg-surface px-3 py-1 text-[11px] font-[800] tracking-[0.06em] text-ink-2 shadow-sm">
         Gemeinsam
       </span>
     </div>
@@ -53,10 +53,10 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <FriendsIllustration />
-        <h1 className="text-[32px] font-[900] leading-[1.1] text-ink">
+        <h1 className="text-[32px] font-extrabold leading-[1.1] text-ink">
           Willkommen bei
           <br />
-          <span className="text-primary">ZUSAMMEN</span>
+          <span className="text-primary">Mellon</span>
         </h1>
         <p className="mt-3 max-w-[18rem] text-[15px] leading-relaxed text-ink-2">
           Plane gemeinsame Erlebnisse mit deinen Freunden — einfach und
@@ -66,7 +66,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
 
       <Button
         onClick={onNext}
-        className="h-12 w-full rounded-[14px] bg-primary text-[15px] font-[700] text-white hover:bg-primary-600"
+        className="h-12 w-full rounded-pill bg-primary text-[15px] font-[700] text-white hover:bg-primary/90"
       >
         Los geht&apos;s
         <ArrowRight className="ml-2 h-4 w-4" />

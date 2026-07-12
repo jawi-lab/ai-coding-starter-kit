@@ -77,7 +77,7 @@ export function MoveToPlanningDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-surface border-line rounded-[18px] sm:max-w-[380px]">
+      <DialogContent className="bg-surface border-line rounded-lg sm:max-w-[380px]">
         <DialogHeader>
           <DialogTitle className="text-[17px] font-[800] text-ink text-left">
             In Planung verschieben
@@ -98,7 +98,7 @@ export function MoveToPlanningDialog({
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  'w-full flex items-center gap-2 px-3.5 py-2.5 rounded-[12px]',
+                  'w-full flex items-center gap-2 px-3.5 py-2.5 rounded-md',
                   'border-[1.5px] border-line bg-bg text-left text-[13.5px] text-ink',
                   'hover:border-primary/40 transition-colors',
                   !dateRange?.from && 'text-ink-3'
@@ -120,7 +120,7 @@ export function MoveToPlanningDialog({
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-surface border-line rounded-[14px]" align="start">
+            <PopoverContent className="w-auto p-0 bg-surface border-line rounded-md" align="start">
               <Calendar
                 mode="range"
                 selected={dateRange}
@@ -150,14 +150,14 @@ export function MoveToPlanningDialog({
               onCancel()
             }}
             disabled={loading}
-            className="border-line text-ink-2 rounded-[12px] hover:bg-surface-2"
+            className="border-line text-ink-2 rounded-md hover:bg-surface-2"
           >
             Abbrechen
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={loading || !dateRange?.from || !dateRange?.to}
-            className="bg-primary hover:bg-primary-600 text-white font-[700] rounded-[12px] border border-primary-600"
+            className="bg-primary hover:bg-primary/90 text-white font-[700] rounded-md"
           >
             {loading ? 'Wird gespeichert…' : 'In Planung verschieben'}
           </Button>

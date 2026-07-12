@@ -18,7 +18,7 @@
  * Supabase rejects it.
  */
 
-/** Bundle-ID / custom URL scheme for ZUSAMMEN (iOS + Android, final — PROJ-9). */
+/** Bundle-ID / custom URL scheme for Mellon (iOS + Android, final — PROJ-9). */
 export const NATIVE_AUTH_SCHEME = 'com.zusammen.app'
 
 /** Path segment of the Supabase auth callback. */

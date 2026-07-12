@@ -99,7 +99,7 @@ export function VorschlaegeTab() {
           {loading ? (
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-[88px] w-full rounded-[18px] bg-surface" />
+                <Skeleton key={i} className="h-[88px] w-full rounded-lg bg-surface" />
               ))}
             </div>
           ) : displayed.length === 0 ? (
@@ -130,7 +130,7 @@ export function VorschlaegeTab() {
               <Button
                 variant="outline"
                 onClick={openGroupSettings}
-                className="w-full md:w-auto h-11 px-5 border-line text-ink-2 rounded-[14px]
+                className="w-full md:w-auto h-11 px-5 border-line text-ink-2
                            gap-2 font-semibold hover:bg-surface-2 hover:text-ink"
               >
                 <Users className="h-4 w-4" />
@@ -147,8 +147,8 @@ export function VorschlaegeTab() {
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"
-            className="h-14 w-14 p-0 bg-primary hover:bg-primary-600 text-white
-                       rounded-full border border-primary-600 shadow-lg
+            className="h-14 w-14 p-0 bg-primary hover:bg-primary/90 text-white
+                       rounded-full shadow-float
                        flex items-center justify-center active:scale-95 transition-transform"
           >
             <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -163,8 +163,8 @@ export function VorschlaegeTab() {
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"
-            className="h-14 w-14 p-0 bg-primary hover:bg-primary-600 text-white
-                       rounded-full border border-primary-600 shadow-lg
+            className="h-14 w-14 p-0 bg-primary hover:bg-primary/90 text-white
+                       rounded-full shadow-float
                        flex items-center justify-center active:scale-95 transition-transform"
           >
             <Plus className="h-6 w-6" strokeWidth={2.5} />

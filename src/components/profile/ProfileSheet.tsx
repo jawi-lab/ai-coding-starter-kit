@@ -56,7 +56,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
       <ResponsiveModal open={open} onOpenChange={onOpenChange}>
         <ResponsiveModalContent
           size="md"
-          className="h-[90dvh] md:h-auto bg-bg border-line p-0 rounded-t-[24px]"
+          className="h-[90dvh] md:h-auto bg-bg border-line p-0 rounded-t-[30px]"
         >
           <ResponsiveModalHeader className="px-5 pt-5 pb-0 flex-shrink-0">
             <ResponsiveModalTitle className="text-[18px] font-[800] text-ink text-left">
@@ -68,7 +68,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
           </ResponsiveModalHeader>
 
           <Tabs defaultValue="profil" className="flex-1 flex flex-col min-h-0 mt-3">
-            <TabsList className="flex-shrink-0 mx-5 bg-surface-2 rounded-[10px] p-0.5 h-9">
+            <TabsList className="flex-shrink-0 mx-5 bg-surface-2 rounded-pill p-0.5 h-9">
               <TabsTrigger
                 value="profil"
                 className="flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
@@ -115,7 +115,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
                 <Button
                   variant="outline"
                   onClick={() => setLogoutDialogOpen(true)}
-                  className="w-full border-error/30 text-error hover:text-error hover:bg-error-soft text-[14px] font-[700] rounded-[12px] gap-2"
+                  className="w-full border-error/30 text-error hover:text-error hover:bg-error-soft text-[14px] font-[700] rounded-md gap-2"
                 >
                   <LogOut className="h-4 w-4" />
                   Ausloggen
@@ -132,7 +132,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
       </ResponsiveModal>
 
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-        <AlertDialogContent className="bg-surface border-line rounded-[18px]">
+        <AlertDialogContent className="bg-surface border-line rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Ausloggen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">

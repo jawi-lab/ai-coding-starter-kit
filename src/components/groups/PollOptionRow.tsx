@@ -49,7 +49,7 @@ export function PollOptionRow({
         disabled: pending,
         'aria-pressed': selected,
       })}
-      className={`w-full text-left rounded-[12px] border p-3 transition-colors
+      className={`w-full text-left rounded-md border p-3 transition-colors
         ${selected ? 'border-primary bg-primary-soft' : 'border-line bg-surface'}
         ${readOnly ? '' : 'hover:border-primary/60 disabled:opacity-60'}`}
     >

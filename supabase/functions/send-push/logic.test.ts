@@ -324,7 +324,7 @@ describe('buildEmail', () => {
   });
 
   it('prefixes the subject and keeps the German body', () => {
-    expect(email.subject).toBe('ZUSAMMEN: Neuer Vorschlag');
+    expect(email.subject).toBe('Mellon: Neuer Vorschlag');
     expect(email.text).toContain('Lea hat „Kino" vorgeschlagen');
   });
 

@@ -142,7 +142,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
           <LoadingSkeleton />
         ) : (
           <Tabs defaultValue="zu_planen" className="h-full flex flex-col">
-            <TabsList className="flex-shrink-0 w-full h-auto bg-surface-2 rounded-[12px] p-1 gap-0.5 mb-4 grid grid-cols-4">
+            <TabsList className="flex-shrink-0 w-full h-auto bg-surface-2 rounded-md p-1 gap-0.5 mb-4 grid grid-cols-4">
               {KANBAN_STATUSES.map((s) => (
                 <TabsTrigger
                   key={s}
@@ -176,8 +176,8 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
             {KANBAN_STATUSES.map((s) => (
               <div key={s} className="space-y-3">
                 <Skeleton className="h-5 w-24 bg-surface rounded" />
-                <Skeleton className="h-[140px] w-full bg-surface rounded-[18px]" />
-                <Skeleton className="h-[140px] w-full bg-surface rounded-[18px]" />
+                <Skeleton className="h-[140px] w-full bg-surface rounded-lg" />
+                <Skeleton className="h-[140px] w-full bg-surface rounded-lg" />
               </div>
             ))}
           </>
@@ -242,7 +242,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-3 pt-2">
       {[1, 2, 3].map((i) => (
-        <Skeleton key={i} className="h-[160px] w-full rounded-[18px] bg-surface" />
+        <Skeleton key={i} className="h-[160px] w-full rounded-lg bg-surface" />
       ))}
     </div>
   )

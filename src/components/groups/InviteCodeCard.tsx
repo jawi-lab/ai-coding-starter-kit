@@ -42,9 +42,9 @@ export function InviteCodeCard({ code, isAdmin, onRegenerate }: InviteCodeCardPr
   }
 
   return (
-    <div className="bg-surface-2 border border-line rounded-[14px] p-4 space-y-3">
+    <div className="bg-surface-2 border border-line rounded-md p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-[800] uppercase tracking-[0.1em] text-ink-3">
+        <span className="text-[11px] font-semibold tracking-[0.06em] text-ink-3">
           Einladungs-Code
         </span>
         {isAdmin && (
@@ -59,7 +59,7 @@ export function InviteCodeCard({ code, isAdmin, onRegenerate }: InviteCodeCardPr
                 Neu generieren
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-[18px] bg-surface border-line max-w-sm">
+            <AlertDialogContent className="rounded-lg bg-surface border-line max-w-sm">
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-[18px] font-[800] text-ink">
                   Code neu generieren?
@@ -75,7 +75,7 @@ export function InviteCodeCard({ code, isAdmin, onRegenerate }: InviteCodeCardPr
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleRegenerate}
-                  className="rounded-md bg-primary hover:bg-primary-600 text-white border-primary-600"
+                  className="rounded-md bg-primary hover:bg-primary/90 text-white"
                 >
                   {regenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -90,7 +90,7 @@ export function InviteCodeCard({ code, isAdmin, onRegenerate }: InviteCodeCardPr
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="flex-1 text-[26px] font-[900] tracking-[0.25em] text-ink font-mono">
+        <span className="flex-1 text-[26px] font-extrabold tracking-[0.25em] text-ink font-mono">
           {code ?? '——————'}
         </span>
         <Button

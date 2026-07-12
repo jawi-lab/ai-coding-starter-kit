@@ -53,7 +53,7 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
       <div className="space-y-1.5">
         <Label
           htmlFor="invite-code"
-          className="text-[13px] font-semibold text-ink-2 uppercase tracking-[0.08em]"
+          className="text-[13px] font-semibold text-ink-2 tracking-[0.06em]"
         >
           Einladungs-Code
         </Label>
@@ -71,7 +71,7 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
           spellCheck={false}
           className="h-11 text-[17px] font-bold tracking-[0.25em] text-center border-[1.5px] border-line
                      bg-surface rounded-md px-[14px] uppercase
-                     focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
+                     focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
           aria-describedby={error ? 'invite-code-error' : undefined}
           aria-invalid={!!error}
         />
@@ -88,8 +88,8 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
       <Button
         type="submit"
         disabled={submitting || code.length !== 6}
-        className="w-full h-11 bg-secondary hover:bg-secondary-600 text-white font-semibold text-[15px]
-                   rounded-md border border-secondary-600 tracking-[0.005em] disabled:opacity-40"
+        className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold text-[15px]
+                   rounded-md tracking-[0.005em] disabled:opacity-40"
       >
         {submitting ? (
           <>

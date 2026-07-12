@@ -59,7 +59,7 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
       <div className="space-y-1.5">
         <Label
           htmlFor="group-name"
-          className="text-[13px] font-semibold text-ink-2 uppercase tracking-[0.08em]"
+          className="text-[13px] font-semibold text-ink-2 tracking-[0.06em]"
         >
           Gruppenname
         </Label>
@@ -74,7 +74,7 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
           maxLength={MAX_GROUP_NAME_LENGTH}
           autoFocus
           className="h-11 text-[15px] border-[1.5px] border-line bg-surface rounded-md px-[14px]
-                     focus-visible:ring-0 focus-visible:border-secondary focus-visible:shadow-[0_0_0_3px_var(--secondary-soft)]"
+                     focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
           aria-describedby={error ? 'group-name-error' : undefined}
           aria-invalid={!!error}
         />
@@ -89,8 +89,8 @@ export function CreateGroupForm({ onSuccess }: CreateGroupFormProps) {
       <Button
         type="submit"
         disabled={submitting}
-        className="w-full h-11 bg-primary hover:bg-primary-600 text-white font-semibold text-[15px]
-                   rounded-md border border-primary-600 tracking-[0.005em]"
+        className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold text-[15px]
+                   rounded-md tracking-[0.005em]"
       >
         {submitting ? (
           <>

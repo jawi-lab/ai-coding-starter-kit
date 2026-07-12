@@ -29,7 +29,7 @@ export function ArchiveTab() {
     return (
       <div className="space-y-3 px-5 pt-4">
         {[1, 2, 3].map(i => (
-          <Skeleton key={i} className="h-[168px] w-full rounded-[18px] bg-surface" />
+          <Skeleton key={i} className="h-[168px] w-full rounded-lg bg-surface" />
         ))}
       </div>
     )
@@ -64,7 +64,7 @@ export function ArchiveTab() {
           <div className="pt-1">
             <Button
               variant="outline"
-              className="w-full border-line text-ink-2 text-[13px] font-[700] rounded-[12px]"
+              className="w-full border-line text-ink-2 text-[13px] font-[700] rounded-md"
               onClick={loadMore}
               disabled={loadingMore}
             >
