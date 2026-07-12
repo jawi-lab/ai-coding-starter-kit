@@ -288,6 +288,7 @@ Deno.serve(async (req) => {
     activityName: activityName!,
     responsibilityLabel: desc.responsibilityLabel,
     startDate: desc.startDate,
+    pollQuestion: desc.pollQuestion,
   });
   const target = buildPushTarget(desc.event, groupId!, desc.activityId);
 

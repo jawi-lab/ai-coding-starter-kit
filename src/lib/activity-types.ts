@@ -143,6 +143,58 @@ export interface UpdateActivityDetailInput {
   url?: string | null
 }
 
+// PROJ-14: Umfragen (Polls) types
+
+/** Grenzwerte für Umfragen – gespiegelt in DB-CHECK-Constraints (siehe /backend). */
+export const POLL_QUESTION_MAX = 255
+export const POLL_OPTION_MAX = 100
+export const POLL_MIN_OPTIONS = 2
+export const POLL_MAX_OPTIONS = 12
+
+/** Ab wie vielen Avataren an einer Option auf „+N" zusammengefasst wird. */
+export const POLL_AVATAR_LIMIT = 5
+
+export interface PollProfile {
+  id: string
+  display_name: string
+  avatar_url: string | null
+}
+
+export interface ActivityPollVote {
+  id: string
+  option_id: string
+  activity_id: string
+  user_id: string
+  created_at: string
+  // null, wenn das Profil nicht mehr existiert (Account gelöscht → „Ehemaliges Mitglied")
+  voter: PollProfile | null
+}
+
+export interface ActivityPollOption {
+  id: string
+  poll_id: string
+  activity_id: string
+  option_text: string
+  position: number
+  votes: ActivityPollVote[]
+}
+
+export interface ActivityPoll {
+  id: string
+  activity_id: string
+  created_by: string
+  question: string
+  created_at: string
+  creator: PollProfile | null
+  options: ActivityPollOption[]
+}
+
+export interface CreatePollInput {
+  activity_id: string
+  question: string
+  options: string[]
+}
+
 export const DURATION_CATEGORY_LABELS: Record<DurationCategory, string> = {
   spontan: 'Spontan',
   wochenende: 'Wochenende',

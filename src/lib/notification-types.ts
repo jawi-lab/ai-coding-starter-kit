@@ -1,10 +1,10 @@
 /**
  * PROJ-12 shared notification metadata (client side).
  *
- * The five events mirror PROJ-10's `PushEvent` union (send-push/logic.ts). That
- * type lives in the Deno edge function and can't be imported here, so we redeclare
- * it — keep both lists in sync. These labels/descriptions drive the per-type
- * preference matrix; the in-app inbox itself shows the server-frozen title/body.
+ * These events mirror the `PushEvent` union (send-push/logic.ts). That type lives in
+ * the Deno edge function and can't be imported here, so we redeclare it — keep both
+ * lists in sync. These labels/descriptions drive the per-type preference matrix; the
+ * in-app inbox itself shows the server-frozen title/body.
  */
 
 export const NOTIFICATION_EVENTS = [
@@ -13,6 +13,7 @@ export const NOTIFICATION_EVENTS = [
   'date_set',
   'mention',
   'responsibility',
+  'umfrage_erstellt',
 ] as const
 
 export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number]
@@ -41,6 +42,10 @@ export const EVENT_META: Record<
   responsibility: {
     label: 'Aufgaben',
     description: 'Wenn du für etwas verantwortlich wirst',
+  },
+  umfrage_erstellt: {
+    label: 'Umfragen',
+    description: 'Wenn jemand eine Umfrage in einer Aktivität startet',
   },
 }
 

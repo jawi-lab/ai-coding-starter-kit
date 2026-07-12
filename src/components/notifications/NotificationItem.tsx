@@ -1,6 +1,6 @@
 'use client'
 
-import { AtSign, CalendarCheck, CheckSquare, KanbanSquare, Lightbulb } from 'lucide-react'
+import { AtSign, BarChart3, CalendarCheck, CheckSquare, KanbanSquare, Lightbulb } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { parsePushTarget, pushTargetToPath } from '@/lib/native/push'
 import { formatRelativeGerman } from '@/lib/date-format'
@@ -8,13 +8,14 @@ import { cn } from '@/lib/utils'
 import type { NotificationRow } from '@/hooks/useNotifications'
 import type { NotificationEvent } from '@/lib/notification-types'
 
-/** Same five events as PROJ-10, one glyph each. Fallback keeps unknown events safe. */
+/** One glyph per notification event. Fallback keeps unknown events safe. */
 const EVENT_ICON: Record<NotificationEvent, LucideIcon> = {
   new_proposal: Lightbulb,
   now_planning: KanbanSquare,
   date_set: CalendarCheck,
   mention: AtSign,
   responsibility: CheckSquare,
+  umfrage_erstellt: BarChart3,
 }
 
 interface NotificationItemProps {

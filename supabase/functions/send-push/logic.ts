@@ -7,7 +7,8 @@ export type PushEvent =
   | 'now_planning'
   | 'date_set'
   | 'mention'
-  | 'responsibility';
+  | 'responsibility'
+  | 'umfrage_erstellt';
 
 export interface WebhookPayload {
   type: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -36,6 +37,8 @@ export interface EventDescriptor {
   responsibilityLabel?: string;
   /** date_set: the newly set start_date (YYYY-MM-DD). */
   startDate?: string;
+  /** umfrage_erstellt: the poll question shown in the notification body. */
+  pollQuestion?: string;
 }
 
 /** Deep-link data attached to every push (all values become strings for FCM). */
@@ -130,6 +133,19 @@ export function classifyEvent(p: WebhookPayload): EventDescriptor | null {
     };
   }
 
+  // PROJ-14: a new poll notifies every activity member except its creator. group_id
+  // + activity name aren't in the poll row → index.ts resolves them from the activity.
+  if (p.table === 'activity_polls' && p.type === 'INSERT') {
+    const activityId = str(rec.activity_id);
+    if (!activityId) return null;
+    return {
+      event: 'umfrage_erstellt',
+      activityId,
+      actorId: str(rec.created_by) ?? null,
+      pollQuestion: str(rec.question),
+    };
+  }
+
   return null;
 }
 
@@ -139,6 +155,8 @@ const TAB_BY_EVENT: Record<PushEvent, string> = {
   date_set: 'termine',
   mention: 'planung',
   responsibility: 'planung',
+  // Polls live in the activity detail, opened from the planning board.
+  umfrage_erstellt: 'planung',
 };
 
 /** Builds the deep-link target the tap handler navigates to. */
@@ -162,6 +180,7 @@ export interface MessageContext {
   activityName: string;
   responsibilityLabel?: string;
   startDate?: string;
+  pollQuestion?: string;
 }
 
 /** Builds the German notification title + body for an event. */
@@ -190,6 +209,13 @@ export function buildMessage(
         body: ctx.responsibilityLabel
           ? `Du bist jetzt verantwortlich für „${ctx.responsibilityLabel}" (${name})`
           : `Du hast eine neue Aufgabe in „${name}"`,
+      };
+    case 'umfrage_erstellt':
+      return {
+        title: 'Neue Umfrage',
+        body: ctx.pollQuestion
+          ? `${actor} hat eine Umfrage in „${name}" gestartet: ${ctx.pollQuestion}`
+          : `${actor} hat eine Umfrage in „${name}" gestartet`,
       };
   }
 }

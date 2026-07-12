@@ -24,13 +24,14 @@ describe('formatBadgeCount', () => {
 })
 
 describe('notification event metadata', () => {
-  it('covers exactly the five PROJ-10 events', () => {
+  it('covers exactly the six notification events', () => {
     expect(NOTIFICATION_EVENTS).toEqual([
       'new_proposal',
       'now_planning',
       'date_set',
       'mention',
       'responsibility',
+      'umfrage_erstellt',
     ])
   })
 

@@ -174,6 +174,130 @@ export type Database = {
           },
         ]
       }
+      activity_poll_options: {
+        Row: {
+          activity_id: string
+          id: string
+          option_text: string
+          poll_id: string
+          position: number
+        }
+        Insert: {
+          activity_id: string
+          id?: string
+          option_text: string
+          poll_id: string
+          position: number
+        }
+        Update: {
+          activity_id?: string
+          id?: string
+          option_text?: string
+          poll_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_poll_options_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "activity_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_poll_votes: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          option_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          option_id: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_poll_votes_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "activity_poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_polls: {
+        Row: {
+          activity_id: string
+          created_at: string
+          created_by: string
+          id: string
+          question: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          question: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_polls_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_responsibilities: {
         Row: {
           activity_id: string
@@ -419,12 +543,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          email_enabled: boolean
+          event: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          event: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean
+          event?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
-        // PROJ-12 in-app inbox. One row per recipient per event. Title/body are
-        // frozen German strings written server-side (send-push fan-out); the
-        // deep-link target ({group_id, activity_id, tab}) mirrors the PROJ-10
-        // push payload so the same navigation logic handles both. Client only
-        // ever reads its own rows and flips `read` to true.
         Row: {
           activity_id: string | null
           body: string
@@ -471,41 +622,6 @@ export type Database = {
           },
         ]
       }
-      notification_preferences: {
-        // PROJ-12 per-type channel switches. Up to 5 rows per user (one per
-        // event). A missing row means the default (push on, email off) — the
-        // send-push fan-out treats "no row" identically, so no backfill needed.
-        Row: {
-          email_enabled: boolean
-          event: string
-          push_enabled: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          email_enabled?: boolean
-          event: string
-          push_enabled?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          email_enabled?: boolean
-          event?: string
-          push_enabled?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -513,8 +629,7 @@ export type Database = {
           display_name: string
           id: string
           onboarded: boolean
-          // Manually narrowed from the generated `string` (CHECK constraint
-          // status IN ('pending','active')) so AuthContext's Profile type lines up.
+          // Hand-narrowed (gen types emits `string`): the app's Profile type relies on this union.
           status: 'pending' | 'active'
           updated_at: string
         }
@@ -524,7 +639,7 @@ export type Database = {
           display_name: string
           id: string
           onboarded?: boolean
-          status?: 'pending' | 'active'
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -533,7 +648,7 @@ export type Database = {
           display_name?: string
           id?: string
           onboarded?: boolean
-          status?: 'pending' | 'active'
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -568,6 +683,8 @@ export type Database = {
     }
     Functions: {
       create_group_with_membership: { Args: { p_name: string }; Returns: Json }
+      is_activity_group_member: { Args: { aid: string }; Returns: boolean }
+      is_activity_polls_writable: { Args: { aid: string }; Returns: boolean }
       is_group_admin: { Args: { gid: string }; Returns: boolean }
       is_group_member: { Args: { gid: string }; Returns: boolean }
       join_group_by_invite_code: {

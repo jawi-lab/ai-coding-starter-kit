@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import MentionExt from '@tiptap/extension-mention'
@@ -32,6 +32,7 @@ import { getPublicUrl } from '@/lib/storage'
 import { exportToIcal } from '@/lib/ical-export'
 import { useActivityDetail } from '@/hooks/useActivityDetail'
 import { DateFinderSheet } from './DateFinderSheet'
+import { PollSection } from './PollSection'
 import {
   useActivityComments, uploadCommentImage, deleteCommentImages,
 } from '@/hooks/useActivityComments'
@@ -778,6 +779,20 @@ export function ActivityDetailSheet({
     </div>
   ) : null
 
+  // Umfragen-Sektion (PROJ-14): sichtbar ab "zu_planen"; bei "abgeschlossen"/Archiv nur lesbar.
+  const memberIds = useMemo(() => new Set(members.map((m) => m.user_id)), [members])
+  const pollsSection = activity && status !== 'vorschlag' ? (
+    <PollSection
+      activityId={activity.id}
+      currentUserId={currentUserId}
+      isAdmin={isAdmin}
+      memberCount={members.length}
+      memberIds={memberIds}
+      status={activity.status}
+      readOnly={readOnly}
+    />
+  ) : null
+
   const photosSection = showPhotos ? (
     <div className="space-y-3">
       <h3 className="text-[13px] font-[800] text-ink uppercase tracking-[0.06em]">
@@ -1116,6 +1131,8 @@ export function ActivityDetailSheet({
                   {calendarSection && <Separator className="bg-line" />}
                   {responsibilitiesSection}
                   {responsibilitiesSection && <Separator className="bg-line" />}
+                  {pollsSection}
+                  {pollsSection && <Separator className="bg-line" />}
                   {photosSection}
                   {photosSection && <Separator className="bg-line" />}
                   {commentsSection}
@@ -1144,6 +1161,7 @@ export function ActivityDetailSheet({
                     {infoPanel}
                     {calendarSection}
                     {responsibilitiesSection}
+                    {pollsSection}
                     {photosSection}
                   </div>
                 </div>

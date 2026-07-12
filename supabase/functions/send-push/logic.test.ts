@@ -145,6 +145,31 @@ describe('classifyEvent — comments & responsibilities', () => {
   });
 });
 
+describe('classifyEvent — polls (PROJ-14)', () => {
+  it('detects a new poll and carries the question + creator', () => {
+    const desc = classifyEvent(
+      payload({
+        table: 'activity_polls',
+        record: { id: 'poll-1', activity_id: ACTIVITY, created_by: ACTOR, question: 'Welches Restaurant?' },
+      }),
+    );
+    expect(desc).toMatchObject({
+      event: 'umfrage_erstellt',
+      activityId: ACTIVITY,
+      actorId: ACTOR,
+      pollQuestion: 'Welches Restaurant?',
+    });
+    // group/name unknown at classify time — resolved from the activity row later.
+    expect(desc?.groupId).toBeUndefined();
+  });
+
+  it('ignores poll updates/deletes (only INSERT notifies)', () => {
+    expect(
+      classifyEvent(payload({ type: 'UPDATE', table: 'activity_polls', record: { id: 'p', activity_id: ACTIVITY } })),
+    ).toBeNull();
+  });
+});
+
 describe('resolveRecipients', () => {
   const members = [ACTOR, OTHER, THIRD];
 
@@ -220,6 +245,15 @@ describe('buildMessage', () => {
     expect(buildMessage('responsibility', { actorName: 'Lea', activityName: 'Kino', responsibilityLabel: 'Tickets' }).body).toBe(
       'Du bist jetzt verantwortlich für „Tickets" (Kino)',
     );
+  });
+
+  it('names actor, activity and question for a new poll', () => {
+    expect(
+      buildMessage('umfrage_erstellt', { actorName: 'Lea', activityName: 'Kino', pollQuestion: 'Welcher Film?' }),
+    ).toEqual({
+      title: 'Neue Umfrage',
+      body: 'Lea hat eine Umfrage in „Kino" gestartet: Welcher Film?',
+    });
   });
 });
 
