@@ -21,8 +21,6 @@ export interface GroupShell {
    * only ever one create entry point per screen. Navigates to the Übersicht tab.
    */
   openCreateProposal: () => void
-  /** Open the shared group settings sheet (rendered once in the group layout). */
-  openGroupSettings: () => void
   /**
    * The Übersicht tab registers its proposals refetch here so the lifted create
    * sheet can refresh the list after a successful create. Pass `null` to clear.

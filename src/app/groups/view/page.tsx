@@ -150,7 +150,6 @@ function GroupView() {
               openActivityDetail: setDetailActivityId,
               refetchGroup: refetch,
               openCreateProposal,
-              openGroupSettings: () => setSettingsOpen(true),
               registerProposalsRefetch,
             }}
           >

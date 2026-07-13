@@ -52,21 +52,21 @@ describe('CreateGroupForm — Validation', () => {
     expect(mockCreateGroup).not.toHaveBeenCalled()
   })
 
-  it('shows error when name exceeds 50 characters', async () => {
+  it('shows error when name exceeds 20 characters', async () => {
     render(<CreateGroupForm />)
-    typeInto(screen.getByRole('textbox'), 'A'.repeat(51))
+    typeInto(screen.getByRole('textbox'), 'A'.repeat(21))
     submitForm()
     await waitFor(() => {
-      expect(screen.getByText('Gruppenname darf maximal 50 Zeichen lang sein')).toBeInTheDocument()
+      expect(screen.getByText('Gruppenname darf maximal 20 Zeichen lang sein')).toBeInTheDocument()
     })
     expect(mockCreateGroup).not.toHaveBeenCalled()
   })
 
   it('shows character counter', () => {
     render(<CreateGroupForm />)
-    expect(screen.getByText('0/50 Zeichen')).toBeInTheDocument()
+    expect(screen.getByText('0/20 Zeichen')).toBeInTheDocument()
     typeInto(screen.getByRole('textbox'), 'Test')
-    expect(screen.getByText('4/50 Zeichen')).toBeInTheDocument()
+    expect(screen.getByText('4/20 Zeichen')).toBeInTheDocument()
   })
 
   it('calls createGroup with trimmed name on valid submit', async () => {
