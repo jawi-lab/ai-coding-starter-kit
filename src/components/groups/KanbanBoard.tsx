@@ -136,20 +136,26 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
 
   return (
     <>
-      {/* Mobile: shadcn Tabs (< 768px) */}
+      {/* Mobile: shadcn Tabs (< 768px) — Kategorie-Chips wie auf „Vorschläge":
+          horizontal scrollbare Pillen mit feiner Trennlinie darunter. */}
       <div className="md:hidden h-full flex flex-col">
         {loading ? (
-          <LoadingSkeleton />
+          <div className="px-4 pt-3">
+            <LoadingSkeleton />
+          </div>
         ) : (
           <Tabs defaultValue="zu_planen" className="h-full flex flex-col">
-            <TabsList className="flex-shrink-0 w-full h-auto bg-surface-2 rounded-md p-1 gap-0.5 mb-4 grid grid-cols-4">
+            <TabsList className="flex-shrink-0 w-full h-auto justify-start gap-2 overflow-x-auto no-scrollbar
+                                 rounded-none bg-transparent px-4 py-3 border-b border-line">
               {KANBAN_STATUSES.map((s) => (
                 <TabsTrigger
                   key={s}
                   value={s}
-                  className="text-[10px] font-[700] rounded-[9px] px-1 py-1.5 leading-tight
-                             data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm
-                             text-ink-3 whitespace-normal text-center"
+                  className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
+                             border-[1.5px] border-line bg-surface text-ink-2 transition-all
+                             hover:border-primary/40
+                             data-[state=active]:bg-primary data-[state=active]:text-white
+                             data-[state=active]:border-primary data-[state=active]:shadow-none"
                 >
                   {KANBAN_COLUMN_LABELS[s]}
                 </TabsTrigger>
@@ -157,7 +163,11 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
             </TabsList>
 
             {KANBAN_STATUSES.map((s) => (
-              <TabsContent key={s} value={s} className="flex-1 overflow-y-auto mt-0 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+              <TabsContent
+                key={s}
+                value={s}
+                className="flex-1 overflow-y-auto mt-0 px-4 pt-3 pb-[calc(6rem+env(safe-area-inset-bottom))]"
+              >
                 <KanbanColumn
                   status={s}
                   activities={byStatus[s]}

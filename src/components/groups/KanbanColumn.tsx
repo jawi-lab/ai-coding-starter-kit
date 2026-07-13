@@ -64,8 +64,10 @@ export function KanbanColumn({
         onDropActivity(status)
       }}
     >
-      {/* Column header — Mellon-Status-Dot + Label */}
-      <div className="flex items-center gap-2 mb-3 flex-shrink-0 px-1 pt-1">
+      {/* Column header — Mellon-Status-Dot + Label. Mobil ausgeblendet: dort
+          benennt bereits der aktive Kategorie-Chip die Spalte (wie „Vorschläge").
+          Desktop (4-Spalten-Grid) braucht die Überschrift je Spalte. */}
+      <div className="hidden md:flex items-center gap-2 mb-3 flex-shrink-0 px-1 pt-1">
         <span
           aria-hidden
           className="h-[7px] w-[7px] rounded-pill flex-shrink-0"
