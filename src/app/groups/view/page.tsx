@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -88,16 +89,31 @@ function GroupView() {
         onProfile={() => setProfileOpen(true)}
       />
 
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Auf Mobile Platz für die fixierte Bottom-Nav reservieren (wie auf Home),
+          damit Listen-Ende und schwebender FAB über der Navigation bleiben. */}
+      <div className="flex-1 min-w-0 flex flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       {/* Header */}
       <header className="flex-shrink-0 bg-bg pt-safe">
         <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center relative">
-          {/* Gruppenname mittig — hart auf 20 Zeichen gekürzt (siehe truncateName).
-              Kein Zurück-Pfeil mehr — „Home" in der Bottom-Nav ersetzt ihn.
-              Nutzer-Inhalt → Display-Serif (Mellon). */}
-          <h1 className="absolute left-1/2 -translate-x-1/2 max-w-[45%] text-center font-serif font-medium text-[19px] tracking-[-0.015em] text-ink truncate leading-tight">
-            {loading && !group ? '…' : group ? truncateName(group.name) : 'Gruppe'}
-          </h1>
+          {/* Gruppenname mittig, klickbar → öffnet die Gruppen-Einstellungen
+              (ersetzt den früheren „Gruppe"-Button in der Vorschläge-Liste).
+              Hart auf 20 Zeichen gekürzt (siehe truncateName). Kein Zurück-Pfeil
+              mehr — „Home" in der Bottom-Nav ersetzt ihn. Nutzer-Inhalt →
+              Display-Serif (Mellon). */}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            disabled={!group}
+            aria-label="Gruppen-Einstellungen öffnen"
+            className="absolute left-1/2 -translate-x-1/2 max-w-[62%] flex items-center gap-1.5
+                       px-2 py-1 rounded-pill text-ink transition
+                       hover:bg-surface-2 active:scale-[0.98] disabled:pointer-events-none"
+          >
+            <Users className="h-[18px] w-[18px] flex-shrink-0 text-ink-3" strokeWidth={2} />
+            <span className="font-serif font-medium text-[19px] tracking-[-0.015em] truncate leading-tight">
+              {loading && !group ? '…' : group ? truncateName(group.name) : 'Gruppe'}
+            </span>
+          </button>
 
           <div className="ml-auto flex items-center gap-1">
             <NotificationBell />
@@ -148,15 +164,20 @@ function GroupView() {
         )}
       </div>
 
-      {/* Bottom-Navigation — nur mobil/nativ. Desktop nutzt die Sidebar. */}
-      {group && (
-        <GroupBottomNav
-          active={activeSeg}
-          targetGroupId={groupId}
-          onProfile={() => setProfileOpen(true)}
-        />
-      )}
       </div>
+
+      {/* Persistente Bottom-Navigation — nur mobil/nativ, fixiert am Viewport-Rand
+          (identisch zu Home, damit sie sich auf Mobile/Android/iOS überall gleich
+          verhält). Desktop nutzt die Sidebar. */}
+      {group && (
+        <div className="md:hidden fixed inset-x-0 bottom-0 z-20">
+          <GroupBottomNav
+            active={activeSeg}
+            targetGroupId={groupId}
+            onProfile={() => setProfileOpen(true)}
+          />
+        </div>
+      )}
 
       {/* Zentrales „neuer Vorschlag"-Sheet (einziger Erstellen-Einstieg) */}
       <ProposalFormSheet

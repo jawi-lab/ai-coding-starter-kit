@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Users } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,7 +29,7 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
 
 export function VorschlaegeTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, openGroupSettings, registerProposalsRefetch } =
+  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
     useGroupShell()
 
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
@@ -121,21 +121,6 @@ export function VorschlaegeTab() {
                   onOpenDetail={(p) => openActivityDetail(p.id)}
                 />
               ))}
-            </div>
-          )}
-
-          {/* Gruppen-Einstellungen — ersetzt das frühere Personen-Icon aus der Top-Bar. */}
-          {!loading && (
-            <div className="mt-5 flex justify-center">
-              <Button
-                variant="outline"
-                onClick={openGroupSettings}
-                className="w-full md:w-auto h-11 px-5 border-line text-ink-2
-                           gap-2 font-semibold hover:bg-surface-2 hover:text-ink"
-              >
-                <Users className="h-4 w-4" />
-                Gruppe
-              </Button>
             </div>
           )}
         </div>
