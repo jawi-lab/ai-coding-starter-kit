@@ -241,6 +241,39 @@ Kein neuer API-Endpunkt, keine Edge Function, kein Server-Rendering. Die gesamte
 - RLS: Mitglieder lesen die Akte ihrer Gruppe; `group_momentum_seen` nur eigene Zeile lesen/schreiben; Akte nicht client-schreibbar.
 - Backfill-Migration + Join-Trigger laut Tech Design (Gesehen-Wert seeden).
 
+## Backend Implementation (/backend)
+
+**Datum:** 2026-07-13 · **Status:** Live in Supabase (Migrationen `proj15_group_momentum`, `proj15_momentum_harden_functions`).
+
+### Schema (deployed)
+- **`group_momentum`** — `group_id` (PK, FK→groups CASCADE), `completed_count` (≥0), `highest_milestone` (CHECK in 0/5/10/25), `updated_at`.
+- **`group_momentum_seen`** — PK (`group_id`,`user_id`), FK→groups/auth.users CASCADE, `highest_seen_milestone` (CHECK in 0/5/10/25), `updated_at` (per Trigger gepflegt).
+- Partial-Index `idx_activities_group_completed` auf `activities(group_id) WHERE status='abgeschlossen'` für den Trigger-Recount.
+
+### Automatik (Trigger, alle SECURITY DEFINER)
+- `refresh_group_momentum(gid)` — Recount + `GREATEST`-Upsert: Marke steigt monoton, sinkt nie (Anti-Konfetti-Farming, atomar bei Gleichzeitigkeit via Row-Lock).
+- `trg_activity_momentum` auf `activities` (INSERT/UPDATE/DELETE, inkl. Gruppenwechsel → beide Gruppen).
+- `trg_group_momentum_init` auf `groups` — neue Gruppe bekommt sofort eine Akte (Banner „Neue Gruppe · 0" ab Sekunde 1).
+- `trg_member_momentum_seen_seed` auf `group_members` — Beitritt seedet Gesehen-Wert = aktueller Gruppen-Meilenstein (keine Alt-Feiern).
+
+### RLS & Härtung
+- `group_momentum`: SELECT nur für Gruppenmitglieder (`is_group_member`); **keine** Client-Schreib-Policies — Zahlen fälschungssicher.
+- `group_momentum_seen`: SELECT/INSERT/UPDATE nur eigene Zeile + Mitgliedschaft.
+- EXECUTE auf allen Momentum-Funktionen für `public`/`anon`/`authenticated` revoked (nicht als RPC gedacht; Trigger feuern unabhängig davon).
+- `group_momentum` zur `supabase_realtime`-Publication hinzugefügt (Banner/Feier-Updates).
+
+### Backfill (verifiziert)
+- 5/5 Gruppen mit Akte, 8/8 Mitglieder mit Gesehen-Vermerk = Gruppen-Meilenstein → keine rückwirkende Feier.
+- Größter Bestand: eine Gruppe mit 4 abgeschlossenen (Marke 0) — der nächste Abschluss löst dort die erste 5er-Feier aus.
+
+### Tests (verifiziert)
+- **DB-Trigger transaktional getestet (mit Rollback):** 0→5 Abschlüsse ⇒ Count 5/Marke 5; alle löschen ⇒ Count 0/**Marke bleibt 5** (monoton). ✓
+- **RLS-Negativtest:** `authenticated` ohne Mitgliedschaft sieht 0 Zeilen, Update trifft 0 Zeilen. ✓
+- **`useGroupMomentum.test.ts` (7 Tests):** Laden, höchster verpasster Meilenstein, fehlende Seen-Zeile, fehlende Akte (still), Upsert bei `markCelebrationSeen`, Realtime-Subscription, Channel-Cleanup. ✓
+- `database.types.ts` gegen das echte Schema verifiziert (Generator-Output identisch mit Frontend-Vertrag) + neue Functions-Einträge ergänzt.
+
+Kein API-Endpunkt, keine Edge Function — komplett Static-Export-konform (DB-Automatik + Client).
+
 ## QA Test Results
 _To be added by /qa_
 

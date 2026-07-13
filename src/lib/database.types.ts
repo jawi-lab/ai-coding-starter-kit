@@ -749,6 +749,11 @@ export type Database = {
         Args: { p_invite_code: string }
         Returns: Json
       }
+      momentum_milestone_for: { Args: { p_count: number }; Returns: number }
+      refresh_group_momentum: {
+        Args: { p_group_id: string }
+        Returns: undefined
+      }
       register_device_token: {
         Args: { p_platform: string; p_token: string }
         Returns: undefined
