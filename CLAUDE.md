@@ -22,6 +22,9 @@ src/
   lib/              Utilities (supabase.ts, utils.ts)
 features/           Feature specifications (PROJ-X-name.md)
   INDEX.md          Feature status overview
+supabase/
+  migrations/       1:1 mirror of the remote DB migration history (see .claude/rules/backend.md)
+  functions/        Edge Functions (deployed via Supabase MCP)
 docs/
   PRD.md            Product Requirements Document
   production/       Production guides (Sentry, security, performance)

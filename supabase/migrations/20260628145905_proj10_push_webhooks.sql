@@ -1,24 +1,3 @@
--- PROJ-10: Database-side push triggers.
---
--- Five group events must fire a server-side push (architecture decision: DB
--- webhooks → send-push Edge Function, never a client call). We implement the
--- webhooks directly with pg_net so they are version-controlled here instead of
--- living only in the dashboard UI.
---
---   activities                INSERT (status=vorschlag)       → "Neuer Vorschlag"
---   activities                UPDATE (vorschlag→zu_planen)    → "Wird geplant"
---   activities                UPDATE (start_date null→set)    → "Termin steht"
---   activity_comments         INSERT (mentioned_user_ids > 0) → "@-Erwähnung"
---   activity_responsibilities INSERT                          → "Verantwortung"
---
--- The Edge Function classifies the event, resolves recipients (current group
--- members / mentioned / assigned), removes the trigger's actor, and sends FCM.
-
--- 1) Actor tracking on activities ------------------------------------------------
--- UPDATE webhook payloads do not carry who made the change, but the trigger
--- exclusion ("Auslöser bekommt nie eine Push") needs it. A BEFORE trigger stamps
--- the acting user (from the request JWT) onto the row so the AFTER webhook payload
--- carries it. NULL when changed by the service role (no actor to exclude).
 alter table public.activities
   add column if not exists last_changed_by uuid references public.profiles(id) on delete set null;
 
@@ -39,20 +18,8 @@ create trigger trg_activities_last_changed_by
   before insert or update on public.activities
   for each row execute function public.set_activity_last_changed_by();
 
--- 2) Async HTTP (pg_net) ---------------------------------------------------------
--- pg_net is a non-relocatable, Supabase-managed extension; its callable objects
--- live in the dedicated `net` schema regardless of the extension's home schema.
--- The "extension in public" advisor (QA-10-5) cannot be remediated by
--- `alter extension ... set schema` (not relocatable) and a drop/recreate would
--- risk the live webhook for an INFO-level lint — accepted as-is.
 create extension if not exists pg_net;
 
--- 3) Webhook secret in Vault -----------------------------------------------------
--- The Edge Function rejects calls whose `x-webhook-secret` header does not match
--- its PUSH_WEBHOOK_SECRET env var. The trigger reads the same value from Vault so
--- the secret is never hardcoded in this committed migration. Generated once here;
--- the value must be copied into the function's PUSH_WEBHOOK_SECRET secret (see the
--- /backend manual-setup notes in the feature spec).
 do $$
 begin
   if not exists (select 1 from vault.secrets where name = 'push_webhook_secret') then
@@ -65,7 +32,6 @@ begin
 end;
 $$;
 
--- 4) Webhook dispatch ------------------------------------------------------------
 create or replace function public.proj10_dispatch_push()
 returns trigger
 language plpgsql
@@ -80,7 +46,6 @@ begin
   where name = 'push_webhook_secret'
   limit 1;
 
-  -- Not configured yet (no secret) → do nothing, never block the write.
   if secret is null then
     return null;
   end if;
@@ -103,9 +68,6 @@ begin
   return null;
 end;
 $$;
-
--- 5) Triggers (narrow WHEN clauses keep the Edge Function from being woken for
---    irrelevant writes; it re-validates the event regardless) --------------------
 
 drop trigger if exists trg_push_activity_insert on public.activities;
 create trigger trg_push_activity_insert
@@ -137,7 +99,3 @@ create trigger trg_push_responsibility_insert
   for each row
   when (new.assigned_user_id is not null)
   execute function public.proj10_dispatch_push();
-
--- These are trigger functions, never meant to be callable as PostgREST RPCs.
-revoke execute on function public.proj10_dispatch_push() from public, anon, authenticated;
-revoke execute on function public.set_activity_last_changed_by() from public, anon, authenticated;

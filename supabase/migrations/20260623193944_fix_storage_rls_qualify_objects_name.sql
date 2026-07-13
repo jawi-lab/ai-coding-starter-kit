@@ -1,18 +1,7 @@
--- Fix: storage RLS group-membership checks for comment images & activity photos
---
--- The original policies extracted the activity id from the activity table's
--- `name` column instead of the uploaded storage object's path. Inside the
--- `FROM activities a` subquery an UNQUALIFIED `name` rebinds to activities.name
--- (inner scope shadows storage.objects), so is_group_member(NULL) => false and
--- EVERY upload/read was denied. This is why attaching an image to a comment
--- failed silently ("Upload fehlgeschlagen").
---
--- The activity id must be read from the OUTER storage row, so it has to be
--- qualified as storage.objects.name.
---
--- Path layout for both buckets: <activityId>/<userId>/<uuid>.<ext>
---   (storage.foldername(storage.objects.name))[1] = activityId
---   (storage.foldername(storage.objects.name))[2] = userId
+-- The previous fix still resolved `name` inside the `FROM activities a`
+-- subquery to activities.name (inner scope shadows the outer storage.objects).
+-- Qualify it explicitly as storage.objects.name so the activity id is taken
+-- from the uploaded object's path. Path: <activityId>/<userId>/<uuid>.<ext>
 
 -- ── activity-comment-images ────────────────────────────────────────────────
 DROP POLICY IF EXISTS comment_images_insert ON storage.objects;
@@ -52,7 +41,7 @@ CREATE POLICY comment_images_delete ON storage.objects
     )
   );
 
--- ── activity-photos (same latent bug) ──────────────────────────────────────
+-- ── activity-photos ─────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS activity_photos_insert ON storage.objects;
 CREATE POLICY activity_photos_insert ON storage.objects
   FOR INSERT TO public

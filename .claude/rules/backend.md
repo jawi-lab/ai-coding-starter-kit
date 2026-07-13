@@ -7,6 +7,12 @@ paths:
 
 # Backend Development Rules
 
+## Migrations (MANDATORY)
+- `supabase/migrations/` mirrors the remote migration history 1:1 — one file per applied migration, named `<version>_<name>.sql` (version = timestamp from `list_migrations`)
+- Every schema change goes through the Supabase MCP `apply_migration` tool AND must be saved as a matching file in `supabase/migrations/` in the same session — never one without the other
+- After any schema change, regenerate `src/lib/database.types.ts` (MCP `generate_typescript_types`). Keep the hand-narrowed `status: 'pending' | 'active'` union in `profiles` (see comment in the file)
+- To verify the mirror is complete, compare `ls supabase/migrations/` against MCP `list_migrations`
+
 ## Database (Supabase)
 - ALWAYS enable Row Level Security on every table
 - Create RLS policies for SELECT, INSERT, UPDATE, DELETE
