@@ -89,9 +89,7 @@ function GroupView() {
         onProfile={() => setProfileOpen(true)}
       />
 
-      {/* Auf Mobile Platz für die fixierte Bottom-Nav reservieren (wie auf Home),
-          damit Listen-Ende und schwebender FAB über der Navigation bleiben. */}
-      <div className="flex-1 min-w-0 flex flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex-1 min-w-0 flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 bg-bg pt-safe">
         <div className="max-w-5xl mx-auto w-full px-4 h-14 flex items-center relative">

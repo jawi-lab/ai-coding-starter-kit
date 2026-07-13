@@ -157,7 +157,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
             </TabsList>
 
             {KANBAN_STATUSES.map((s) => (
-              <TabsContent key={s} value={s} className="flex-1 overflow-y-auto mt-0 pb-6">
+              <TabsContent key={s} value={s} className="flex-1 overflow-y-auto mt-0 pb-[calc(6rem+env(safe-area-inset-bottom))]">
                 <KanbanColumn
                   status={s}
                   activities={byStatus[s]}

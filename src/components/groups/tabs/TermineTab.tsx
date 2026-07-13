@@ -76,7 +76,7 @@ export function TermineTab() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto">
-      <div className="max-w-5xl mx-auto w-full px-4 pb-28 pt-3">
+      <div className="max-w-5xl mx-auto w-full px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-28 pt-3">
         {error && <p className="mt-6 text-center text-[13px] text-error">{error}</p>}
 
         {loading ? (

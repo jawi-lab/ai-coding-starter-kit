@@ -91,9 +91,10 @@ export function VorschlaegeTab() {
         </div>
       </div>
 
-      {/* Proposal list */}
+      {/* Proposal list — scrollt mobil unter der fixierten Glas-Bottom-Nav durch
+          (Liquid-Glass wie auf Home); genug Bodenabstand für Nav + FAB. */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto w-full px-4 pb-28 pt-3">
+        <div className="max-w-5xl mx-auto w-full px-4 pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-28 pt-3">
           {error && <p className="mt-6 text-center text-[13px] text-error">{error}</p>}
 
           {loading ? (
@@ -142,9 +143,9 @@ export function VorschlaegeTab() {
       )}
 
       {/* Mobile-FAB (neuer Vorschlag) — schwebt unten rechts über der Liste,
-          direkt über der Bottom-Nav. */}
+          direkt über der fixierten Bottom-Nav. */}
       {canCreate && (
-        <div className="md:hidden absolute bottom-4 right-4 z-10">
+        <div className="md:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-10">
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"

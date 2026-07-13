@@ -31,7 +31,7 @@ export function AppearanceSection() {
               role="radio"
               aria-checked={active}
               onClick={() => setTheme(value)}
-              className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-[8px] text-[13px] font-[700] transition-colors
+              className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-pill text-[13px] font-[700] transition-colors
                 ${active
                   ? 'bg-surface text-ink shadow-sm'
                   : 'text-ink-3 hover:text-ink-2'
