@@ -30,7 +30,9 @@ export function MomentumLevelSheet({ open, onClose, momentum }: MomentumLevelShe
   return (
     <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveModalContent size="md">
-        <ResponsiveModalHeader>
+        {/* ResponsiveModalHeader bringt kein eigenes Padding mit (siehe
+            GroupDetailSheet) — ohne px klebt der Titel am Sheet-Rand. */}
+        <ResponsiveModalHeader className="px-5 pt-5 pb-4 md:px-6">
           <ResponsiveModalTitle>Eure Gruppen-Reise</ResponsiveModalTitle>
           <ResponsiveModalDescription>
             {count} {count === 1 ? 'gemeinsame Aktivität' : 'gemeinsame Aktivitäten'} abgeschlossen

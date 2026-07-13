@@ -1,6 +1,6 @@
 # PROJ-15: Gruppen-Momentum (Gamification)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-07-13
 **Last Updated:** 2026-07-13
 
@@ -275,7 +275,51 @@ Kein neuer API-Endpunkt, keine Edge Function, kein Server-Rendering. Die gesamte
 Kein API-Endpunkt, keine Edge Function — komplett Static-Export-konform (DB-Automatik + Client).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Datum:** 2026-07-13 · **Tester:** /qa (Chrome DevTools MCP, QA-Account `qa-bot@zusammen.test` in isolierter Testgruppe; Meilenstein-Zustände via SQL simuliert, danach vollständig zurückgesetzt)
+
+### Acceptance Criteria — 15/15 PASS
+
+| AC | Ergebnis | Nachweis |
+|----|----------|----------|
+| Banner mit Level/Zahl/Balken im Vorschläge-Tab | ✅ | Screenshot 375px, „Neue Gruppe · 0", Balken 0% |
+| 0 Aktivitäten → „Neue Gruppe", „Noch 5 bis Gruppe" | ✅ | exakter Spec-Wortlaut |
+| ≥25 → „Legendäre Gruppe", Rohzahl, **kein** Balken | ✅ | verifiziert bei 25 (mobil + Desktop 1440px) |
+| Banner rollenunabhängig sichtbar | ✅ | kollektiv, keine Rollen-Logik im Code; E2E AC-ROLLE |
+| Tap → Sheet mit Level-Leiter 1–4, erreicht/offen markiert | ✅ | Haken/Schwellen + „Aktuell"-Chip |
+| Realtime-Update ohne Reload | ✅ | SQL-Insert → Banner 0→4→5 live |
+| Abschluss erhöht Zahl um genau 1 | ✅ | DB-Trigger (transaktional getestet in /backend) |
+| Backfill zählt Bestand, ohne rückwirkende Feier | ✅ | /backend-Verifikation (5 Gruppen, 8 Mitglieder) |
+| Löschen senkt Zahl + Level live, ohne Fehlermeldung | ✅ | 5→4 ⇒ „Gruppe"→„Neue Gruppe" |
+| Erstmals Meilenstein → sofortige Vollbild-Feier | ✅ | 5. Abschluss → „Level up! Gruppe" via Realtime |
+| Andere Mitglieder sehen Feier genau einmal beim Öffnen | ✅ | Seen-Reset + Reload → genau 1 Feier |
+| Bereits gesehene Feier erscheint nicht erneut | ✅ | Reload nach Dismiss → keine Feier |
+| Tippen irgendwo schließt die Feier | ✅ | Dismiss + `highest_seen_milestone` persistiert |
+| Unterschreiten + erneutes Überschreiten → keine Re-Feier | ✅ | Anti-Farming (Marke monoton) |
+| Mehrere verpasste Meilensteine → nur höchster | ✅ | Seen 0 bei Marke 10 → nur „Eingespielte Gruppe", Seen springt auf 10 |
+
+### Edge Cases
+- Neue Gruppe · 0 ✅ · Segment-Fortschritt (11 ⇒ „Noch 14 bis Legendäre Gruppe", ~7%) ✅ · Legendär ohne Balken ✅ · Konfetti läuft (Canvas an Worker übergeben, verifiziert) ✅ · Konsole sauber (nur vorbestehende tiptap-Warnung) ✅
+
+### Security-Audit (Red Team, aus echtem Client + SQL)
+- Fremde Gruppen-Akte lesen → **0 Zeilen** ✅
+- Eigene Akte per PATCH manipulieren (`completed_count=999`) → **0 Zeilen** (keine Write-Policy) ✅
+- Gesehen-Wert für fremde Gruppe schreiben → **403 RLS-Violation** ✅
+- `authenticated` ohne Mitgliedschaft (SQL-Rollentest) → 0 Zeilen sichtbar/änderbar ✅
+- SECURITY-DEFINER-Funktionen aus REST-API revoked (Migration `proj15_momentum_harden_functions`) ✅
+
+### Gefundene Bugs (beide direkt behoben + re-verifiziert)
+| # | Schwere | Beschreibung | Fix |
+|---|---------|--------------|-----|
+| BUG-1 | Low | Level-Leiter: Sheet-Titel ohne Padding am Rand (ResponsiveModalHeader bringt kein eigenes Padding mit) | `px-5 pt-5 pb-4` ergänzt; Screenshot-Re-Check ✅ |
+| BUG-2 | High | Feier-Overlay ohne Hintergrund — `bg-surface-ink/95` kompiliert nicht (Token als rohes `var()` ohne `<alpha-value>`), Text unlesbar | Solid `bg-surface-ink`; Re-Check: deckender Waldgrün-Block ✅ |
+
+### Automatisierte Tests
+- Unit: `momentum.test.ts` (21) + `useGroupMomentum.test.ts` (7) — Suite 326/326 ✅
+- E2E: `tests/PROJ-15-gruppen-momentum.spec.ts` (6 Tests: Guard, Banner×2, Leiter×2, Rolle) — Chromium 6/6 ✅
+- Regression: bestehende Suite unverändert grün; Vorschläge-Tab/Filter/FAB funktionieren mit Banner ✅
+
+### Produktionsbereitschaft: **READY** — keine offenen Critical/High-Bugs.
 
 ## Deployment
 _To be added by /deploy_

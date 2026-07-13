@@ -62,8 +62,12 @@ export function MomentumCelebration({ milestone, count, onDismiss }: MomentumCel
       aria-modal="true"
       aria-label={`Level up: ${level.name}`}
       onClick={onDismiss}
+      // Voller, deckender Feier-Block: `bg-surface-ink/95` kompiliert NICHT,
+      // weil das Token als rohes var() ohne <alpha-value> definiert ist —
+      // Tailwind kann keinen Opacity-Modifier anwenden und lässt die Klasse
+      // weg (QA BUG-2: unsichtbarer Hintergrund). Daher solid + ohne Blur.
       className="fixed inset-0 z-[60] flex flex-col items-center justify-center
-                 bg-surface-ink/95 backdrop-blur-sm cursor-pointer
+                 bg-surface-ink cursor-pointer
                  animate-in fade-in-0 duration-300"
     >
       {/* Konfetti-Ebene (nicht interaktiv, Tipp geht ans Overlay durch) */}
