@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
+import { useGroupMomentum } from '@/hooks/useGroupMomentum'
+import { MomentumCelebration } from '@/components/groups/MomentumCelebration'
 import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
@@ -33,6 +35,11 @@ function GroupView() {
   const { user } = useAuth()
 
   const { group, members, myRole, isAdmin, loading, error, refetch } = useGroupDetail(groupId)
+
+  // Gruppen-Momentum (PROJ-15): einmal auf Shell-Ebene, damit die Vollbild-
+  // Feier auch beim Abschluss am Board sofort erscheint (Realtime), nicht nur
+  // im Vorschläge-Tab. Das Banner liest dieselben Daten aus dem Kontext.
+  const { momentum, pendingMilestone, markCelebrationSeen } = useGroupMomentum(groupId)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [detailActivityId, setDetailActivityId] = useState<string | null>(null)
@@ -147,6 +154,7 @@ function GroupView() {
               canCreate,
               memberCount,
               loading,
+              momentum,
               openActivityDetail: setDetailActivityId,
               refetchGroup: refetch,
               openCreateProposal,
@@ -198,6 +206,14 @@ function GroupView() {
         onClose={() => setSettingsOpen(false)}
         onGroupLeft={() => { setSettingsOpen(false); router.push('/groups') }}
         onGroupDeleted={() => { setSettingsOpen(false); router.push('/groups') }}
+      />
+
+      {/* Vollbild-Meilenstein-Feier (PROJ-15) — einmalig pro Meilenstein,
+          Tippen schließt und zieht den eigenen Gesehen-Wert nach. */}
+      <MomentumCelebration
+        milestone={pendingMilestone}
+        count={momentum?.count ?? 0}
+        onDismiss={markCelebrationSeen}
       />
 
       {/* Shared activity detail sheet */}

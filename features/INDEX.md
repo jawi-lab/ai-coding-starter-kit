@@ -29,5 +29,9 @@
 | PROJ-12 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | P1 | PROJ-2, PROJ-8, PROJ-10 | Deployed | [spec](PROJ-12-benachrichtigungen-einstellungen.md) | 2026-06-22 |
 | PROJ-13 | Onboarding-Flow (Erst-Login) | P1 | PROJ-2, PROJ-3, PROJ-8, PROJ-9 | Deployed | [spec](PROJ-13-onboarding-flow.md) | 2026-06-27 |
 | PROJ-14 | Umfragen in Aktivitäten (sichtbar, Mehrfachauswahl) | P1 | PROJ-4, PROJ-6, PROJ-12 | Deployed | [spec](PROJ-14-umfragen-in-aktivitaeten.md) | 2026-07-11 |
+| PROJ-15 | Gruppen-Momentum (Gamification) | P1 | PROJ-4, PROJ-5, PROJ-8 | In Progress | [spec](PROJ-15-gruppen-momentum.md) | 2026-07-13 |
+| PROJ-16 | Persönliche Rollen-Badges (Gamification) | P2 | PROJ-3, PROJ-8 | Roadmap | — | 2026-07-13 |
+| PROJ-17 | Memory Cards & Album (Gamification) | P1 | PROJ-8 | Roadmap | — | 2026-07-13 |
+| PROJ-18 | ZUSAMMEN Wrapped (Gamification) | P2 | PROJ-15, PROJ-16, PROJ-17 | Roadmap | — | 2026-07-13 |
 
-## Next Available ID: PROJ-15
+## Next Available ID: PROJ-19

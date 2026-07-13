@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { MomentumBanner } from '@/components/groups/MomentumBanner'
+import { MomentumLevelSheet } from '@/components/groups/MomentumLevelSheet'
 import { ProposalCard } from '@/components/groups/ProposalCard'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { DeleteProposalDialog } from '@/components/groups/DeleteProposalDialog'
@@ -29,13 +31,14 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
 
 export function VorschlaegeTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, canCreate, memberCount, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
+  const { groupId, isAdmin, canCreate, memberCount, momentum, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
     useGroupShell()
 
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
   const [editProposal, setEditProposal] = useState<ActivityWithInitiator | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ActivityWithInitiator | null>(null)
   const [resetTarget, setResetTarget] = useState<ActivityWithInitiator | null>(null)
+  const [ladderOpen, setLadderOpen] = useState(false)
 
   const { proposals, myVotedIds, loading, error, filterByCategory, refetch } =
     useActivityProposals(groupId)
@@ -69,6 +72,16 @@ export function VorschlaegeTab() {
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col">
+      {/* Momentum-Banner (PROJ-15) — ganz oben, über den Filter-Chips.
+          Blendet sich still aus, solange die Fortschritts-Akte fehlt. */}
+      {momentum && (
+        <div className="flex-shrink-0">
+          <div className="max-w-5xl mx-auto w-full px-4 pt-3">
+            <MomentumBanner momentum={momentum} onOpenLadder={() => setLadderOpen(true)} />
+          </div>
+        </div>
+      )}
+
       {/* Filter chips */}
       <div className="flex-shrink-0 border-b border-line">
         <div className="max-w-5xl mx-auto w-full px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
@@ -181,6 +194,15 @@ export function VorschlaegeTab() {
         onCancel={() => setResetTarget(null)}
         onConfirm={handleReset}
       />
+
+      {/* Level-Leiter (PROJ-15) — öffnet sich beim Antippen des Banners */}
+      {momentum && (
+        <MomentumLevelSheet
+          open={ladderOpen}
+          onClose={() => setLadderOpen(false)}
+          momentum={momentum}
+        />
+      )}
     </div>
   )
 }

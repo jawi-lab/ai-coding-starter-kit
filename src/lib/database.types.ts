@@ -519,6 +519,64 @@ export type Database = {
           },
         ]
       }
+      group_momentum: {
+        Row: {
+          completed_count: number
+          group_id: string
+          highest_milestone: number
+          updated_at: string
+        }
+        Insert: {
+          completed_count?: number
+          group_id: string
+          highest_milestone?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_count?: number
+          group_id?: string
+          highest_milestone?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_momentum_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_momentum_seen: {
+        Row: {
+          group_id: string
+          highest_seen_milestone: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          highest_seen_milestone?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          highest_seen_milestone?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_momentum_seen_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string

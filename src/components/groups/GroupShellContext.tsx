@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react'
 import type { Group, GroupRole } from '@/lib/group-types'
+import type { GroupMomentum } from '@/hooks/useGroupMomentum'
 
 export interface GroupShell {
   groupId: string
@@ -11,6 +12,12 @@ export interface GroupShell {
   canCreate: boolean
   memberCount: number
   loading: boolean
+  /**
+   * Gruppen-Momentum (PROJ-15) — vom Layout einmal via useGroupMomentum
+   * geladen (eine Realtime-Subscription für Banner UND Feier). `null` solange
+   * die Akte lädt oder noch nicht existiert → Banner blendet sich still aus.
+   */
+  momentum: GroupMomentum | null
   /** Open the shared activity detail sheet (rendered once in the group layout). */
   openActivityDetail: (activityId: string) => void
   /** Re-fetch the group + member data held by the layout. */
