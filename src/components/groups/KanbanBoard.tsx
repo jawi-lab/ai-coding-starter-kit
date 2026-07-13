@@ -145,22 +145,27 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
           </div>
         ) : (
           <Tabs defaultValue="zu_planen" className="h-full flex flex-col">
-            <TabsList className="flex-shrink-0 w-full h-auto justify-start gap-2 overflow-x-auto no-scrollbar
-                                 rounded-none bg-transparent px-4 py-3 border-b border-line">
-              {KANBAN_STATUSES.map((s) => (
-                <TabsTrigger
-                  key={s}
-                  value={s}
-                  className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
-                             border-[1.5px] border-line bg-surface text-ink-2 transition-all
-                             hover:border-primary/40
-                             data-[state=active]:bg-primary data-[state=active]:text-white
-                             data-[state=active]:border-primary data-[state=active]:shadow-none"
-                >
-                  {KANBAN_COLUMN_LABELS[s]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {/* Trennlinie auf dem nicht-scrollenden Wrapper (wie „Vorschläge"),
+                Chips scrollen im inneren TabsList — so bleibt der Strich eine
+                saubere, randlose Haarlinie. */}
+            <div className="flex-shrink-0 border-b border-line">
+              <TabsList className="w-full h-auto justify-start gap-2 overflow-x-auto no-scrollbar
+                                   rounded-none bg-transparent p-0 px-4 py-3">
+                {KANBAN_STATUSES.map((s) => (
+                  <TabsTrigger
+                    key={s}
+                    value={s}
+                    className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
+                               border-[1.5px] border-line bg-surface text-ink-2 transition-all
+                               hover:border-primary/40
+                               data-[state=active]:bg-primary data-[state=active]:text-white
+                               data-[state=active]:border-primary data-[state=active]:shadow-none"
+                  >
+                    {KANBAN_COLUMN_LABELS[s]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
             {KANBAN_STATUSES.map((s) => (
               <TabsContent
