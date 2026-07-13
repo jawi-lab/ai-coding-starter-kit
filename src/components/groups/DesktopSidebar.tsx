@@ -20,8 +20,6 @@ interface DesktopSidebarProps {
   active: BottomNavActive
   /** Gruppe, auf die Vorschläge/Board/Termine zeigen (null = deaktiviert). */
   targetGroupId: string | null
-  /** Name der Zielgruppe für den Gruppen-Kontext über der Navigation. */
-  groupName?: string | null
   onProfile: () => void
 }
 
@@ -72,7 +70,6 @@ function SidebarLink({
 export function DesktopSidebar({
   active,
   targetGroupId,
-  groupName,
   onProfile,
 }: DesktopSidebarProps) {
   const { user } = useAuth()
@@ -95,13 +92,6 @@ export function DesktopSidebar({
           priority
         />
       </Link>
-
-      {groupName && (
-        <div className="flex items-center gap-2.5 rounded-md border border-line bg-bg px-3 py-2.5 mb-4">
-          <span className="h-7 w-7 flex-none rounded-sm bg-cover-green" />
-          <span className="truncate text-sm font-bold text-ink">{groupName}</span>
-        </div>
-      )}
 
       <nav className="flex flex-1 flex-col gap-1">
         <SidebarLink href="/groups" icon={Home} label="Home" active={active === 'home'} />

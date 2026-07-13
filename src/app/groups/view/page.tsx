@@ -85,7 +85,6 @@ function GroupView() {
       <DesktopSidebar
         active={activeSeg}
         targetGroupId={groupId}
-        groupName={group?.name ?? null}
         onProfile={() => setProfileOpen(true)}
       />
 
