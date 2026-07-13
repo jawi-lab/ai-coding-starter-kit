@@ -1,6 +1,6 @@
 # PROJ-15: Gruppen-Momentum (Gamification)
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-07-13
 **Last Updated:** 2026-07-13
 
@@ -322,4 +322,10 @@ Kein API-Endpunkt, keine Edge Function — komplett Static-Export-konform (DB-Au
 ### Produktionsbereitschaft: **READY** — keine offenen Critical/High-Bugs.
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://qt-voting-app.vercel.app
+- **Deployed:** 2026-07-13 (Auto-Deploy via GitHub-Push, Commit `61d1fe5`, Vercel `dpl_qqNbssm9GF5FdpfHbaevHqij79cJ`)
+- **DB:** Migrationen `proj15_group_momentum` + `proj15_momentum_harden_functions` waren bereits vor dem Frontend-Deploy live (Backfill abgeschlossen) — kein Deploy-Fenster ohne Daten.
+- **Post-Deploy-Verifikation (Live, qa-bot):** Login → Vorschläge-Tab: Banner „Neue Gruppe · 0" + „Noch 5 bis Gruppe" ✅ · Level-Leiter öffnet mit korrektem Padding ✅ · Browser-Konsole fehlerfrei ✅
+- **Rollback:** Vorheriges Production-Deployment `dpl_AYviAk7dHX2p5X4Qy4N1CphuToX6` via Vercel Dashboard promoten; DB-Tabellen sind rein additiv (kein Schema-Rollback nötig).
+- **Tag:** `v1.15.0-PROJ-15`
