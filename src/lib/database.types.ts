@@ -711,6 +711,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          action_count: number
+          badge: string
+          highest_earned_tier: number
+          highest_seen_tier: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_count?: number
+          badge: string
+          highest_earned_tier?: number
+          highest_seen_tier?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_count?: number
+          badge?: string
+          highest_earned_tier?: number
+          highest_seen_tier?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_date_blocks: {
         Row: {
           created_at: string
@@ -740,7 +767,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      badge_count_for: {
+        Args: { p_badge: string; p_user_id: string }
+        Returns: number
+      }
+      badge_tier_for: { Args: { p_count: number }; Returns: number }
       create_group_with_membership: { Args: { p_name: string }; Returns: Json }
+      get_group_badges: {
+        Args: { p_group_id: string }
+        Returns: {
+          badge: string
+          earned_tier: number
+          user_id: string
+        }[]
+      }
       is_activity_group_member: { Args: { aid: string }; Returns: boolean }
       is_activity_polls_writable: { Args: { aid: string }; Returns: boolean }
       is_group_admin: { Args: { gid: string }; Returns: boolean }
@@ -749,9 +789,18 @@ export type Database = {
         Args: { p_invite_code: string }
         Returns: Json
       }
+      mark_own_badges_seen: { Args: never; Returns: undefined }
       momentum_milestone_for: { Args: { p_count: number }; Returns: number }
+      refresh_activity_contributor_badges: {
+        Args: { p_activity_id: string; p_initiator_id: string }
+        Returns: undefined
+      }
       refresh_group_momentum: {
         Args: { p_group_id: string }
+        Returns: undefined
+      }
+      refresh_user_badge: {
+        Args: { p_badge: string; p_user_id: string }
         Returns: undefined
       }
       register_device_token: {
