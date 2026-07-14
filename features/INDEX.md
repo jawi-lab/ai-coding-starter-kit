@@ -31,7 +31,7 @@
 | PROJ-14 | Umfragen in Aktivitäten (sichtbar, Mehrfachauswahl) | P1 | PROJ-4, PROJ-6, PROJ-12 | Deployed | [spec](PROJ-14-umfragen-in-aktivitaeten.md) | 2026-07-11 |
 | PROJ-15 | Gruppen-Momentum (Gamification) | P1 | PROJ-4, PROJ-5, PROJ-8 | Deployed | [spec](PROJ-15-gruppen-momentum.md) | 2026-07-13 |
 | PROJ-16 | Persönliche Rollen-Badges (Gamification) | P2 | PROJ-3, PROJ-4, PROJ-6, PROJ-8, PROJ-14 | Planned | [spec](PROJ-16-persoenliche-rollen-badges.md) | 2026-07-13 |
-| PROJ-17 | Memory Cards & Album (Gamification) | P1 | PROJ-6, PROJ-8, PROJ-15 | Planned | [spec](PROJ-17-memory-cards-album.md) | 2026-07-13 |
+| PROJ-17 | Memory Cards & Album (Gamification) | P1 | PROJ-6, PROJ-8, PROJ-15 | Architected | [spec](PROJ-17-memory-cards-album.md) | 2026-07-13 |
 | PROJ-18 | ZUSAMMEN Wrapped (Gamification) | P2 | PROJ-4, PROJ-5, PROJ-15 | Planned | [spec](PROJ-18-zusammen-wrapped.md) | 2026-07-13 |
 
 ## Next Available ID: PROJ-19

@@ -1,8 +1,8 @@
 # PROJ-17: Memory Cards & Album (Gamification)
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-13
+**Last Updated:** 2026-07-14
 
 ## Dependencies
 - PROJ-6 (Aktivitäts-Detail) — Erinnerungsfotos (`activity_photos`), `og_image_url` als Cover-Quelle, `ActivityDetailSheet` mit `readOnly`-Modus
@@ -93,8 +93,9 @@ Memory Cards sind das zweite Feature des Gamification-Dachkonzepts **„Momentum
 - **Performance:** Album-Grid lädt in Chunks à 20; Cover-Bilder lazy-loaden
 
 ## Open Questions
-- [ ] **Quelle des Abschlussdatums:** `activities` hat keine `completed_at`-Spalte (PROJ-8 wich deshalb auf `created_at` aus). Für die Karte und die Album-Sortierung braucht es ein echtes Abschlussdatum — neue Spalte, die beim Statuswechsel gesetzt wird (inkl. Backfill-Strategie für Altdaten), oder bewusster Fallback? → /architecture
-- [ ] **Speicherung des Gesehen-Status:** Zeitstempel „letzter Album-Besuch" pro Nutzer vs. Gesehen-Vermerk pro Karte (analog `group_momentum_seen`)? → /architecture
+- [x] **Quelle des Abschlussdatums:** Entschieden — neue Spalte „Abschlussdatum" an der Aktivität, automatisch von der Datenbank gesetzt beim Wechsel auf `abgeschlossen`; Altdaten bekommen rückwirkend Termin bzw. Erstelldatum als Näherung (siehe Tech Design). | 2026-07-14
+- [x] **Speicherung des Gesehen-Status:** Entschieden — ein einzelner Zeitstempel „Album zuletzt geöffnet" pro Nutzer (nicht ein Vermerk pro Karte); „Neu" = Karte jünger als der Zeitstempel (siehe Tech Design). | 2026-07-14
+- [x] **Karten nach Gruppen-Austritt:** Nutzer-Entscheidung 2026-07-14 — die seit PROJ-8 bestehende Lücke (Zugriff endet faktisch mit der Mitgliedschaft) wird in PROJ-17 vollständig geschlossen: Mitgliedschafts-Historie + erweiterte Lese-Rechte (siehe Tech Design, Baustein 3). | 2026-07-14
 
 ## Decision Log
 
@@ -118,12 +119,93 @@ Memory Cards sind das zweite Feature des Gamification-Dachkonzepts **„Momentum
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Keine eigene Karten-Tabelle — Karte ist eine abgeleitete Ansicht der Aktivität | Spec-Vorgabe („abgeleitete Ansicht"); kein Sync-Problem bei Titel-/Foto-Änderungen; Löschung der Aktivität lässt die Karte automatisch verschwinden (AC erfüllt sich von selbst) | 2026-07-14 |
+| Neue Spalte „Abschlussdatum" (`completed_at`) an `activities`, gesetzt per DB-Automatik beim Statuswechsel | Einzige verlässliche Quelle für Karten-Datum + Album-Sortierung + „Neu"-Erkennung; Client kann sie nicht fälschen (gleiche Philosophie wie PROJ-15-Zähler) | 2026-07-14 |
+| Backfill Abschlussdatum für Altdaten: Termin (`start_date`), sonst Erstelldatum | Beste verfügbare Näherung; deckt sich mit der Produktentscheidung „für die Erinnerung zählt, wann es stattfand" | 2026-07-14 |
+| Gesehen-Status als EIN Zeitstempel „Album zuletzt geöffnet" pro Nutzer (Spalte am Profil) statt Vermerk pro Karte | AC-Semantik („alle bis dahin entstandenen Karten gelten als gesehen") ist exakt Zeitstempel-Logik; eine Zeile pro Nutzer statt Nutzer×Karten-Zeilen; kein Aufräumbedarf | 2026-07-14 |
+| Backfill Gesehen-Zeitstempel = Launch-Zeitpunkt für alle Bestandsnutzer; Neu-Nutzer starten mit Registrierungszeitpunkt | Backfill-Karten tragen nie „Neu" (AC); analog PROJ-15-Seeding („Historie zählt, aber keine rückwirkende Feier") | 2026-07-14 |
+| Mitgliedschafts-Historie: neue Tabelle „ehemalige Mitgliedschaften", automatisch befüllt beim Austritt/Entfernen; Lese-Rechte werden auf „ist ODER war Mitglied" erweitert (nur Lesen, nie Schreiben) | Schließt die PROJ-8-Lücke „Erinnerung gehört dem Nutzer" auf Datenebene; Schreibrechte bleiben strikt bei aktiven Mitgliedern; Nutzer-Entscheidung 2026-07-14 | 2026-07-14 |
+| Karten-Reveal rein client-seitig, ohne Persistenz | Edge Case laut Spec: verpasster Reveal wird nicht nachgeholt — es gibt also nichts zu speichern; der Abschließende hat alle Kartendaten bereits lokal | 2026-07-14 |
+| Cover-Kette (ältestes Foto → Link-Vorschaubild → Platzhalter) wird beim Anzeigen berechnet, nicht gespeichert | Kein gespeicherter Cover-Verweis kann veralten (Foto gelöscht = Kette rutscht automatisch nach); ein Zusatz-Query pro Album-Seite genügt | 2026-07-14 |
+| Flip-Animation mit CSS (Tailwind), kein neues Package | Projekt nutzt bereits `tailwindcss-animate` (PROJ-15-Feier); ein Karten-Flip ist mit CSS-3D-Transform ohne Library machbar | 2026-07-14 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+**Stand:** 2026-07-14 · **Braucht Backend:** Ja (3 Datenbank-Bausteine) · **Neue Packages:** Keine
+
+### Grundidee
+
+Die Memory Card ist **keine neue Sache in der Datenbank** — sie ist eine hübsche Darstellung von Daten, die es schon gibt (Aktivität + Fotos + Gruppe). Es gibt daher keine „Karten-Tabelle", nichts kann aus dem Takt geraten, und wenn eine Aktivität gelöscht wird, verschwindet die Karte automatisch mit.
+
+Drei Dinge fehlen der Datenbank heute, damit das Album funktioniert — das sind die drei Backend-Bausteine:
+
+### A) Komponenten-Struktur
+
+```
+Profil-Sheet (bestehend)
++-- Tab „Profil" (unverändert)
++-- Tab „Album" (umbenannt von „Archiv", mit Punkt-Indikator bei ungesehenen Karten)
+    +-- Filter-Chips („Alle" + eine pro Gruppe — nur sichtbar bei >1 Gruppe)
+    +-- Karten-Grid (2 Spalten mobil)
+    |   +-- Memory Card (NEU)
+    |       +-- Cover-Bild (lazy geladen) bzw. gestalteter Platzhalter
+    |       +-- Farbakzent nach Dauer-Kategorie (spontan/Wochenende/länger)
+    |       +-- Titel (max. 2 Zeilen), Datum, Gruppen-Badge, ggf. „Neu"-Badge
+    +-- „Mehr laden"-Button (bestehendes Muster, 20er-Schritte)
+    +-- Leer-State („Noch keine Erinnerungen …")
+    +-- Tap auf Karte → bestehendes ActivityDetailSheet (read-only, unverändert)
+
+Gruppen-Ansicht (bestehend)
++-- Karten-Reveal-Overlay (NEU) — Vollbild-Flip nach eigenem Abschluss
+    +-- zeigt exakt dieselbe Memory-Card-Komponente wie das Album
+    +-- Tippen irgendwo schließt
+    +-- Warteschlangen-Regel: läuft die PROJ-15-Meilenstein-Feier, kommt der
+        Reveal erst NACH deren Schließen dran (nie gestapelt)
+```
+
+Wiederverwendet wird: ProfileSheet, ActivityDetailSheet (readOnly), das Paginierungs-Muster und der Overlay-Platz der PROJ-15-Feier. Der alte Archiv-Listeneintrag (ArchiveActivityCard) wird durch die Memory Card ersetzt.
+
+### B) Datenmodell (3 Backend-Bausteine, klartext)
+
+**Baustein 1 — Abschlussdatum an der Aktivität.**
+Jede Aktivität bekommt ein Feld „abgeschlossen am". Die Datenbank füllt es selbst in dem Moment, in dem der Status auf `abgeschlossen` wechselt — die App kann es weder vergessen noch fälschen (gleiches Prinzip wie der PROJ-15-Zähler). Bestehende abgeschlossene Aktivitäten bekommen rückwirkend ihren Termin als Abschlussdatum, ersatzweise ihr Erstelldatum.
+*Genutzt für:* Album-Sortierung (neueste zuerst), Datum auf der Karte (falls kein Termin gesetzt), „Neu"-Erkennung. Nebeneffekt: Das bestehende Archiv sortiert damit endlich korrekt (bisher Behelf über Erstelldatum).
+
+**Baustein 2 — „Album zuletzt geöffnet" pro Nutzer.**
+Ein einzelner Zeitstempel am Nutzerprofil. Beim Öffnen des Albums wird er auf „jetzt" gesetzt. Eine Karte gilt als **neu**, wenn ihr Abschlussdatum jünger ist als dieser Zeitstempel — mehr Logik braucht das „Neu"-Badge nicht. Der Punkt-Indikator am Tab ist dieselbe Frage („gibt es mindestens eine neuere Karte?") als Mini-Abfrage.
+Bestandsnutzer starten mit „Launch-Zeitpunkt" (→ Backfill-Karten tragen nie „Neu"), neue Nutzer mit ihrem Registrierungszeitpunkt.
+
+**Baustein 3 — Ehemalige Mitgliedschaften (schließt die PROJ-8-Lücke).**
+Heute gilt: wer eine Gruppe verlässt, verliert sofort jeden Lese-Zugriff — das PROJ-8-Versprechen „Erinnerungen bleiben" war nie technisch eingelöst. Neu: Beim Austritt (oder Entfernen durch einen Admin) schreibt die Datenbank automatisch einen Eintrag „war Mitglied in Gruppe X". Die Lese-Regeln der betroffenen Tabellen (Aktivitäten, Gruppenname, Fotos, Kommentare, Termine, Umfragen, Mitglieder-Anzeige) werden von „ist Mitglied" auf **„ist oder war Mitglied"** erweitert — **nur fürs Lesen**. Schreiben (abstimmen, kommentieren, Fotos hochladen, Status ändern) können weiterhin ausschließlich aktive Mitglieder. Wird die Gruppe komplett gelöscht, verschwindet alles wie bisher (Kaskade).
+*Wichtig fürs Review:* Das ist eine Änderung an Sicherheitsregeln (RLS) — sie wird im /backend-Schritt einzeln zur Freigabe vorgelegt.
+
+**Woher die Karte ihre Inhalte nimmt (nichts davon wird gespeichert):**
+- Cover: ältestes Erinnerungsfoto der Aktivität → sonst Link-Vorschaubild (`og_image_url`) → sonst gestalteter Platzhalter im Styleguide-Look. Die Kette wird bei jeder Anzeige neu berechnet — löscht jemand das Cover-Foto, rutscht automatisch das nächste nach.
+- Datum: Termin der Aktivität, sonst Abschlussdatum (Baustein 1).
+- Farbakzent: bestehendes Feld Dauer-Kategorie (spontan / Wochenende / längerer Zeitraum).
+- Titel + Gruppen-Badge: direkt von Aktivität und Gruppe.
+
+### C) Ablauf-Entscheidungen
+
+- **Reveal nur für den Abschließenden, rein lokal:** Direkt nach erfolgreichem Statuswechsel zeigt die App das Overlay mit den Daten, die sie ohnehin schon in der Hand hat — kein Server-Roundtrip, keine Speicherung. Stürzt die App genau dann ab, wird der Reveal nicht nachgeholt (bewusster Spec-Edge-Case); die Karte erscheint einfach im Album.
+- **Reihenfolge bei gleichzeitigem Meilenstein:** Erst PROJ-15-Feier, nach deren Dismiss der Karten-Reveal — als simple Warteschlange am selben Ort, an dem die Feier heute schon hängt.
+- **Album-Abfrage = bestehende Archiv-Abfrage, drei Anpassungen:** sortiert nach Abschlussdatum statt Erstelldatum, Gruppen-Filter wird an die Datenbank durchgereicht (nicht client-seitig gefiltert), und die Gruppenliste speist sich aus aktiven + ehemaligen Mitgliedschaften.
+- **Kein Realtime:** Das Album berechnet „Neu" beim Öffnen — keine Live-Verbindung nötig (Spec-Vorgabe).
+- **Performance:** 20 Karten pro Seite (bestehendes Muster); Cover-Bilder werden lazy geladen; ein einziger Zusatz-Query pro Seite holt die Cover-Fotos für alle 20 Karten gebündelt.
+
+### D) Abhängigkeiten
+
+Keine neuen Packages. Flip-Animation über CSS/Tailwind (`tailwindcss-animate` ist bereits im Einsatz — PROJ-15-Feier nutzt es heute schon).
+
+### Bau-Reihenfolge (Empfehlung)
+
+1. `/backend` zuerst: die drei DB-Bausteine (inkl. Backfill + RLS-Review) — das Album kann ohne Abschlussdatum nicht sinnvoll sortieren
+2. `/frontend` danach: Memory Card, Album-Tab-Umbau, Reveal-Overlay, Filter-Chips
+
+_Hinweis: weicht bewusst von der Standard-Reihenfolge (frontend → backend) ab, weil alle drei UI-Kernstücke auf Baustein 1–3 aufsetzen._
 
 ## QA Test Results
 _To be added by /qa_
