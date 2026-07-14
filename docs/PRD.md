@@ -30,7 +30,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | P1 | Gruppen-Momentum (Gamification) | Planned |
 | P1 | Memory Cards & Album (Gamification) | Planned |
 | P2 | Persönliche Rollen-Badges (Gamification) | Planned |
-| P2 | ZUSAMMEN Wrapped (Gamification) | Roadmap |
+| P2 | ZUSAMMEN Wrapped (Gamification) | Planned |
 | P2 | OTA-Updates (Capgo) | Planned |
 
 ## Success Metrics
