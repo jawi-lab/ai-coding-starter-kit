@@ -1,6 +1,6 @@
 # PROJ-18: ZUSAMMEN Wrapped (Gamification)
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-07-13
 **Last Updated:** 2026-07-14
 
@@ -107,9 +107,9 @@ ZUSAMMEN Wrapped ist der jährliche, teilbare Story-Rückblick einer Gruppe im S
 - Kein neues Backend zwingend erforderlich; falls `/architecture` eine Hilfsstruktur einführt (z.B. `completed_at`-Erfassung), gilt: Zahlen dürfen client-seitig nicht manipulierbar sein (nur Lesen).
 
 ## Open Questions
-- [ ] `activities` hat kein `completed_at`-Feld — `/architecture` muss die Fallback-Regel konkretisieren (neues Feld ab sofort erfassen vs. `created_at`-Fallback für Bestand).
-- [ ] Finaler Feature-Name: „ZUSAMMEN Wrapped" ist der Arbeitstitel — die App heißt inzwischen Mellon. Branding-Entscheidung (z.B. „Mellon Rückblick") vor `/frontend` treffen.
-- [ ] Zeitzonen-Handling der Jahresgrenze (31.12./1.1.) — Empfehlung: lokale Gerätezeit, da Zielgruppe in einer Zeitzone; in `/architecture` bestätigen.
+- [x] ~~`activities` hat kein `completed_at`-Feld~~ — Entschieden (2026-07-14): neues Feld `completed_at` per DB-Trigger ab sofort; Bestand fällt auf `created_at` zurück. Siehe Technical Decisions.
+- [x] ~~Finaler Feature-Name~~ — Entschieden (2026-07-14): **„Mellon Rückblick"**. Interne Bezeichner bleiben neutral `wrapped`.
+- [x] ~~Zeitzonen-Handling der Jahresgrenze~~ — Bestätigt (2026-07-14): lokale Gerätezeit. Siehe Technical Decisions.
 - [ ] Genauer Wortlaut und visuelles Design der Slides (STYLEGUIDE: Archivo, Terracotta/Navy/Gold) → `/frontend`.
 - [ ] Badge- und Memory-Card-Slides nach Deployment von PROJ-16/17 per `/refine` ergänzen (Dramaturgie-Position dann festlegen).
 
@@ -135,12 +135,93 @@ ZUSAMMEN Wrapped ist der jährliche, teilbare Story-Rückblick einer Gruppe im S
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Frontend-Feature mit Live-Berechnung im Client, keine Edge Function, kein Snapshot | Datenmenge winzig (< 100 Aktivitäten/Jahr); RLS deckt Sicherheits-AC ab; konsistent mit Static-Export-Vorgabe | 2026-07-14 |
+| Neues Feld `activities.completed_at`, gesetzt per DB-Trigger beim Wechsel auf „abgeschlossen" | Fälschungssicher (Client kann nicht schreiben), gleiche Bauart wie PROJ-15-Momentum; präzise Jahreszuordnung für alle künftigen Abschlüsse | 2026-07-14 |
+| Jahreszuordnung: `start_date` → `completed_at` → `created_at` | Jede Aktivität landet in genau einem Jahr; Alt-Daten ohne Startdatum akzeptiert unscharf via `created_at` | 2026-07-14 |
+| Meilensteine „im Jahr erreicht" werden aus den jahreszugeordneten Abschlüssen hergeleitet, keine Meilenstein-Historie-Tabelle | Rückblick-Genauigkeit reicht; spart Tabelle, Trigger und Migrationspflege | 2026-07-14 |
+| Bild-Export via `html-to-image` (DOM → PNG, 9:16) aus einer unsichtbaren Share-Bühne | Ein Design für Anzeige und Export statt doppelter Canvas-Pflege; klein, rein clientseitig | 2026-07-14 |
+| Teilen nach dem erprobten Muster von PROJ-7/9: Capacitor Share + Cache-Datei nativ, Web-Share/Download im Browser | Keine neuen Plugins; bewährter Pfad inkl. Abbruch-Handling | 2026-07-14 |
+| Zeitzonen-Regel: lokale Gerätezeit für 1.12.-Freischaltung und Jahresgrenze | Zielgruppe in einer Zeitzone; Serverzeit-Logik wäre Aufwand ohne Nutzen | 2026-07-14 |
+| Skip-Logik im Datensammler-Hook (`useGroupWrapped`), Viewer erhält nur anzeigbare Slides | Story-Steuerung bleibt frei von Sonderfällen; Zählregeln isoliert testbar | 2026-07-14 |
+| Feature-Name „Mellon Rückblick"; interne Bezeichner neutral `wrapped` | App heißt Mellon; deutsch & eigenständig statt Spotify-Anklang (User-Entscheidung) | 2026-07-14 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+**Erstellt:** 2026-07-14 · **Feature-Name (beschlossen):** „Mellon Rückblick"
+
+### Grundsatzentscheidung: Frontend-Feature mit einer Mini-Migration
+
+Der Rückblick ist fast vollständig ein **Frontend-Feature**: Alle Zahlen werden beim Öffnen live im Browser/App aus den bestehenden, RLS-geschützten Tabellen berechnet. Es gibt **keine neuen Tabellen, keine Edge Function, keinen Snapshot-Speicher**. Die einzige Backend-Änderung ist ein neues Feld `completed_at` an Aktivitäten (Details unten).
+
+Warum das trägt: Eine typische Gruppe hat < 100 Aktivitäten pro Jahr — diese Datenmenge lädt und verrechnet ein Telefon in Sekundenbruchteilen. Ein Server-Baustein würde nur Komplexität hinzufügen, ohne etwas zu verbessern.
+
+### A) Komponenten-Struktur
+
+```
+Gruppe — Vorschläge-Tab
++-- Rückblick-Teaser-Banner (saisonal: 1.12.–31.12., nur bei ≥ 3 Abschlüssen)
+
+Gruppen-Detail-Sheet (bestehend)
++-- Eintrag „Rückblicke" (fester Einstieg, ganzjährig)
+    +-- Jahrgangs-Liste (alle Jahre mit verfügbarem Rückblick)
+
+Story-Viewer (Vollbild-Overlay, öffnet bei Slide 1)
++-- Fortschritts-Indikatoren (oben, ein Segment pro Slide)
++-- Schließen-Button / Teilen-Button
++-- Tipp-Zonen (rechte Hälfte = weiter, linke = zurück)
++-- Slide-Bühne (rendert je nach Slide-Typ 1–9)
+    +-- Intro / Große Zahl / Aktivster Monat / Top-Aktivität /
+        Abstimmungen / Momentum / Shout-out 1 / Shout-out 2 / Outro
+
+Share-Bild-Bühne (unsichtbar)
++-- Slide im Story-Format 9:16 inkl. Mellon-Branding
+    (wird nur zum Bild-Export gerendert, nie angezeigt)
+```
+
+Dazu ein „Datensammler"-Baustein (Hook `useGroupWrapped`, analog zu `useGroupMomentum`): lädt die Jahresdaten der Gruppe, wendet die Zähl- und Skip-Regeln an und liefert dem Viewer eine fertige Slide-Liste. Slides ohne sinnvolle Daten tauchen in dieser Liste gar nicht erst auf — der Viewer muss nichts überspringen.
+
+### B) Datenmodell (Klartext)
+
+**Neu: ein Feld, keine Tabelle.** Aktivitäten bekommen ein Feld `completed_at` (Abschluss-Zeitpunkt). Es wird **automatisch von der Datenbank** gesetzt, sobald eine Aktivität auf „abgeschlossen" wechselt — Clients können es weder setzen noch ändern (gleiche fälschungssichere Bauart wie der Momentum-Zähler aus PROJ-15). Bestandsdaten behalten ein leeres Feld.
+
+**Jahreszuordnung (Fallback-Kette):** Startdatum der Aktivität → sonst Abschluss-Zeitpunkt (`completed_at`) → sonst Erstelldatum (`created_at`). Jede Aktivität landet so in genau einem Jahr.
+
+**Gelesen wird ausschließlich Bestehendes** (alles RLS-geschützt, nur für Gruppenmitglieder sichtbar):
+- `activities` — Abschlüsse, Namen, Votes-Zahl, Initiator:in, Datumsfelder
+- `activity_votes` — Abstimmungs-Bilanz und fleißigste:r Abstimmer:in (je Wrapped-Jahr)
+- `group_members` + `profiles` — Shout-outs nur für aktuelle Mitglieder (Name, Avatar)
+- `group_momentum` — aktuelles Level für die Momentum-Slide
+- `groups` — Gruppenname für Intro
+
+**Meilensteine „im Jahr erreicht":** Es gibt keine Meilenstein-Historie in der Datenbank. Der Rückblick leitet sie her: Anzahl Abschlüsse aller Vorjahre vs. Anzahl bis Jahresende — jede Schwelle (5/10/25), die dazwischen überschritten wurde, gilt als „in diesem Jahr erreicht". Das ist für einen Rückblick präzise genug und braucht keinen neuen Speicher.
+
+**Verfügbarkeits-Logik:** Rein clientseitige Datumsprüfung (ab 1.12. lokaler Gerätezeit) + Zählung der Jahres-Abschlüsse (≥ 3). Kein Cron-Job, kein „Freischalten" im Backend — der Rückblick *ist* verfügbar, sobald die Bedingungen stimmen.
+
+### C) Tech-Entscheidungen (Warum)
+
+1. **Live-Berechnung im Client statt Server-Aggregation** — Datenmenge winzig, RLS deckt die Sicherheits-AC vollständig ab, kein neuer Angriffs- oder Wartungspunkt. Konsistent mit der Static-Export-Vorgabe des Projekts (kein SSR).
+2. **`completed_at` per Datenbank-Trigger** — die Jahreszuordnung soll auch für Aktivitäten ohne Startdatum stimmen. Ein automatisch gesetzter, nicht manipulierbarer Zeitstempel erfüllt die Spec-Vorgabe „Zahlen dürfen client-seitig nicht manipulierbar sein". Bestand ohne Startdatum fällt auf `created_at` zurück (bewusst akzeptierte Unschärfe für Alt-Daten).
+3. **Bild-Export mit `html-to-image`** — die Share-Bilder entstehen aus einer echten, im Styleguide gestalteten Slide (DOM → PNG, 1080×1920). Alternative wäre, jedes Slide-Design ein zweites Mal von Hand auf ein Canvas zu malen — doppelte Design-Pflege bei jedem Layout-Feinschliff. `html-to-image` ist klein, rein clientseitig und braucht keinen Server.
+4. **Teilen über den bestehenden Native-Share-Pfad** — natives Share-Sheet via Capacitor (Bild in den App-Cache schreiben, Share-Sheet öffnen) exakt nach dem erprobten Muster des Kalender-Exports (PROJ-7/9). Im Browser: Web-Share mit Bild, wenn der Browser es kann, sonst Download. Keine neuen Plugins nötig.
+5. **Zeitzonen-Regel: lokale Gerätezeit** — Zielgruppe ist eine Freundesgruppe in einer Zeitzone; ob der Banner um 23:58 oder 00:02 erscheint, ist ohne Belang. Server-genaue Zeitlogik wäre Aufwand ohne Nutzen. (Offene Frage aus der Spec damit bestätigt.)
+6. **Skip-Logik im Datensammler, nicht im Viewer** — der Viewer bekommt nur anzeigbare Slides. Das hält die Story-Steuerung (Tippen, Fortschritt, Teilen) frei von Sonderfällen und macht die Zählregeln isoliert testbar.
+7. **Branding „Mellon Rückblick"** — Feature heißt in der App „Mellon Rückblick" (Banner, Slides, geteilte Bilder). Interne Bezeichner (Dateien, Hook-Namen) nutzen neutral `wrapped`.
+
+### D) Abhängigkeiten (neue Pakete)
+
+| Paket | Zweck |
+|-------|-------|
+| `html-to-image` | Slide-DOM als PNG im Story-Format exportieren (einziges neues Paket) |
+
+Alles andere (Capacitor Share + Filesystem, Supabase JS, shadcn/ui) ist bereits installiert.
+
+### Umsetzungs-Reihenfolge
+
+1. `/backend` (klein): Migration `completed_at` + Trigger — bewusst **vor** `/frontend`, damit ab sofort Abschluss-Zeitpunkte erfasst werden und bis Dezember möglichst viele Aktivitäten präzise zugeordnet sind.
+2. `/frontend`: Datensammler-Hook, Story-Viewer, Banner, Archiv-Einstieg, Share-Bild-Export.
 
 ## QA Test Results
 _To be added by /qa_
