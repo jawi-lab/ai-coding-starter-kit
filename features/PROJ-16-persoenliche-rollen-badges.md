@@ -1,8 +1,8 @@
 # PROJ-16: Persönliche Rollen-Badges (Gamification)
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-13
+**Last Updated:** 2026-07-14
 
 ## Dependencies
 - PROJ-3 (Gruppe & Mitglieder-Management) — Mitgliederliste als zweiter Anzeigeort der Badges
@@ -107,7 +107,7 @@ Persönliche Rollen-Badges sind das zweite Feature des Gamification-Dachkonzepts
 - Toast über das bestehende Toast-System der App (kein neues Overlay-Muster).
 
 ## Open Questions
-- [ ] Was genau zählt als „Terminfindung gestartet" für 🗓️ Planer (welches PROJ-7-Ereignis: Terminvorschlag angelegt vs. Terminfindung eröffnet)? → in `/architecture` anhand des PROJ-7-Datenmodells festlegen.
+- [x] Was genau zählt als „Terminfindung gestartet" für 🗓️ Planer? → **Geklärt in `/architecture` (2026-07-14):** PROJ-7 speichert kein „gestartet"-Ereignis; Planer zählt in v1 nur Aufgaben + gestartete Umfragen (siehe Tech Design + Decision Log).
 - [ ] Sollen Badge- und Stufen-Namen später lokalisierbar sein? Aktuell fest auf Deutsch (gleiches offenes Thema wie bei PROJ-15).
 - [ ] Zählt ⚡ Entscheider auch Availability-Angaben aus der Terminfindung (PROJ-7) oder nur Aktivitäts- und Umfrage-Votes? Aktuell: nur Aktivitäts- + Umfrage-Votes; bei Bedarf per `/refine` erweitern.
 
@@ -132,12 +132,82 @@ Persönliche Rollen-Badges sind das zweite Feature des Gamification-Dachkonzepts
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Eine „Badge-Akte" pro Nutzer+Badge (Zähler, verdiente Stufe, angesehene Stufe), gepflegt durch DB-Trigger-Automatik | Exakt das bewährte PROJ-15-Muster (group_momentum + _seen): fälschungssicher (keine Client-Schreibrechte auf Zähler/Stufen), Monotonie per „nur anheben, nie absenken" | 2026-07-14 |
+| Zähler werden aus den Originaldaten **nachgerechnet** (Recount), nicht ereignisweise hochgezählt | Zählt, was existiert — dadurch automatisch korrekt bei Löschungen und von Natur aus dedupliziert (Vote-Toggeln, Re-Abschließen, Mehrfachauswahl zählen prinzipbedingt nicht doppelt) | 2026-07-14 |
+| Datenquellen: activities (Ideengeber), activity_votes + activity_poll_votes (Entscheider), activity_responsibilities + activity_polls (Planer), Kombination an abgeschlossenen Aktivitäten (Immer dabei) | Alle vier Badges ohne neue Datenerfassung aus Bestandstabellen zählbar; bestehende Unique-Constraints stützen die Deduplizierung | 2026-07-14 |
+| 🗓️ Planer zählt in v1 **ohne** „Terminfindung gestartet" | PROJ-7 persistiert kein solches Ereignis (der Termin-Finder schreibt nur das Ergebnis-Datum an die Aktivität); Nachrüsten wäre neue Instrumentierung → bei Bedarf per `/refine` | 2026-07-14 |
+| Fremd-Sicht über einen gebündelten, gesicherten Abruf pro Gruppe, der nur verdiente Stufen zurückgibt | Erfüllt „niemals Zähler/Fortschritt anderer" technisch statt nur per UI; ein Abruf pro Mitgliederliste statt N (Performance-Edge-Case) | 2026-07-14 |
+| Toast per Nach-Aktion-Prüfung auf dem auslösenden Gerät; „Neu"-Hervorhebung über DB-Feld synchronisiert | Realtime-Push würde auf allen Geräten toasten (widerspricht AC); DB-Feld „angesehen" erlischt geräteübergreifend dauerhaft — wie group_momentum_seen | 2026-07-14 |
+| Backfill in derselben Migration: Zähler nachrechnen, verdient = erreicht, angesehen = verdient | Historie zählt ab Tag 1, keine Toast-/Hervorhebungs-Flut beim Launch — identisch zum PROJ-15-Backfill | 2026-07-14 |
+| Schwellen 5/15/30 doppelt definiert: einmal in der DB-Automatik, einmal als Client-Konstante | Gleiche Konvention wie PROJ-15 (momentum.ts ↔ DB-Funktion); Client braucht die Schwellen für Fortschrittsbalken ohne Extra-Abfrage | 2026-07-14 |
+| Keine neuen Pakete | Supabase + vorhandenes shadcn-Toast-System decken alles ab; Static-Export-kompatibel | 2026-07-14 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+**Designed:** 2026-07-14 · Muster: bewusst analog zu PROJ-15 (Gruppen-Momentum)
+
+### Grundidee in einem Satz
+Die Datenbank führt für jede·n Nutzer·in eine kleine „Badge-Akte" (4 Zeilen — eine pro Badge), die bei jeder zählbaren Aktion automatisch aktualisiert wird; die App liest diese Akte nur noch aus und zeigt sie an.
+
+### Komponenten-Struktur
+
+```
+Profil (ProfileSheet — bestehend, PROJ-8)
++-- Badge-Sektion (NEU)
+    +-- 4× Badge-Karte
+    |   +-- Icon + Name + aktuelle Stufe (oder „noch nicht erreicht", ausgegraut)
+    |   +-- Fortschrittsbalken zur nächsten Stufe („Noch X bis …")
+    |   +-- bei Gold: Rohzahl statt Balken
+    |   +-- „Neu"-Hervorhebung (erlischt nach dem Ansehen dauerhaft)
+    +-- Fehlerzustand mit „Erneut versuchen" (Rest des Profils bleibt nutzbar)
+
+Mitgliederliste (MemberRow — bestehend, PROJ-3)
++-- Badge-Icons (NEU, klein, neben dem Namen)
+    +-- nur verdiente Stufen; kein Platzhalter, kein Fortschritt
+
+App-weit
++-- Badge-Toast über das bestehende Toast-System
+    (erscheint nur auf dem Gerät, das die Aktion ausgelöst hat)
+```
+
+### Datenmodell (Klartext)
+
+**Neu: eine „Badge-Akte" pro Nutzer·in und Badge** (4 Zeilen pro Person):
+- Welches Badge (Ideengeber / Entscheider / Planer / Immer dabei)
+- Aktueller Zähler (kann durch Löschungen sinken)
+- Höchste jemals verdiente Stufe (steigt nur, sinkt nie — verhindert Stufen-Verlust und Doppel-Toasts)
+- Höchste im Profil angesehene Stufe (steuert die „Neu"-Hervorhebung, synchronisiert über alle Geräte)
+
+**Keine neuen Datenquellen nötig** — gezählt wird aus dem, was schon da ist:
+
+| Badge | Zählt aus (bestehende Daten) | Deduplizierung |
+|-------|------------------------------|----------------|
+| 💡 Ideengeber | eigene Aktivitäts-Vorschläge | pro Vorschlag (1 Zeile = 1 Punkt) |
+| ⚡ Entscheider | Aktivitäts-Votes + Umfrage-Votes | pro Aktivität bzw. pro Umfrage (Mehrfachauswahl = 1) |
+| 🗓️ Planer | übernommene Aufgaben + selbst gestartete Umfragen | pro Aufgabe bzw. pro Umfrage |
+| ✅ Immer dabei | abgeschlossene Aktivitäten mit eigener Mitwirkung (Vote, Aufgabe oder eigener Vorschlag) | pro Aktivität |
+
+### Wie die Zählung funktioniert (WARUM so)
+Wie bei PROJ-15 zählt **die Datenbank selbst** (Trigger-Automatik), nicht die App: Bei jeder zählbaren Aktion rechnet die DB den betroffenen Zähler frisch aus den Originaldaten nach und hebt die verdiente Stufe bei Bedarf an — nie ab. Das ist fälschungssicher (kein Client kann sich Badges schreiben), automatisch korrekt bei Löschungen und dedupliziert von Natur aus (es wird gezählt, was existiert — nicht, was passiert ist). Vote-Toggeln oder erneutes Abschließen derselben Aktivität können so prinzipbedingt nicht doppelt zählen.
+
+### Sichtbarkeit & Datenschutz (RLS)
+- **Eigene Akte:** nur die Person selbst liest ihre Zähler, Fortschritte und den „Angesehen"-Stand.
+- **Mitgliederliste:** ein einziger gebündelter Abruf pro Gruppe liefert für alle Mitglieder **ausschließlich die verdienten Stufen** — Zähler und Fortschritt anderer sind technisch nicht abrufbar (nicht nur ausgeblendet). Ein Abruf pro Liste, nicht pro Mitglied.
+
+### Toast & „Neu"-Hervorhebung
+- **Toast:** Nach jeder zählbaren Aktion prüft die App auf dem auslösenden Gerät, ob die verdiente Stufe gestiegen ist; nur dann erscheint der Toast (bestehendes Toast-System, kein neues Overlay). Bei übersprungenen Stufen nur die höchste. Läuft unabhängig von der PROJ-15-Vollbild-Feier und blockiert sie nicht.
+- **„Neu"-Hervorhebung:** verdiente Stufe > angesehene Stufe ⇒ Badge im Profil hervorgehoben. Beim Ansehen wird „angesehen" auf die verdiente Stufe gesetzt (in der DB, daher geräteübergreifend, dauerhaft).
+
+### Backfill (Bestandsnutzer)
+Eine einmalige Migration rechnet alle historischen Aktionen nach und legt die Akten an: Zähler = Historie, verdiente Stufe = erreicht, angesehene Stufe = verdiente Stufe. Ergebnis: Historie zählt ab Tag 1, aber keine Toast-Flut und keine „Neu"-Markierungen beim Launch (identisch zum PROJ-15-Backfill).
+
+### Entscheidung zur offenen Frage „Terminfindung gestartet"
+Das PROJ-7-Datenmodell speichert **kein Ereignis** „Terminfindung gestartet" — der Termin-Finder schreibt nur das Ergebnis (Datum) an die Aktivität. 🗓️ Planer zählt daher in dieser Version **übernommene Aufgaben + gestartete Umfragen**; Terminfindungen können später per `/refine` ergänzt werden, falls PROJ-7 dafür ein speicherbares Ereignis bekommt.
+
+### Abhängigkeiten (Pakete)
+Keine neuen Pakete. Alles läuft über Supabase (DB-Automatik + JS Client) und das vorhandene Toast-System (shadcn/ui) — Static-Export-kompatibel, kein SSR.
 
 ## QA Test Results
 _To be added by /qa_
