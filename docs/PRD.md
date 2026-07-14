@@ -28,7 +28,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | P1 | Push-Benachrichtigungen | Roadmap |
 | P1 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | Planned |
 | P1 | Gruppen-Momentum (Gamification) | Planned |
-| P1 | Memory Cards & Album (Gamification) | Roadmap |
+| P1 | Memory Cards & Album (Gamification) | Planned |
 | P2 | Persönliche Rollen-Badges (Gamification) | Planned |
 | P2 | ZUSAMMEN Wrapped (Gamification) | Roadmap |
 | P2 | OTA-Updates (Capgo) | Planned |
