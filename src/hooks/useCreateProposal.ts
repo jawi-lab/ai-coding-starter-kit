@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { checkBadgeToast } from '@/lib/badge-toasts'
 import type { CreateActivityInput } from '@/lib/activity-types'
 
 export function useCreateProposal(groupId: string) {
@@ -38,6 +39,9 @@ export function useCreateProposal(groupId: string) {
         setError(insertErr.message)
         return { id: null, error: insertErr.message }
       }
+
+      // Zählbare Aktion für 💡 Ideengeber (PROJ-16) — Fire-and-forget.
+      checkBadgeToast('ideengeber')
 
       return { id: data.id, error: null }
     },

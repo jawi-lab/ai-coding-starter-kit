@@ -4,12 +4,15 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MemberRow } from './MemberRow'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
+import type { MemberBadge } from '@/hooks/useGroupBadges'
 
 interface MemberListProps {
   members: GroupMember[]
   currentUserId: string
   isCurrentUserAdmin: boolean
   loading: boolean
+  /** Verdiente Rollen-Badges je Mitglied (PROJ-16) — leer = keine Icons. */
+  badgesByUser?: Map<string, MemberBadge[]>
   onChangeRole: (userId: string, role: GroupRole) => Promise<{ error: string | null }>
   onRemove: (userId: string) => Promise<{ error: string | null }>
 }
@@ -21,6 +24,7 @@ export function MemberList({
   currentUserId,
   isCurrentUserAdmin,
   loading,
+  badgesByUser,
   onChangeRole,
   onRemove,
 }: MemberListProps) {
@@ -63,6 +67,7 @@ export function MemberList({
               isCurrentUser={member.user_id === currentUserId}
               isAdmin={member.role === 'admin'}
               isCurrentUserAdmin={isCurrentUserAdmin}
+              badges={badgesByUser?.get(member.user_id) ?? []}
               onChangeRole={onChangeRole}
               onRemove={onRemove}
             />

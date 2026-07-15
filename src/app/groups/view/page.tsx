@@ -20,6 +20,7 @@ import { ProfileSheet } from '@/components/profile/ProfileSheet'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { GroupShellProvider } from '@/components/groups/GroupShellContext'
 import { groupHref, resolveGroupTab } from '@/lib/group-routes'
+import { seedBadgeBaseline } from '@/lib/badge-toasts'
 import { truncateName } from '@/lib/group-types'
 import { setLastGroupId } from '@/lib/last-group'
 import { VorschlaegeTab } from '@/components/groups/tabs/VorschlaegeTab'
@@ -70,6 +71,12 @@ function GroupView() {
   useEffect(() => {
     if (groupId) setLastGroupId(groupId)
   }, [groupId])
+
+  // Badge-Toast-Baseline (PROJ-16): verdiente Stufen VOR der ersten zählbaren
+  // Aktion laden, damit die Nach-Aktion-Prüfung einen Anstieg erkennen kann.
+  useEffect(() => {
+    if (user?.id) seedBadgeBaseline(user.id)
+  }, [user?.id])
 
   // Deep-Link aus einem Push-Tap (PROJ-10): `?activity=<id>` öffnet direkt das
   // Detail-Sheet dieser Aktivität. Danach strippen wir den Param, damit das

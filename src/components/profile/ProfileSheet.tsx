@@ -15,6 +15,7 @@ import { LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProfileSection } from './ProfileSection'
+import { BadgeSection } from './BadgeSection'
 import { AppearanceSection } from './AppearanceSection'
 import { NotificationPreferencesSection } from './NotificationPreferencesSection'
 import { CalendarConnectionSection } from './CalendarConnectionSection'
@@ -87,6 +88,11 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
             <TabsContent value="profil" className="flex-1 overflow-y-auto mt-0">
               <div className="px-5 pt-4 pb-6 space-y-5">
                 <ProfileSection />
+
+                <Separator className="bg-line" />
+
+                {/* Rollen-Badges (PROJ-16): Haupt-Anzeigeort mit Stufe + Fortschritt */}
+                <BadgeSection />
 
                 <Separator className="bg-line" />
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { checkBadgeToast } from '@/lib/badge-toasts'
 import type {
   ActivityPoll,
   ActivityPollOption,
@@ -138,6 +139,9 @@ export function useActivityPolls(activityId: string | null): UseActivityPollsRes
       }
 
       await fetchPolls()
+
+      // Zählbare Aktion für 🗓️ Planer (Umfrage gestartet, PROJ-16).
+      checkBadgeToast('planer')
       return true
     },
     [user, fetchPolls]
@@ -220,6 +224,11 @@ export function useActivityPolls(activityId: string | null): UseActivityPollsRes
         next.delete(option.id)
         return next
       })
+
+      if (!err && !currentlyVoted) {
+        // Zählbare Aktion für ⚡ Entscheider (dedupliziert pro Umfrage, PROJ-16).
+        checkBadgeToast('entscheider')
+      }
 
       if (err) {
         // Rollback auf den Stand vor dem Tap.

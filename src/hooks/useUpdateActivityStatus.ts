@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { checkBadgeToast } from '@/lib/badge-toasts'
 import type { KanbanStatus } from '@/lib/activity-types'
 
 interface UpdateStatusInput {
@@ -37,6 +38,13 @@ export function useUpdateActivityStatus(): UseUpdateActivityStatusResult {
 
     setLoading(false)
     if (error) return { error: 'Statuswechsel fehlgeschlagen. Bitte erneut versuchen.' }
+
+    // Abschluss kann ✅ Immer dabei der abschließenden Person erhöhen (PROJ-16);
+    // andere Mitwirkende sehen ihre neue Stufe später im Profil („Neu"), Toast
+    // gibt es nur auf dem auslösenden Gerät (Spec).
+    if (status === 'abgeschlossen') {
+      checkBadgeToast('immer_dabei')
+    }
     return { error: null }
   }
 

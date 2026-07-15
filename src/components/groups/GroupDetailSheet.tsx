@@ -18,6 +18,7 @@ import { MemberList } from './MemberList'
 import { LeaveGroupDialog } from './LeaveGroupDialog'
 import { DeleteGroupDialog } from './DeleteGroupDialog'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
+import { useGroupBadges } from '@/hooks/useGroupBadges'
 import { useAuth } from '@/contexts/AuthContext'
 import { MAX_GROUP_NAME_LENGTH, groupNameSchema } from '@/lib/group-types'
 
@@ -51,6 +52,10 @@ export function GroupDetailSheet({
     leaveGroup,
     deleteGroup,
   } = useGroupDetail(groupId)
+
+  // Rollen-Badges aller Mitglieder (PROJ-16): EIN gebündelter Abruf pro Gruppe,
+  // liefert nur verdiente Stufen — nie Zähler/Fortschritt anderer.
+  const badgesByUser = useGroupBadges(groupId)
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
@@ -190,6 +195,7 @@ export function GroupDetailSheet({
             currentUserId={user?.id ?? ''}
             isCurrentUserAdmin={isAdmin}
             loading={loading && members.length === 0}
+            badgesByUser={badgesByUser}
             onChangeRole={changeMemberRole}
             onRemove={removeMember}
           />

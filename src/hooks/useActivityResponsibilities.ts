@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { checkBadgeToast } from '@/lib/badge-toasts'
 import type { ActivityResponsibility, CreateResponsibilityInput } from '@/lib/activity-types'
 
 interface UseActivityResponsibilitiesResult {
@@ -58,6 +59,13 @@ export function useActivityResponsibilities(
 
     if (err) return false
     await fetchResponsibilities()
+
+    // Zählbare Aktion für 🗓️ Planer (PROJ-16) — nur beim Selbst-Übernehmen;
+    // wird die Aufgabe jemand anderem zugewiesen, steigt dessen Zähler in der
+    // DB, der Toast erscheint aber nur beim Handelnden (Spec).
+    if (input.assigned_user_id === userData.user.id) {
+      checkBadgeToast('planer')
+    }
     return true
   }
 

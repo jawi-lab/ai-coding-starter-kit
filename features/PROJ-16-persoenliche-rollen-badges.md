@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-14
+**Last Updated:** 2026-07-15
 
 ## Dependencies
 - PROJ-3 (Gruppe & Mitglieder-Management) — Mitgliederliste als zweiter Anzeigeort der Badges
@@ -229,6 +229,26 @@ Keine neuen Pakete. Alles läuft über Supabase (DB-Automatik + JS Client) und d
 **Bewusste Detail-Entscheidung:** Umfrage-Votes zählen für ⚡ Entscheider (dedupliziert pro Umfrage), aber nicht als Mitwirkung für ✅ Immer dabei (wortgetreu zum Decision Log: Vote/Aufgabe/eigener Vorschlag).
 
 **Noch offen (Frontend):** Badge-Sektion im Profil, Badge-Icons in der Mitgliederliste, Toast-Prüfung nach zählbaren Aktionen → `/frontend`.
+
+## Frontend Implementation (2026-07-15)
+
+**Profil (Haupt-Anzeigeort):**
+- `src/components/profile/BadgeSection.tsx` (NEU): 4 Badge-Karten in fester Reihenfolge — Icon, Name, Stufen-Chip (oder „Noch nicht erreicht", ausgegraut via grayscale), Fortschrittsbalken (shadcn `Progress`) mit „Noch X bis …"-Label; ab Gold Rohzahl statt Balken. Skeleton beim Laden; Fehlerzustand mit „Erneut versuchen", Rest des Profils bleibt nutzbar. In `ProfileSheet.tsx` direkt nach der Profil-Sektion eingehängt.
+- `src/hooks/useUserBadges.ts` (NEU): liest die eigene `user_badges`-Akte (RLS), mappt fehlende Zeilen defensiv auf 0er-Akten; `markSeen()` ruft `mark_own_badges_seen` (Fire-and-forget).
+- „Neu"-Hervorhebung: beim ersten erfolgreichen Laden werden Badges mit verdient > angesehen festgehalten (Gold-Ring + „Neu"-Chip) und der Angesehen-Stand sofort per RPC nachgezogen — Hervorhebung bleibt für die aktuelle Ansicht sichtbar, erlischt danach geräteübergreifend dauerhaft (AC).
+
+**Mitgliederliste:**
+- `src/hooks/useGroupBadges.ts` (NEU): EIN gebündelter `get_group_badges`-Abruf pro Gruppe (Performance-Edge-Case), liefert technisch nur verdiente Stufen; Fehler still (keine Icons, Liste bleibt nutzbar).
+- `src/components/groups/MemberBadgeIcons.tsx` (NEU): kleine Pills `{Badge-Icon}{Stufen-Icon}` mit Tooltip/aria-label; ohne verdiente Badges wird nichts gerendert (kein Platzhalter, AC). Verdrahtet über `GroupDetailSheet` → `MemberList` → `MemberRow` (neben dem Namen).
+
+**Toast beim Stufen-Aufstieg:**
+- `src/lib/badge-toasts.ts` (NEU): Baseline der eigenen verdienten Stufen wird beim Betreten der Gruppen-Ansicht geladen (`seedBadgeBaseline` in `groups/view/page.tsx`); nach jeder zählbaren Aktion prüft `checkBadgeToast(badge)` die frisch vom DB-Trigger aktualisierte Stufe und toastet nur bei Anstieg — „Neues Badge: {Name} {🥉/🥈/🥇}" über das bestehende Sonner-Toast-System (Sonner rendert über der z-[60]-Momentum-Feier, blockiert sie nicht). Ohne Baseline (Seed fehlgeschlagen) wird still übernommen statt getoastet — lieber ein verpasster Toast als ein falscher. 8 Unit-Tests in `badge-toasts.test.ts` (Gesamtsuite 357/357 grün, Build ok).
+- Verdrahtete Aktionen (Fire-and-forget nach Erfolg): Vorschlag erstellen → 💡 (`useCreateProposal`), Aktivitäts-Vote → ⚡ (`useVote`, nur Insert), Umfrage-Vote → ⚡ (`useActivityPolls.toggleVote`, nur Insert), Umfrage starten → 🗓️ (`useActivityPolls.createPoll`), Aufgabe selbst übernehmen → 🗓️ (`useActivityResponsibilities.addResponsibility`, nur bei `assigned_user_id` = eigene ID), Abschluss → ✅ (`useUpdateActivityStatus` bei Status `abgeschlossen`).
+
+**Bewusste Detail-Entscheidungen:**
+- Toast-Deduplizierung (kein Re-Toast, nur höchste übersprungene Stufe) über die persistierte monotone Stufe + `pendingToastTier` aus `badges.ts` — kein eigener Client-Zähler.
+- Wer eine Aufgabe einem anderen Mitglied zuweist, löst dort keinen Toast aus; die betroffene Person sieht die neue Stufe später als „Neu" im Profil (DB-synchronisiert, AC Zwei-Geräte-Fall).
+- `next lint` ist in Next 16 entfernt (bekanntes, bestehendes Problem des `lint`-Scripts, unabhängig von PROJ-16); Verifikation lief über `npm test` + `npm run build`.
 
 ## QA Test Results
 _To be added by /qa_

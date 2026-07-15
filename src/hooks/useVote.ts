@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { checkBadgeToast } from '@/lib/badge-toasts'
 
 interface UseVoteOptions {
   onError?: (message: string) => void
@@ -50,6 +51,9 @@ export function useVote(options?: UseVoteOptions) {
         // Rollback optimistic update
         onOptimisticUpdate(activityId, currentlyVoted)
         options?.onError?.(error.message)
+      } else if (!currentlyVoted) {
+        // Zählbare Aktion für ⚡ Entscheider (PROJ-16) — Fire-and-forget.
+        checkBadgeToast('entscheider')
       }
     },
     [user, pending, options]

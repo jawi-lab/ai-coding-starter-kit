@@ -24,12 +24,16 @@ import { MoreHorizontal, Shield, Edit2, Eye, UserMinus } from 'lucide-react'
 import type { GroupMember, GroupRole } from '@/lib/group-types'
 import { ROLE_LABELS } from '@/lib/group-types'
 import { getInitials } from '@/lib/avatar'
+import { MemberBadgeIcons } from './MemberBadgeIcons'
+import type { MemberBadge } from '@/hooks/useGroupBadges'
 
 interface MemberRowProps {
   member: GroupMember
   isCurrentUser: boolean
   isAdmin: boolean
   isCurrentUserAdmin: boolean
+  /** Verdiente Rollen-Badges (PROJ-16) — nur Stufen, kein Fortschritt. */
+  badges?: MemberBadge[]
   onChangeRole: (userId: string, role: GroupRole) => Promise<{ error: string | null }>
   onRemove: (userId: string) => Promise<{ error: string | null }>
 }
@@ -45,6 +49,7 @@ export function MemberRow({
   isCurrentUser,
   isAdmin,
   isCurrentUserAdmin,
+  badges = [],
   onChangeRole,
   onRemove,
 }: MemberRowProps) {
@@ -80,6 +85,7 @@ export function MemberRow({
             {isCurrentUser && (
               <span className="text-[11px] text-ink-3">(Du)</span>
             )}
+            <MemberBadgeIcons badges={badges} />
           </div>
           <span
             className={`inline-flex items-center gap-1 text-[10.5px] font-semibold tracking-[0.06em]
