@@ -53,6 +53,8 @@ export function LoginForm() {
     if (error) {
       if (error.message.toLowerCase().includes('email not confirmed')) {
         setPendingEmail(values.email)
+      } else if (error.status === 429 || error.code === 'over_request_rate_limit') {
+        setError('Zu viele Login-Versuche. Bitte warte einen Moment und versuche es erneut.')
       } else {
         setError('E-Mail oder Passwort falsch')
       }

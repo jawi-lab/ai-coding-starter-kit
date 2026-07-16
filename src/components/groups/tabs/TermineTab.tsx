@@ -1,6 +1,7 @@
 'use client'
 
 import { CalendarDays, MapPin } from 'lucide-react'
+import { EmptyCalendarIcon } from '@/components/icons/mellon-icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useGroupShell } from '@/components/groups/GroupShellContext'
 import { useGroupSchedule } from '@/hooks/useGroupSchedule'
@@ -87,7 +88,9 @@ export function TermineTab() {
           </div>
         ) : activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-16 gap-3 text-center px-6">
-            <p className="text-[36px]">📅</p>
+            <div className="h-14 w-14 rounded-full bg-surface-2 flex items-center justify-center">
+              <EmptyCalendarIcon className="h-7 w-7 text-ink-3" />
+            </div>
             <p className="text-[16px] font-[800] text-ink">Noch keine Termine</p>
             <p className="text-[13px] text-ink-3 max-w-[250px] leading-relaxed">
               Sobald für eine Aktivität ein Datum feststeht, erscheint sie hier — chronologisch

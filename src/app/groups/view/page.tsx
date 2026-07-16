@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Users } from 'lucide-react'
 import { toast } from 'sonner'
+import { EmptyNotFoundIcon } from '@/components/icons/mellon-icons'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -142,7 +143,9 @@ function GroupView() {
       <div className="flex-1 min-h-0 flex flex-col">
         {error && !group ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
-            <p className="text-[28px]">🚫</p>
+            <div className="h-14 w-14 rounded-full bg-surface-2 flex items-center justify-center">
+              <EmptyNotFoundIcon className="h-7 w-7 text-ink-3" />
+            </div>
             <p className="text-[16px] font-[800] text-ink">Gruppe nicht gefunden</p>
             <p className="text-[13px] text-ink-3 max-w-[260px]">
               Diese Gruppe existiert nicht mehr oder du bist kein Mitglied.

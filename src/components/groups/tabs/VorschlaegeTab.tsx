@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { EmptyIdeaIcon, EmptySearchIcon } from '@/components/icons/mellon-icons'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MomentumBanner } from '@/components/groups/MomentumBanner'
@@ -211,7 +212,9 @@ function EmptyProposalState({ hasFilter }: { hasFilter: boolean }) {
   if (hasFilter) {
     return (
       <div className="flex flex-col items-center justify-center pt-16 gap-2 text-center px-6">
-        <p className="text-[28px]">🔍</p>
+        <div className="h-14 w-14 rounded-full bg-surface-2 flex items-center justify-center mb-1">
+          <EmptySearchIcon className="h-7 w-7 text-ink-3" />
+        </div>
         <p className="text-[15px] font-[700] text-ink">Keine Vorschläge in dieser Kategorie</p>
         <p className="text-[13px] text-ink-3">Probiere einen anderen Filter.</p>
       </div>
@@ -220,7 +223,9 @@ function EmptyProposalState({ hasFilter }: { hasFilter: boolean }) {
 
   return (
     <div className="flex flex-col items-center justify-center pt-16 gap-3 text-center px-6">
-      <p className="text-[36px]">💡</p>
+      <div className="h-14 w-14 rounded-full bg-surface-2 flex items-center justify-center">
+        <EmptyIdeaIcon className="h-7 w-7 text-ink-3" />
+      </div>
       <p className="text-[16px] font-[800] text-ink">Noch keine Vorschläge</p>
       <p className="text-[13px] text-ink-3 max-w-[240px] leading-relaxed">
         Schlag der Gruppe eine Aktivität vor und stimmt gemeinsam ab.

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { MedalIcon } from '@/components/icons/mellon-icons'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -100,7 +101,7 @@ function BadgeCard({ badge, isNew }: { badge: UserBadgeState; isNew: boolean }) 
           </span>
           {tier ? (
             <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill bg-secondary-soft text-secondary flex-shrink-0">
-              {tier.icon} {tier.name}
+              <MedalIcon rank={tier.rank} className="h-3.5 w-3.5" /> {tier.name}
             </span>
           ) : (
             <span className="text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill bg-surface-2 text-ink-3 flex-shrink-0">

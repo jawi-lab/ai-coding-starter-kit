@@ -37,14 +37,17 @@ export interface BadgeTier {
   /** Schwellenwert = DB-Repräsentation der Stufe (5/15/30). */
   threshold: number
   name: string
+  /** Emoji-Fallback für reine Text-Kontexte (Toasts). UI rendert MedalIcon. */
   icon: string
+  /** Medaillen-Rang für das SVG-Icon-Set (MedalIcon in mellon-icons). */
+  rank: 'bronze' | 'silber' | 'gold'
 }
 
 /** Die 3 Stufen, aufsteigend. Schwellen 5/15/30 laut Spec — für alle Badges gleich. */
 export const BADGE_TIERS: readonly BadgeTier[] = [
-  { threshold: 5, name: 'Bronze', icon: '🥉' },
-  { threshold: 15, name: 'Silber', icon: '🥈' },
-  { threshold: 30, name: 'Gold', icon: '🥇' },
+  { threshold: 5, name: 'Bronze', icon: '🥉', rank: 'bronze' },
+  { threshold: 15, name: 'Silber', icon: '🥈', rank: 'silber' },
+  { threshold: 30, name: 'Gold', icon: '🥇', rank: 'gold' },
 ] as const
 
 /** Höchste Gold-Schwelle (ab hier: Rohzahl statt Fortschrittsbalken). */

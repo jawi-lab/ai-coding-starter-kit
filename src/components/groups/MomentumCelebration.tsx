@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
+import { MomentumLevelIcon } from '@/components/icons/mellon-icons'
 import { levelForMilestone } from '@/lib/momentum'
 
 interface MomentumCelebrationProps {
@@ -74,6 +75,11 @@ export function MomentumCelebration({ milestone, count, onDismiss }: MomentumCel
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full pointer-events-none" />
 
       <div className="relative flex flex-col items-center gap-3 px-8 text-center animate-in fade-in-0 zoom-in-95 duration-500">
+        {/* Erreichtes Level als Wachstums-Icon (Icon-Set A2), Gold-Akzent. */}
+        <MomentumLevelIcon
+          level={level.level}
+          className="h-12 w-12 text-[#D9A24B]"
+        />
         <p className="text-[13px] font-[700] tracking-[0.06em] text-[#D9A24B]">
           Level up!
         </p>

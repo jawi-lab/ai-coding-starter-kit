@@ -1,6 +1,6 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { MomentumLevelIcon } from '@/components/icons/mellon-icons'
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -54,17 +54,14 @@ export function MomentumLevelSheet({ open, onClose, momentum }: MomentumLevelShe
                       : 'border-line bg-surface'
                     }`}
                 >
-                  {/* Status-Medaillon: Haken = erreicht, Schwelle = offen */}
+                  {/* Level-Medaillon: Wachstums-Icon (Keimling → Großer Baum),
+                      erreicht = Grün/Weiß, offen = gedämpft auf Creme (Icon-Set A2). */}
                   <div
                     className={`flex-shrink-0 h-9 w-9 rounded-pill flex items-center justify-center
                       ${reached ? 'bg-primary text-white' : 'bg-surface-2 text-ink-3'}`}
                     aria-hidden="true"
                   >
-                    {reached ? (
-                      <Check className="h-[18px] w-[18px]" strokeWidth={2.5} />
-                    ) : (
-                      <span className="text-[13px] font-[700]">{level.threshold}</span>
-                    )}
+                    <MomentumLevelIcon level={level.level} className="h-5 w-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">

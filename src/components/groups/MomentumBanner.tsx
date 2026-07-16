@@ -1,6 +1,7 @@
 'use client'
 
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
+import { MomentumIcon } from '@/components/icons/mellon-icons'
 import { Progress } from '@/components/ui/progress'
 import { levelForCount, progressToNextLevel, progressLabel } from '@/lib/momentum'
 import type { GroupMomentum } from '@/hooks/useGroupMomentum'
@@ -35,7 +36,7 @@ export function MomentumBanner({ momentum, onOpenLadder }: MomentumBannerProps) 
       <div className="flex items-center gap-3">
         {/* Icon-Medaillon */}
         <div className="flex-shrink-0 h-10 w-10 rounded-pill bg-primary-soft flex items-center justify-center">
-          <Sparkles className="h-5 w-5 text-primary" strokeWidth={2} />
+          <MomentumIcon className="h-5 w-5 text-primary" />
         </div>
 
         <div className="flex-1 min-w-0">

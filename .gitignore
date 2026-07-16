@@ -60,3 +60,5 @@ ios/App/App/GoogleService-Info.plist
 
 # App-Store-Screenshots aus dem Simulator (lokal generiert, nicht im Repo)
 /Screenshots/
+docs/ICON-BRIEF-momentum-emptystates.md
+docs/ICON-SPEC.md

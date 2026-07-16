@@ -1,5 +1,6 @@
 'use client'
 
+import { MedalIcon } from '@/components/icons/mellon-icons'
 import { badgeInfo, tierInfo } from '@/lib/badges'
 import type { MemberBadge } from '@/hooks/useGroupBadges'
 
@@ -22,10 +23,10 @@ export function MemberBadgeIcons({ badges }: { badges: MemberBadge[] }) {
             key={b.key}
             title={`${info.name} · ${tier.name}`}
             aria-label={`Badge: ${info.name}, Stufe ${tier.name}`}
-            className="inline-flex items-center rounded-pill bg-surface-2 px-1 py-0.5 text-[10px] leading-none"
+            className="inline-flex items-center gap-0.5 rounded-pill bg-surface-2 px-1 py-0.5 text-[10px] leading-none"
           >
             {info.icon}
-            {tier.icon}
+            <MedalIcon rank={tier.rank} className="h-3 w-3" />
           </span>
         )
       })}
