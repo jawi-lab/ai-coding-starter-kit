@@ -1,6 +1,6 @@
 # PROJ-16: Persönliche Rollen-Badges (Gamification)
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-07-13
 **Last Updated:** 2026-07-16
 
@@ -316,4 +316,10 @@ Keine. (Zwei Locator-Fixes in der neuen E2E-Datei selbst waren Test-, keine Prod
 - **Recommendation:** Deploy
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://qt-voting-app.vercel.app
+- **Deployed:** 2026-07-16 (Vercel Auto-Deploy, Commit `1feffd3`)
+- **DB:** Migration `20260714182658_proj16_user_badges` war bereits vor dem Frontend-Deploy live (Backfill abgeschlossen, QA lief gegen die Live-DB)
+- **Pre-Deploy-Checks:** `npm run build` grün (Static Export, 13 Seiten); `npm run lint` weiterhin projektweit defekt (`next lint` in Next 16 entfernt — bekanntes, PROJ-16-unabhängiges Problem; TypeScript-Check läuft im Build)
+- **Post-Deploy live verifiziert (QA-Bot-Account):** Login → Profil → „Meine Badges"-Sektion rendert mit allen vier Badges (verdiente Stufen + Fortschrittsbalken), Konsole fehlerfrei
+- **Hinweis:** Beim QA-Bot zeigt z.B. Ideengeber „Bronze" bei gleichzeitigem Fortschritt „Noch 4 bis Bronze" — Artefakt der QA-Testdaten-Bereinigung (Löschungen senken den Zähler, Stufe bleibt monoton erhalten; spezifiziertes Verhalten, kein Bug)
