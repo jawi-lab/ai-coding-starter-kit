@@ -399,4 +399,10 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 **Production Ready: YES** — keine Critical/High/Medium-Bugs mehr offen. Der credentialed E2E-Lauf wurde am 2026-07-16 in sauberem Worktree nachgeholt (siehe ✅ oben) — Deploy-Blocker ausgeräumt. Hinweis für künftige Läufe: credentialed E2E mit `--workers=1` (oder Login-Wiederverwendung via `storageState`) fahren, sonst greift das Supabase-Auth-Rate-Limit.
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://qt-voting-app.vercel.app
+- **Deployed:** 2026-07-16 (Vercel Auto-Deploy, Commit `41301a2`; Feature-Code war ab `8b2080b` im Push enthalten)
+- **DB:** Alle 5 PROJ-17-Migrationen (inkl. Fix `20260716185825`) waren bereits vor dem Frontend-Deploy in der Produktions-DB live (1:1-Spiegel in `supabase/migrations/` verifiziert)
+- **Pre-Deploy-Checks:** `npm run build` ✓ (Static Export, 13 Seiten), Vitest 370/370 ✓, credentialed E2E nachgeholt ✓ (`npm run lint` pre-existing defekt: `next lint` in Next 16 entfernt — kein PROJ-17-Blocker)
+- **Post-Deploy live verifiziert (Mobile-Viewport 390×844, qa-bot):** Login, Profil → Album-Tab, Memory Card „Picknick im Stadtpark" (Cover, Gruppen-Badge, Termin-Datum 12.07.26), Karten-Tap → read-only Detail-Sheet. Konsole: nur die bekannte BUG-17-3-A11y-Warnung (Low, pre-existing, bewusst zurückgestellt) — keine neuen Fehler.
+- **Hinweis:** Im selben Push ging unabhängige Icon-Arbeit live (Commit `ececcb1`, Mellon-Icon-Set + LoginForm-429-Fehlermeldung) — nicht Teil von PROJ-17.
