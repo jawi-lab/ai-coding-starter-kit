@@ -42,32 +42,32 @@ test.describe('Onboarding Screen', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, TEST_EMAIL, TEST_PASSWORD)
     await page.goto('/onboarding')
-    await page.waitForSelector('text=Starte jetzt', { timeout: 5000 })
+    await page.waitForSelector('text=Wie möchtest du starten?', { timeout: 5000 })
   })
 
-  test('AC-ONBOARD-1: Shows two options — "Gruppe erstellen" and "Gruppe beitreten"', async ({ page }) => {
-    await expect(page.getByText('Gruppe erstellen')).toBeVisible()
-    await expect(page.getByText('Gruppe beitreten')).toBeVisible()
+  test('AC-ONBOARD-1: Shows two options — "Gruppe gründen" and "Code eingeben"', async ({ page }) => {
+    await expect(page.getByText('Gruppe gründen')).toBeVisible()
+    await expect(page.getByText('Code eingeben')).toBeVisible()
   })
 
-  test('AC-ONBOARD-2: Clicking "Gruppe erstellen" shows the create form', async ({ page }) => {
-    await page.getByText('Gruppe erstellen').first().click()
+  test('AC-ONBOARD-2: Clicking "Gruppe gründen" shows the create form', async ({ page }) => {
+    await page.getByText('Gruppe gründen').first().click()
     await expect(page.getByLabel('Gruppenname')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Gruppe erstellen' })).toBeVisible()
   })
 
-  test('AC-ONBOARD-3: Clicking "Gruppe beitreten" shows the join form', async ({ page }) => {
-    await page.getByText('Gruppe beitreten').first().click()
+  test('AC-ONBOARD-3: Clicking "Code eingeben" shows the join form', async ({ page }) => {
+    await page.getByText('Code eingeben').first().click()
     await expect(page.getByLabel('Einladungs-Code')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Gruppe beitreten' })).toBeVisible()
   })
 
   test('AC-ONBOARD-4: Back button returns to choice screen', async ({ page }) => {
-    await page.getByText('Gruppe erstellen').first().click()
-    await page.getByText('← Zurück').click()
-    await expect(page.getByText('Starte jetzt')).toBeVisible()
-    await expect(page.getByText('Gruppe erstellen')).toBeVisible()
-    await expect(page.getByText('Gruppe beitreten')).toBeVisible()
+    await page.getByText('Gruppe gründen').first().click()
+    await page.getByText('← Zurück zur Auswahl').click()
+    await expect(page.getByText('Wie möchtest du starten?')).toBeVisible()
+    await expect(page.getByText('Gruppe gründen')).toBeVisible()
+    await expect(page.getByText('Code eingeben')).toBeVisible()
   })
 })
 
@@ -79,8 +79,8 @@ test.describe('Gruppe erstellen — Validation', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, TEST_EMAIL, TEST_PASSWORD)
     await page.goto('/onboarding')
-    await page.waitForSelector('text=Starte jetzt', { timeout: 5000 })
-    await page.getByText('Gruppe erstellen').first().click()
+    await page.waitForSelector('text=Wie möchtest du starten?', { timeout: 5000 })
+    await page.getByText('Gruppe gründen').first().click()
     await page.waitForSelector('input[id="group-name"]', { timeout: 3000 })
   })
 
@@ -89,13 +89,13 @@ test.describe('Gruppe erstellen — Validation', () => {
     await expect(page.getByText('Gruppenname ist erforderlich')).toBeVisible()
   })
 
-  test('AC-CREATE-VAL-2: Character counter shows 0/50 initially', async ({ page }) => {
-    await expect(page.getByText('0/50 Zeichen')).toBeVisible()
+  test('AC-CREATE-VAL-2: Character counter shows 0/20 initially', async ({ page }) => {
+    await expect(page.getByText('0/20 Zeichen')).toBeVisible()
   })
 
   test('AC-CREATE-VAL-3: Character counter updates as user types', async ({ page }) => {
     await page.getByLabel('Gruppenname').fill('Test')
-    await expect(page.getByText('4/50 Zeichen')).toBeVisible()
+    await expect(page.getByText('4/20 Zeichen')).toBeVisible()
   })
 })
 
@@ -107,8 +107,8 @@ test.describe('Gruppe beitreten — Validation', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, TEST_EMAIL, TEST_PASSWORD)
     await page.goto('/onboarding')
-    await page.waitForSelector('text=Starte jetzt', { timeout: 5000 })
-    await page.getByText('Gruppe beitreten').first().click()
+    await page.waitForSelector('text=Wie möchtest du starten?', { timeout: 5000 })
+    await page.getByText('Code eingeben').first().click()
     await page.waitForSelector('input[id="invite-code"]', { timeout: 3000 })
   })
 
@@ -123,9 +123,12 @@ test.describe('Gruppe beitreten — Validation', () => {
     await expect(page.getByRole('button', { name: 'Gruppe beitreten' })).not.toBeDisabled()
   })
 
-  test('AC-JOIN-VAL-3: Input auto-uppercases and strips special characters', async ({ page }) => {
-    await page.getByLabel('Einladungs-Code').fill('abc123')
-    await expect(page.getByLabel('Einladungs-Code')).toHaveValue('ABC123')
+  test('AC-JOIN-VAL-3: Input auto-uppercases, strips special and ambiguous characters', async ({ page }) => {
+    await page.getByLabel('Einladungs-Code').fill('abc234')
+    await expect(page.getByLabel('Einladungs-Code')).toHaveValue('ABC234')
+    // Sonderzeichen und mehrdeutige Zeichen (O, I, 0, 1) werden entfernt
+    await page.getByLabel('Einladungs-Code').fill('a-b_10')
+    await expect(page.getByLabel('Einladungs-Code')).toHaveValue('AB')
   })
 
   test('AC-JOIN-VAL-4: Invalid code shows "Ungültiger Einladungs-Code"', async ({ page }) => {
@@ -305,8 +308,8 @@ test.describe('Responsive — Onboarding', () => {
     await page.setViewportSize({ width: 375, height: 812 })
     await loginAs(page, TEST_EMAIL, TEST_PASSWORD)
     await page.goto('/onboarding')
-    await expect(page.getByText('Starte jetzt')).toBeVisible()
-    await expect(page.getByText('Gruppe erstellen')).toBeVisible()
-    await expect(page.getByText('Gruppe beitreten')).toBeVisible()
+    await expect(page.getByText('Wie möchtest du starten?')).toBeVisible()
+    await expect(page.getByText('Gruppe gründen')).toBeVisible()
+    await expect(page.getByText('Code eingeben')).toBeVisible()
   })
 })
