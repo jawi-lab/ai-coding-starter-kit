@@ -260,7 +260,122 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 **Nicht browser-getestet (→ /qa):** Filter-Chips ab 2 Gruppen, Meilenstein-Feier + Reveal gleichzeitig, Foto-Upload-Cover-Kette, Pagination >20 Karten, Karten nach Gruppen-Austritt.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-07-16
+**App URL:** http://localhost:3000 (Mobile-Viewport 390×844, Chromium)
+**Tester:** QA Engineer (AI)
+**Testkonto:** `qa-bot@zusammen.test` in isolierter Testgruppe (echte Nutzerdaten nicht angefasst; alle Temp-Daten nach dem Test entfernt)
+
+### Testmethodik
+- **Unit/Integration (Vitest):** 370/370 grün (inkl. `memory-card.test.ts`, `useArchive.test.ts`).
+- **E2E-Regression (Playwright, Chromium):** 55 passed / 82 skipped / **0 failed** — keine Regression in PROJ-2…PROJ-16.
+- **Neue E2E-Suite `tests/PROJ-17-memory-cards-album.spec.ts`:** 5 passed / 1 skipped (Leer-State N/A, da Album gefüllt).
+- **Security (SQL-Rollback-Transaktionen gegen die Produktions-DB):** Trigger-Anti-Spoof, Historie-Trigger, Lese-/Schreib-RLS für Ex-Mitglieder.
+- **Browser (Chrome DevTools MCP):** Album-Grid, Cover-Kette, „Neu"-Badge, Punkt-Indikator, Filter-Chips (2 Gruppen) + serverseitiger Filter, Read-only-Detail, **Reveal-Flip inkl. Dismiss** (echter Statuswechsel im Sandbox-Board).
+
+### Acceptance Criteria Status — 19/19 bestanden
+
+#### Karten-Erzeugung
+- [x] Statuswechsel → genau eine Karte im Album aller Mitglieder (RLS „ist oder war Mitglied", `completed_at`-Trigger)
+- [x] Vorderseite zeigt Cover, Titel, Datum, Gruppen-Badge, Dauer-Farbakzent (Browser verifiziert: Gold=Wochenende, Blush=spontan)
+- [x] Datum = Termin (falls gesetzt), sonst Abschlussdatum (Picknick zeigte Termin 12.07.26, nicht das Abschlussdatum) — `memoryCardDate` + Unit-Test
+- [x] Backfill für Alt-Aktivitäten ohne Reveal/„Neu" (`completed_at` = `coalesce(start_date, created_at)`; `album_last_seen_at` DEFAULT now())
+
+#### Cover-Motiv
+- [x] `og_image_url` als Cover, wenn keine Fotos (Browser: „Grillen am See" zeigte og-Bild)
+- [x] Gestalteter Platzhalter, wenn weder Foto noch og (Browser: Blush-Gradient + Serif-Initiale „P")
+- [x] Erstes/ältestes Foto wird Cover (`useMemoryCovers` — Logik + Fallback-Kette verifiziert; ältestes Foto pro Aktivität)
+- [x] Cover-Löschung → nächstes Foto → og → Platzhalter (Kette wird bei jeder Anzeige neu berechnet, kein gespeicherter Verweis)
+
+#### Karten-Reveal
+- [x] Reveal-Flip nach eigenem Abschluss (Browser verifiziert: Vollbild `surface-ink`, „Neue Erinnerung!", Karten-Flip)
+- [x] Tippen irgendwo schließt (Browser verifiziert)
+- [x] Meilenstein-Feier zuerst, dann Reveal (Warteschlange `pendingMilestone === null && <Reveal>` — Code verifiziert; simultaner Meilenstein nicht reproduziert)
+- [x] Andere Mitglieder sehen keinen Reveal, nur stilles „Neu"-Badge (Reveal ist rein lokaler State; andere erkennen „neu" via `completed_at > album_last_seen_at`)
+
+#### Album
+- [x] 2-spaltiges Grid, Datum absteigend, gruppenübergreifend (Browser: „Grillen"=neuer links, „Picknick" rechts)
+- [x] Filter-Chips ab 2 Gruppen + Chip filtert (Browser: „Alle" + 2 Gruppen-Chips; Auswahl filtert serverseitig)
+- [x] Leer-State „Noch keine Erinnerungen …" (E2E + Code)
+- [x] >20 Karten → „Mehr laden" (`PAGE_SIZE=20`, `hasMore`, Append — Unit-Tests; kein 20+-Datensatz im Browser)
+- [x] Karten-Tap → bestehendes ActivityDetailSheet read-only (Browser: keine Kommentar-/Upload-/Umfrage-Steuerung)
+
+#### „Neu"-Badge
+- [x] Karten neuer als letzter Album-Besuch tragen „Neu" (Browser: nur „Grillen" hatte das Gold-Badge)
+- [x] Öffnen markiert alles als gesehen, nächster Besuch ohne „Neu" (Browser: „Picknick" ohne Badge nach Vorbesuch; `markSeen`)
+- [x] Punkt-Indikator am Album-Tab bei ungesehenen Karten (Browser: Punkt erschien nach neuer Karte, verschwand nach Öffnen)
+- [x] Erstnutzung: Backfill-Karten nie „Neu" (DEFAULT-now()-Seeding)
+
+#### Konsistenz
+- [x] Admin löscht abgeschlossene Aktivität → Karte verschwindet, Gruppe bleibt (SQL verifiziert)
+- [x] Nach Gruppen-Austritt bleiben Karten sichtbar + Gruppe als Filter-Chip (Historie-Trigger + „ist oder war Mitglied"-Lese-RLS verifiziert)
+
+### Edge Cases Status
+- [x] Reveal verpasst (Crash/Offline) → kein Retry, Karte erscheint regulär (rein client-seitig, keine Persistenz)
+- [x] Zwei quasi-gleichzeitige Abschlüsse → jeder sieht nur den eigenen Reveal (lokaler State)
+- [x] Aktivität ohne Termin → Abschlussdatum auf der Karte (`memoryCardDate` + Unit-Test)
+- [x] `og_image_url` 404 → `onError`-Fallback auf Platzhalter (kein gebrochenes Bild; `MemoryCard` `imgFailed`-State)
+- [x] Sehr langer Titel → max. 2 Zeilen (`line-clamp-2`)
+- [x] Meilenstein + Reveal gleichzeitig → sequenziell (Code verifiziert)
+- [ ] **BUG-17-1:** „Gruppe wird komplett gelöscht → Kaskade → Karten verschwinden" — **schlägt fehl** (siehe Bugs; Ursache pre-existing PROJ-15-Trigger)
+
+### Security Audit Results
+- [x] **Authentifizierung:** `/groups` ohne Login → Redirect `/login` (E2E)
+- [x] **`completed_at` fälschungssicher:** Client-Wert wird beim Abschluss mit `now()` überschrieben; Setzen bei bestehendem `abgeschlossen` wird auf Alt-Wert zurückgesetzt; Verlassen des Status → `NULL` (3 Rollback-Tests grün)
+- [x] **Mitgliedschafts-Historie:** `AFTER DELETE`-Trigger schreibt Historie; Kaskaden-Guard (`exists`) verhindert Blockade bei Gruppen-/Account-Löschung
+- [x] **Lese-RLS „ist oder war Mitglied":** Ex-Mitglied liest Aktivitäten, Gruppenname, Fotos (verifiziert) — Erinnerung bleibt zugänglich
+- [x] **Schreibsperre für Ex-Mitglieder:** INSERT Kommentar/Vote und Selbst-INSERT in `group_members_history` blockiert (RLS); fremde Aktivitäten nicht editierbar
+- [ ] **BUG-17-2:** Ex-Mitglied als **Initiator** kann eigene, nicht-abgeschlossene Aktivität weiter ändern/abschließen/löschen (siehe Bugs)
+- [x] **XSS/Injection:** Titel/Gruppenname werden als Text gerendert (React-Escaping); keine `dangerouslySetInnerHTML` in den neuen Komponenten
+- [x] **Supabase Security Advisor:** keine NEUEN Findings durch PROJ-17; die neuen SECURITY-DEFINER-Helper (`is_or_was_*`) folgen dem bestehenden Muster (EXECUTE-Revoke in Härtungs-Migration)
+
+### Bugs Found
+
+#### BUG-17-1: Gruppenlöschung schlägt fehl, sobald die Gruppe ≥1 Aktivität hat
+- **Severity:** High
+- **Ursache (pre-existing, PROJ-15):** Der `AFTER DELETE`-Trigger `handle_activity_momentum` ruft beim Kaskaden-Löschen jeder Aktivität `refresh_group_momentum(old.group_id)` auf. Diese Funktion macht ein bedingungsloses `insert … on conflict` in `group_momentum` — für eine Gruppe, die im selben Statement gerade gelöscht wird. Ergebnis: `FK-Verletzung group_momentum_group_id_fkey`. Der Funktion fehlt der Existenz-Guard, den PROJ-17s eigener Historie-Trigger korrekt hat.
+- **Steps to Reproduce:**
+  1. Gruppe mit mindestens einer Aktivität (jeder Status) anlegen
+  2. Als Admin die Gruppe löschen (`DeleteGroupDialog` → `useGroupDetail.deleteGroup` → `supabase.from('groups').delete()`)
+  3. Erwartet: Gruppe + Aktivitäten + Karten kaskadieren weg (PROJ-17-Edge-Case)
+  4. Tatsächlich: DB-Fehler `23503 … group_momentum_group_id_fkey`, Löschung schlägt fehl
+- **Nachweis:** Minimal-Repro (Gruppe + 1 Vorschlag) reproduziert den Fehler zuverlässig gegen die Produktions-DB.
+- **Scope-Hinweis:** Nicht von PROJ-17 verursacht — betrifft die Live-App bereits (PROJ-15 deployed). PROJ-17 macht die Lücke sichtbar, weil das Feature „Gruppe gelöscht → Karten weg" ausdrücklich voraussetzt. Einzel-Aktivität-Löschen funktioniert korrekt (Gruppe bleibt → Refresh ok).
+- **Empfohlener Fix (Backend, ~3 Zeilen):** In `refresh_group_momentum` vor dem Upsert `if exists (select 1 from groups where id = p_group_id)` prüfen (analog `handle_member_left_history`).
+- **Priority:** Fix before deployment (schneller Backend-Guard; hält den PROJ-17-Edge-Case + repariert die Live-Gruppenlöschung)
+- **Status: ✅ FIXED (2026-07-16)** — Migration `20260716185825_proj17_fix_group_delete_and_activity_write_rls`: Existenz-Guard in `refresh_group_momentum`. Verifiziert per Minimal-Repro gegen die Produktions-DB (Gruppe + 1 Vorschlag → Löschung ok) + Gegentest Normalfall (Einzel-Aktivität löschen, Gruppe bleibt → Refresh ok). EXECUTE-ACL der Funktion blieb erhalten (nur `postgres`/`service_role`).
+
+#### BUG-17-2: Ehemaliges Mitglied (Initiator) behält Schreibrechte an eigener Aktivität
+- **Severity:** Medium
+- **Ursache (pre-existing):** Die `activities`-UPDATE/DELETE-Policies erlauben den Initiator-Zweig über `auth.uid() = initiator_id` **ohne** Prüfung aktiver Mitgliedschaft. PROJ-17 hat nur die SELECT-Policies angefasst, die Schreib-Policies unverändert gelassen.
+- **Widerspruch zur Spec:** Tech Design, Baustein 3 verspricht „Schreiben (… Status ändern) können weiterhin ausschließlich aktive Mitglieder." Tatsächlich kann ein ausgetretenes/entferntes Mitglied seine eigene, nicht-abgeschlossene Aktivität weiterhin bearbeiten, auf `abgeschlossen` setzen (→ erzeugt eine Karte im Album der Gruppe) oder (Status `vorschlag`) löschen.
+- **Steps to Reproduce:** Ex-Mitglied (war Initiator) ruft via Supabase-Client `update activities set status='abgeschlossen' where id=<eigene>` → gelingt (RLS erlaubt es).
+- **Nachweis:** SQL-RLS-Test als ausgetretener Nutzer: fremde Aktivität blockiert, EIGENE editier-/abschließbar.
+- **Empfohlener Fix (Backend):** Initiator-Zweig der UPDATE/DELETE-Policies um `is_group_member(group_id)` erweitern (aktive Mitgliedschaft).
+- **Priority:** Fix in next sprint (begrenzt auf selbst-initiierte Aktivitäten; kein Datenabfluss; widerspricht aber der zugesicherten Semantik)
+- **Status: ✅ FIXED (2026-07-16)** — Migration `20260716185825_proj17_fix_group_delete_and_activity_write_rls`: `activities_update_initiator_admin` (USING + WITH CHECK) und `activities_delete_initiator_admin` binden den Initiator-Zweig jetzt an `is_group_member(group_id)`. Admin-Zweig unverändert. Policy-Ausdrücke in `pg_policy` verifiziert; RLS-Verhaltenstest (Ex-Mitglied) folgt im QA-Re-Test.
+
+#### BUG-17-3: A11y-Warnung „DialogContent requires a DialogTitle"
+- **Severity:** Low
+- **Ursache (pre-existing):** Die read-only `ActivityDetailSheet` (unverändert wiederverwendet) löst in der Konsole eine Radix-A11y-Warnung aus (fehlender/nicht-verknüpfter DialogTitle). Betrifft das repo-weite Modal-Muster, nicht PROJ-17-Code.
+- **Priority:** Nice to have (separate A11y-Aufräum-Runde)
+
+### Weitere Beobachtung (kein Produkt-Bug)
+- **PROJ-8-E2E-Tests referenzieren den umbenannten Tab „Archiv":** `tests/PROJ-8-…spec.ts` (AC-OPEN, AC-ARCHIVE, AC-RESP) prüfen `tab { name: 'Archiv' }` und alte Leer-State-Texte. Sie **skippen** aktuell (Viewport-Vorbedingung) → kein Suite-Fehler, aber die Assertions sind schlafend. Die neue `PROJ-17`-Suite deckt das Album-Verhalten vollständig ab. Empfehlung: PROJ-8-Specs bei nächster Gelegenheit auf „Album" aktualisieren.
+
+### Summary
+- **Acceptance Criteria:** 19/19 bestanden
+- **Edge Cases:** 6/7 bestanden (1× durch pre-existing Bug blockiert)
+- **Bugs Found:** 3 total (0 Critical, 1 High, 1 Medium, 1 Low) — alle **pre-existing**, keiner von PROJ-17 eingeführt
+- **Security:** Kern-RLS/Trigger solide; 1 Medium-Autorisierungslücke (pre-existing, widerspricht Baustein-3-Zusage)
+- **Production Ready:** **NO** — BUG-17-1 (High) blockiert den „Gruppe löschen"-Edge-Case und betrifft die Live-App; empfohlener Fix ist ein kleiner Backend-Guard
+- **Recommendation:** BUG-17-1 vor dem Deploy per `/backend` fixen (Existenz-Guard in `refresh_group_momentum`), BUG-17-2 gleich mit erledigen (Mitgliedschafts-Check in den Schreib-Policies). Danach ist PROJ-17 deploy-fähig — die 19 ACs des Features selbst sind vollständig grün.
+
+### Bugfix-Nachtrag (2026-07-16, /backend)
+- **BUG-17-1 + BUG-17-2 gefixt** per Migration `20260716185825_proj17_fix_group_delete_and_activity_write_rls` (angewendet via Supabase MCP, Mirror-Datei in `supabase/migrations/`).
+- Kein Schema-Change (nur Funktion + Policies) → `database.types.ts` unverändert, kein Frontend-Code betroffen.
+- **BUG-17-3 (Low, A11y)** bewusst zurückgestellt → separate A11y-Aufräum-Runde (repo-weites Modal-Muster).
+- Offener QA-Re-Test: Edge-Case „Gruppe löschen → Karten kaskadieren weg" (vorher blockiert) + RLS-Test Ex-Mitglied-Schreibrechte.
 
 ## Deployment
 _To be added by /deploy_
