@@ -392,11 +392,11 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 | **Migrationshistorie** | ✅ `20260716185825_proj17_fix_group_delete_and_activity_write_rls` in Remote-DB = 1:1-Mirror |
 | **Vitest** | ✅ 370/370 grün |
 | **E2E ohne Credentials (Chromium + Mobile Safari)** | ✅ 35 passed / 0 failed (Auth-Guards, Validierung, Responsive; eingeloggte Tests skippen designgemäß ohne `TEST_USER_*`) |
-| **E2E mit qa-bot-Credentials** | ⚠️ **Abgebrochen (auf Nutzeranweisung übersprungen):** `loginAs` scheiterte reihenweise — Login-Redirect landete auf `/` statt `/groups` (`page.waitForURL: net::ERR_ABORTED`). Ursache NICHT PROJ-17 (Fixes sind rein DB-seitig); Verdacht: fremde Icon-WIP im Working Tree oder Supabase-Auth-Rate-Limit durch parallele Logins. Dieselbe Suite lief im Erst-QA am selben Tag vollständig grün (55 passed / 0 failed). **Vor dem Deploy einmal in sauberem Working Tree wiederholen.** |
+| **E2E mit qa-bot-Credentials** | ✅ **Nachgeholt (2026-07-16, sauberer Worktree @ `8b2080b`):** Login-Redirect funktioniert einwandfrei — **kein App-Bug**. Die ursprünglichen `loginAs`-Timeouts waren das **Supabase-Auth-Rate-Limit** (5 parallele Worker → ~85 Logins/15 min von einer IP; ab Mitte des Laufs 429, von der LoginForm irreführend als „E-Mail oder Passwort falsch" angezeigt → Fehlermeldung jetzt differenziert). Mit 1 Worker + Cooldown: PROJ-17-Suite 5/5 grün (1 Skip designgemäß), PROJ-6/7/8 grün bzw. Daten-Skips (QA-Fixtures nach Bereinigung leer). Einziger echter Befund: **12 PROJ-3-Onboarding-Tests waren veraltet** (Copy von vor dem PROJ-13-Redesign: „Starte jetzt"/„Gruppe erstellen" statt „Wie möchtest du starten?"/„Gruppe gründen"; Max-Länge 50→20; Code-Input strippt jetzt O/I/0/1) — Spec aktualisiert, danach alle grün. Pre-existing, nicht PROJ-17-verursacht. |
 
 **Fazit Re-Test:** BUG-17-1 (High) und BUG-17-2 (Medium) sind **verifiziert behoben**. Offen bleibt nur BUG-17-3 (Low, pre-existing A11y-Muster, bewusst zurückgestellt).
 
-**Production Ready: YES** — keine Critical/High/Medium-Bugs mehr offen. Empfehlung: credentialed E2E-Lauf vor `/deploy` in sauberem Working Tree nachholen (siehe ⚠️ oben).
+**Production Ready: YES** — keine Critical/High/Medium-Bugs mehr offen. Der credentialed E2E-Lauf wurde am 2026-07-16 in sauberem Worktree nachgeholt (siehe ✅ oben) — Deploy-Blocker ausgeräumt. Hinweis für künftige Läufe: credentialed E2E mit `--workers=1` (oder Login-Wiederverwendung via `storageState`) fahren, sonst greift das Supabase-Auth-Rate-Limit.
 
 ## Deployment
 _To be added by /deploy_
