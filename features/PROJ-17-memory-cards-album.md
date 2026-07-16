@@ -1,6 +1,6 @@
 # PROJ-17: Memory Cards & Album (Gamification)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-07-13
 **Last Updated:** 2026-07-16
 
@@ -317,7 +317,7 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - [x] `og_image_url` 404 → `onError`-Fallback auf Platzhalter (kein gebrochenes Bild; `MemoryCard` `imgFailed`-State)
 - [x] Sehr langer Titel → max. 2 Zeilen (`line-clamp-2`)
 - [x] Meilenstein + Reveal gleichzeitig → sequenziell (Code verifiziert)
-- [ ] **BUG-17-1:** „Gruppe wird komplett gelöscht → Kaskade → Karten verschwinden" — **schlägt fehl** (siehe Bugs; Ursache pre-existing PROJ-15-Trigger)
+- [x] **BUG-17-1:** „Gruppe wird komplett gelöscht → Kaskade → Karten verschwinden" — **im QA-Re-Test (2026-07-16) bestanden** nach Fix-Migration `20260716185825` (SQL-Rollback-Test gegen Prod-DB: Kaskade vollständig, keine FK-Verletzung, kein `group_momentum`-Leak; Gegentest Einzel-Aktivität-Löschen → Momentum-Refresh korrekt)
 
 ### Security Audit Results
 - [x] **Authentifizierung:** `/groups` ohne Login → Redirect `/login` (E2E)
@@ -325,7 +325,7 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - [x] **Mitgliedschafts-Historie:** `AFTER DELETE`-Trigger schreibt Historie; Kaskaden-Guard (`exists`) verhindert Blockade bei Gruppen-/Account-Löschung
 - [x] **Lese-RLS „ist oder war Mitglied":** Ex-Mitglied liest Aktivitäten, Gruppenname, Fotos (verifiziert) — Erinnerung bleibt zugänglich
 - [x] **Schreibsperre für Ex-Mitglieder:** INSERT Kommentar/Vote und Selbst-INSERT in `group_members_history` blockiert (RLS); fremde Aktivitäten nicht editierbar
-- [ ] **BUG-17-2:** Ex-Mitglied als **Initiator** kann eigene, nicht-abgeschlossene Aktivität weiter ändern/abschließen/löschen (siehe Bugs)
+- [x] **BUG-17-2:** Ex-Mitglied als **Initiator** — **im QA-Re-Test (2026-07-16) bestanden** nach Fix-Migration: UPDATE, Status→`abgeschlossen` und DELETE als Ex-Mitglied blockiert (je 0 rows); Positiv-Kontrolle als aktives Mitglied grün; Lese-RLS („ist oder war Mitglied") unverändert intakt
 - [x] **XSS/Injection:** Titel/Gruppenname werden als Text gerendert (React-Escaping); keine `dangerouslySetInnerHTML` in den neuen Komponenten
 - [x] **Supabase Security Advisor:** keine NEUEN Findings durch PROJ-17; die neuen SECURITY-DEFINER-Helper (`is_or_was_*`) folgen dem bestehenden Muster (EXECUTE-Revoke in Härtungs-Migration)
 
@@ -353,7 +353,7 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - **Nachweis:** SQL-RLS-Test als ausgetretener Nutzer: fremde Aktivität blockiert, EIGENE editier-/abschließbar.
 - **Empfohlener Fix (Backend):** Initiator-Zweig der UPDATE/DELETE-Policies um `is_group_member(group_id)` erweitern (aktive Mitgliedschaft).
 - **Priority:** Fix in next sprint (begrenzt auf selbst-initiierte Aktivitäten; kein Datenabfluss; widerspricht aber der zugesicherten Semantik)
-- **Status: ✅ FIXED (2026-07-16)** — Migration `20260716185825_proj17_fix_group_delete_and_activity_write_rls`: `activities_update_initiator_admin` (USING + WITH CHECK) und `activities_delete_initiator_admin` binden den Initiator-Zweig jetzt an `is_group_member(group_id)`. Admin-Zweig unverändert. Policy-Ausdrücke in `pg_policy` verifiziert; RLS-Verhaltenstest (Ex-Mitglied) folgt im QA-Re-Test.
+- **Status: ✅ FIXED (2026-07-16)** — Migration `20260716185825_proj17_fix_group_delete_and_activity_write_rls`: `activities_update_initiator_admin` (USING + WITH CHECK) und `activities_delete_initiator_admin` binden den Initiator-Zweig jetzt an `is_group_member(group_id)`. Admin-Zweig unverändert. Policy-Ausdrücke in `pg_policy` verifiziert; RLS-Verhaltenstest (Ex-Mitglied) im QA-Re-Test 2026-07-16 bestanden (siehe „QA Re-Test").
 
 #### BUG-17-3: A11y-Warnung „DialogContent requires a DialogTitle"
 - **Severity:** Low
@@ -376,6 +376,27 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - Kein Schema-Change (nur Funktion + Policies) → `database.types.ts` unverändert, kein Frontend-Code betroffen.
 - **BUG-17-3 (Low, A11y)** bewusst zurückgestellt → separate A11y-Aufräum-Runde (repo-weites Modal-Muster).
 - Offener QA-Re-Test: Edge-Case „Gruppe löschen → Karten kaskadieren weg" (vorher blockiert) + RLS-Test Ex-Mitglied-Schreibrechte.
+
+### QA Re-Test (2026-07-16, /qa — Verifikation der Bugfixes aus `20260716185825`)
+
+**Methodik:** SQL-Rollback-Transaktionen direkt gegen die Produktions-DB (Testdaten unter qa-bot, restlos zurückgerollt) + Vitest + Playwright-Regression.
+
+| Test | Ergebnis |
+|------|----------|
+| **BUG-17-1:** Gruppe mit ≥1 Aktivität (inkl. abgeschlossener) löschen | ✅ PASS — Kaskade vollständig (Aktivitäten + `group_momentum` weg), keine FK-Verletzung |
+| **BUG-17-1 Gegentest:** Einzel-Aktivität löschen, Gruppe bleibt | ✅ PASS — `refresh_group_momentum` zählt korrekt herunter (1→0) |
+| **BUG-17-2 Positiv-Kontrolle:** aktives Mitglied + Initiator updatet eigene Aktivität | ✅ PASS (1 row) |
+| **BUG-17-2:** Ex-Mitglied (Initiator) UPDATE / Status→`abgeschlossen` / DELETE | ✅ PASS — alle 3 blockiert (je 0 rows), Aktivität unverändert |
+| **Lese-RLS-Regression:** Ex-Mitglied liest Aktivität + Gruppenname weiterhin | ✅ PASS — Kernzusage „Erinnerung bleibt zugänglich" intakt |
+| **Security Advisor** | ✅ Keine neuen Findings; `refresh_group_momentum` NICHT anon/authenticated-ausführbar → EXECUTE-ACL durch `CREATE OR REPLACE` erhalten |
+| **Migrationshistorie** | ✅ `20260716185825_proj17_fix_group_delete_and_activity_write_rls` in Remote-DB = 1:1-Mirror |
+| **Vitest** | ✅ 370/370 grün |
+| **E2E ohne Credentials (Chromium + Mobile Safari)** | ✅ 35 passed / 0 failed (Auth-Guards, Validierung, Responsive; eingeloggte Tests skippen designgemäß ohne `TEST_USER_*`) |
+| **E2E mit qa-bot-Credentials** | ⚠️ **Abgebrochen (auf Nutzeranweisung übersprungen):** `loginAs` scheiterte reihenweise — Login-Redirect landete auf `/` statt `/groups` (`page.waitForURL: net::ERR_ABORTED`). Ursache NICHT PROJ-17 (Fixes sind rein DB-seitig); Verdacht: fremde Icon-WIP im Working Tree oder Supabase-Auth-Rate-Limit durch parallele Logins. Dieselbe Suite lief im Erst-QA am selben Tag vollständig grün (55 passed / 0 failed). **Vor dem Deploy einmal in sauberem Working Tree wiederholen.** |
+
+**Fazit Re-Test:** BUG-17-1 (High) und BUG-17-2 (Medium) sind **verifiziert behoben**. Offen bleibt nur BUG-17-3 (Low, pre-existing A11y-Muster, bewusst zurückgestellt).
+
+**Production Ready: YES** — keine Critical/High/Medium-Bugs mehr offen. Empfehlung: credentialed E2E-Lauf vor `/deploy` in sauberem Working Tree nachholen (siehe ⚠️ oben).
 
 ## Deployment
 _To be added by /deploy_
