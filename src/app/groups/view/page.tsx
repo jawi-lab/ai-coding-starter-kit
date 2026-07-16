@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
 import { useGroupMomentum } from '@/hooks/useGroupMomentum'
 import { MomentumCelebration } from '@/components/groups/MomentumCelebration'
+import { MemoryCardReveal, type RevealActivity } from '@/components/memory/MemoryCardReveal'
 import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
@@ -46,6 +47,11 @@ function GroupView() {
   const [detailActivityId, setDetailActivityId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+
+  // Karten-Reveal (PROJ-17): die soeben vom eigenen Gerät abgeschlossene
+  // Aktivität — rein lokal, ohne Persistenz (verpasster Reveal wird laut Spec
+  // nicht nachgeholt).
+  const [revealActivity, setRevealActivity] = useState<RevealActivity | null>(null)
 
   // Die Übersicht (VorschlaegeTab) registriert hier ihren refetch, damit das
   // zentral gerenderte Create-Sheet die Liste nach dem Erstellen aktualisiert.
@@ -166,6 +172,7 @@ function GroupView() {
               refetchGroup: refetch,
               openCreateProposal,
               registerProposalsRefetch,
+              showCardReveal: setRevealActivity,
             }}
           >
             {activeSeg === 'vorschlaege' && <VorschlaegeTab />}
@@ -222,6 +229,18 @@ function GroupView() {
         count={momentum?.count ?? 0}
         onDismiss={markCelebrationSeen}
       />
+
+      {/* Karten-Reveal (PROJ-17) — nur für den Abschließenden. Warteschlange:
+          löst derselbe Abschluss einen Meilenstein aus, kommt erst die Feier
+          (seltener, größerer Moment); der Reveal rendert erst nach deren
+          Dismiss. Zusätzlich liegt er mit z-[55] unter der Feier (z-[60]). */}
+      {pendingMilestone === null && (
+        <MemoryCardReveal
+          activity={revealActivity}
+          groupName={group?.name ?? ''}
+          onDismiss={() => setRevealActivity(null)}
+        />
+      )}
 
       {/* Shared activity detail sheet */}
       <ActivityDetailSheet

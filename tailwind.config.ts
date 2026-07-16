@@ -7,6 +7,17 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  // Klassen aus Maps in src/lib (nicht in content gescannt — ein Voll-Scan von
+  // lib bricht am Extractor, z.B. an Regex-Zeichenklassen wie `[-:.]`):
+  // MEMORY_ACCENTS in lib/memory-card.ts (PROJ-17 Farbakzente + Platzhalter).
+  safelist: [
+    "bg-blush",
+    "bg-secondary",
+    "bg-primary",
+    "bg-cover-blush",
+    "bg-cover-gold",
+    "bg-cover-green",
+  ],
   theme: {
   	extend: {
   		fontFamily: {
@@ -118,11 +129,23 @@ const config: Config = {
   			'accordion-up': {
   				from: { height: 'var(--radix-accordion-content-height)' },
   				to: { height: '0' }
+  			},
+  			/* Karten-Reveal (PROJ-17): einmaliger Flip, kein Loop (Styleguide) */
+  			'mellon-fade-in': {
+  				from: { opacity: '0' },
+  				to: { opacity: '1' }
+  			},
+  			'mellon-card-flip': {
+  				'0%': { transform: 'rotateY(180deg) scale(0.9)' },
+  				'65%': { transform: 'rotateY(0deg) scale(1.03)' },
+  				'100%': { transform: 'rotateY(0deg) scale(1)' }
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'mellon-fade-in': 'mellon-fade-in 0.3s ease-out both',
+  			'mellon-card-flip': 'mellon-card-flip 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both'
   		}
   	}
   },

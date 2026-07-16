@@ -3,6 +3,7 @@
 import { createContext, useContext } from 'react'
 import type { Group, GroupRole } from '@/lib/group-types'
 import type { GroupMomentum } from '@/hooks/useGroupMomentum'
+import type { RevealActivity } from '@/components/memory/MemoryCardReveal'
 
 export interface GroupShell {
   groupId: string
@@ -33,6 +34,12 @@ export interface GroupShell {
    * sheet can refresh the list after a successful create. Pass `null` to clear.
    */
   registerProposalsRefetch: (fn: (() => void) | null) => void
+  /**
+   * Karten-Reveal (PROJ-17): zeigt dem Abschließenden direkt nach dem
+   * Statuswechsel auf `abgeschlossen` die neue Memory Card als Vollbild-Flip.
+   * Auf Shell-Ebene gerendert und hinter der PROJ-15-Feier eingereiht.
+   */
+  showCardReveal: (activity: RevealActivity) => void
 }
 
 const GroupShellCtx = createContext<GroupShell | null>(null)

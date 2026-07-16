@@ -20,7 +20,8 @@ import { AppearanceSection } from './AppearanceSection'
 import { NotificationPreferencesSection } from './NotificationPreferencesSection'
 import { CalendarConnectionSection } from './CalendarConnectionSection'
 import { DateBlocksSection } from './DateBlocksSection'
-import { ArchiveTab } from './ArchiveTab'
+import { AlbumTab } from './AlbumTab'
+import { useAlbumBadge } from '@/hooks/useAlbumBadge'
 
 interface ProfileSheetProps {
   open: boolean
@@ -31,8 +32,35 @@ interface ProfileSheetProps {
 }
 
 export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: ProfileSheetProps) {
-  const { signOut } = useAuth()
+  const { signOut, profile } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+
+  // Album (PROJ-17): Punkt-Indikator am Tab + Gesehen-Logik. Beim ersten
+  // Öffnen des Album-Tabs pro Sheet-Besuch: alten Zeitstempel als Snapshot
+  // sichern (für die „Neu"-Badges im Grid) und dann auf jetzt setzen.
+  const { hasNew, markSeen } = useAlbumBadge(open)
+  const [tab, setTab] = useState('profil')
+  const [albumSeenSnapshot, setAlbumSeenSnapshot] = useState<string | null>(null)
+  const [albumVisited, setAlbumVisited] = useState(false)
+
+  function handleTabChange(value: string) {
+    setTab(value)
+    if (value === 'album' && !albumVisited) {
+      setAlbumVisited(true)
+      setAlbumSeenSnapshot(profile?.album_last_seen_at ?? null)
+      markSeen()
+    }
+  }
+
+  // Pro Sheet-Öffnung frisch starten (Tabs waren zuvor uncontrolled und
+  // setzten sich durch das Unmounten des Sheets automatisch zurück).
+  useEffect(() => {
+    if (open) {
+      setTab('profil')
+      setAlbumVisited(false)
+      setAlbumSeenSnapshot(null)
+    }
+  }, [open])
 
   // Deep-link target (BUG-12-1): once the sheet has animated open, bring the
   // "Benachrichtigungen" section into view. Profil is the default tab, so the anchor
@@ -64,11 +92,11 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
               Mein Konto
             </ResponsiveModalTitle>
             <ResponsiveModalDescription className="sr-only">
-              Profil, Darstellung, Kalender, Verfügbarkeit und Archiv verwalten.
+              Profil, Darstellung, Kalender, Verfügbarkeit und Album verwalten.
             </ResponsiveModalDescription>
           </ResponsiveModalHeader>
 
-          <Tabs defaultValue="profil" className="flex-1 flex flex-col min-h-0 mt-3">
+          <Tabs value={tab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0 mt-3">
             <TabsList className="flex-shrink-0 mx-5 bg-surface-2 rounded-pill p-0.5 h-9">
               <TabsTrigger
                 value="profil"
@@ -77,10 +105,17 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
                 Profil
               </TabsTrigger>
               <TabsTrigger
-                value="archiv"
-                className="flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
+                value="album"
+                className="relative flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
               >
-                Archiv
+                Album
+                {/* Punkt-Indikator (PROJ-17): ungesehene Karten warten im Album */}
+                {hasNew && (
+                  <span
+                    aria-label="Neue Karten im Album"
+                    className="absolute top-1 right-2 h-2 w-2 rounded-full bg-secondary"
+                  />
+                )}
               </TabsTrigger>
             </TabsList>
 
@@ -129,9 +164,9 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
               </div>
             </TabsContent>
 
-            {/* Archiv Tab */}
-            <TabsContent value="archiv" className="flex-1 overflow-y-auto mt-0">
-              <ArchiveTab />
+            {/* Album Tab (PROJ-17, ehemals Archiv) */}
+            <TabsContent value="album" className="flex-1 overflow-y-auto mt-0">
+              <AlbumTab lastSeenAt={albumSeenSnapshot} />
             </TabsContent>
           </Tabs>
         </ResponsiveModalContent>

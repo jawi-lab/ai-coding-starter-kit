@@ -6,7 +6,7 @@ import { useGroupShell } from '@/components/groups/GroupShellContext'
 
 export function PlanungTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, openActivityDetail } = useGroupShell()
+  const { groupId, isAdmin, openActivityDetail, showCardReveal } = useGroupShell()
 
   return (
     <div className="flex-1 min-h-0">
@@ -18,6 +18,7 @@ export function PlanungTab() {
           currentUserId={user?.id ?? ''}
           isAdmin={isAdmin}
           onOpenDetail={(a) => openActivityDetail(a.id)}
+          onCompleted={showCardReveal}
         />
       </div>
     </div>

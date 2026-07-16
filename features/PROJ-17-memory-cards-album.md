@@ -238,6 +238,27 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 
 **Bewusste Scope-Grenzen:** Kein Realtime, kein Reveal-Persistenz-Backend (rein client-seitig, /frontend), Cover-Kette wird client-seitig beim Anzeigen berechnet (ein gebündelter `activity_photos`-Query pro Album-Seite — /frontend).
 
+### Frontend (/frontend, 2026-07-16)
+
+**Neue Bausteine:**
+- `src/lib/memory-card.ts` — geteilte Ableitungen: `MEMORY_ACCENTS` (finale Farbzuordnung: spontan → Blush, Wochenende → Honiggold, längerer Zeitraum → Waldgrün — je mit passendem Cover-Gradient als Platzhalter), `memoryCardDate()` (Termin vor Abschlussdatum, `dateOnly` wie Kanban), `isCardNew()` (completed_at > album_last_seen_at). Unit-Tests in `memory-card.test.ts`.
+- `src/components/memory/MemoryCard.tsx` — die Sammelkarte (Album + Reveal identisch): Cover 4:5 (lazy, `onError`-Fallback), Akzentbalken, Serif-Titel max. 2 Zeilen, Datum, Gruppen-Badge, optional „Neu"-Badge (Gold). Platzhalter = Cover-Gradient + Serif-Initiale (nie ein gebrochenes Bild).
+- `src/components/memory/MemoryCardReveal.tsx` — Vollbild-Flip (z-[55], unter der PROJ-15-Feier z-[60]) auf `surface-ink`, CSS-3D-Flip via neue Tailwind-Keyframes (`mellon-card-flip`, einmalig, kein Loop), Tippen irgendwo schließt. Cover beim Reveal = `og_image_url`/Platzhalter (Fotos existieren beim Abschluss noch nicht).
+- `src/hooks/useMemoryCovers.ts` — EIN gebündelter `activity_photos`-Query pro Album-Seite, ältestes Foto je Aktivität; Fallback-Kette im Aufrufer (`covers[id] ?? og_image_url ?? Platzhalter`).
+- `src/hooks/useAlbumBadge.ts` — Punkt-Indikator-Query (Head-Count, nur bei offenem Sheet) + `markSeen()` (setzt `album_last_seen_at`, refresht Profil).
+- `src/components/profile/AlbumTab.tsx` — ersetzt ArchiveTab: 2-spaltiges Grid, Filter-Chips ab 2 Gruppen (serverseitig via `useArchive(groupFilter)`), Leer-State laut AC, „Mehr laden" (20er-Muster), Karten-Tap → bestehendes ActivityDetailSheet (readOnly).
+
+**Umbauten:**
+- `ProfileSheet` — Tab „Archiv" → „Album" mit Punkt-Indikator; beim ersten Album-Öffnen pro Sheet-Besuch: Snapshot des alten Zeitstempels (für die „Neu"-Badges) → dann `markSeen()`. Tabs jetzt controlled, Reset bei Sheet-Öffnung.
+- `GroupShellContext` + `groups/view/page.tsx` — neues `showCardReveal`; Reveal rendert nur bei `pendingMilestone === null` (Warteschlange: Feier zuerst, Reveal nach deren Dismiss).
+- `KanbanBoard` — neuer `onCompleted`-Callback nach erfolgreichem Abschluss (ersetzt den Abschluss-Toast; die Vollbild-Karte ist die Bestätigung), verdrahtet in `PlanungTab`.
+- `tailwind.config.ts` — Keyframes `mellon-card-flip`/`mellon-fade-in`; Safelist für die Klassen aus `MEMORY_ACCENTS` (src/lib wird bewusst NICHT in content gescannt — Regex-Zeichenklassen wie `[-:.]` in lib-Dateien brechen den Tailwind-Extractor, im Browser-Test verifiziert).
+- Entfernt: `ArchiveTab.tsx`, `ArchiveActivityCard.tsx` (ersetzt durch Album/MemoryCard).
+
+**Verifikation:** 370/370 Unit-Tests grün, Production-Build ok. Browser-Verifikation (Mobile-Viewport, QA-Account in isolierter Testgruppe): Reveal-Flip nach eigenem Abschluss inkl. Dismiss, Karte im Album mit „Neu"-Badge, Punkt-Indikator am Tab, Gesehen-Logik (zweiter Besuch ohne „Neu"/Punkt), Karten-Tap → read-only Detail-Sheet, Leer-State. Zwei dabei gefundene Bugs direkt gefixt: fehlende Platzhalter-Gradient-Klassen (→ Safelist) und Punkt-Indikator-Query nur beim Mount statt beim Sheet-Öffnen (→ `useAlbumBadge(open)`).
+
+**Nicht browser-getestet (→ /qa):** Filter-Chips ab 2 Gruppen, Meilenstein-Feier + Reveal gleichzeitig, Foto-Upload-Cover-Kette, Pagination >20 Karten, Karten nach Gruppen-Austritt.
+
 ## QA Test Results
 _To be added by /qa_
 

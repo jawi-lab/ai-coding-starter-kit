@@ -17,6 +17,8 @@ interface KanbanBoardProps {
   currentUserId: string
   isAdmin: boolean
   onOpenDetail?: (activity: ActivityWithInitiator) => void
+  /** Nach erfolgreichem Abschluss (PROJ-17): löst den Karten-Reveal aus. */
+  onCompleted?: (activity: ActivityWithInitiator) => void
 }
 
 type DialogState =
@@ -25,7 +27,7 @@ type DialogState =
   | { type: 'complete'; activity: ActivityWithInitiator }
   | null
 
-export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: KanbanBoardProps) {
+export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail, onCompleted }: KanbanBoardProps) {
   const { activities, loading, error } = useKanbanActivities(groupId)
   const { updateStatus, loading: updating } = useUpdateActivityStatus()
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -59,15 +61,19 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail }: K
 
   async function handleComplete() {
     if (dialog?.type !== 'complete') return
+    const completed = dialog.activity
     const { error: err } = await updateStatus({
-      activityId: dialog.activity.id,
+      activityId: completed.id,
       status: 'abgeschlossen',
     })
     if (err) {
       toast.error(err)
     } else {
-      toast.success('Aktivität als abgeschlossen markiert')
       setDialog(null)
+      // Karten-Reveal (PROJ-17) ersetzt den Abschluss-Toast — die
+      // Vollbild-Karte IST die Bestätigung für den Abschließenden.
+      if (onCompleted) onCompleted(completed)
+      else toast.success('Aktivität als abgeschlossen markiert')
     }
   }
 
