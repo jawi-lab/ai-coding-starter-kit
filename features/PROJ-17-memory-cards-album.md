@@ -1,8 +1,8 @@
 # PROJ-17: Memory Cards & Album (Gamification)
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-14
+**Last Updated:** 2026-07-16
 
 ## Dependencies
 - PROJ-6 (Aktivitäts-Detail) — Erinnerungsfotos (`activity_photos`), `og_image_url` als Cover-Quelle, `ActivityDetailSheet` mit `readOnly`-Modus
@@ -206,6 +206,37 @@ Keine neuen Packages. Flip-Animation über CSS/Tailwind (`tailwindcss-animate` i
 2. `/frontend` danach: Memory Card, Album-Tab-Umbau, Reveal-Overlay, Filter-Chips
 
 _Hinweis: weicht bewusst von der Standard-Reihenfolge (frontend → backend) ab, weil alle drei UI-Kernstücke auf Baustein 1–3 aufsetzen._
+
+## Implementation Notes
+
+### Backend (/backend, 2026-07-16)
+
+Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/migrations/`):
+
+**Baustein 1 — `activities.completed_at`** (`20260716101227_proj17_activity_completed_at`)
+- Neue Spalte `completed_at timestamptz`, gesetzt per `BEFORE INSERT OR UPDATE`-Trigger (`trg_activity_completed_at`): Wechsel auf `abgeschlossen` → `now()`; Verlassen des Status → `NULL`; bleibt der Status `abgeschlossen`, wird jeder Client-Wert mit dem alten Wert überschrieben (fälschungssicher, per Rollback-Test verifiziert).
+- Backfill (vor Trigger-Anlage): `coalesce(start_date, created_at)` für alle 6 Bestands-Aktivitäten.
+- Partieller Index `idx_activities_completed_at` (`WHERE status = 'abgeschlossen'`) für die Album-Sortierung.
+
+**Baustein 2 — `profiles.album_last_seen_at`** (`20260716101250_proj17_album_last_seen`)
+- `NOT NULL DEFAULT now()` erledigt beide Backfill-Fälle: Bestandsnutzer = Launch-Zeitpunkt (Backfill-Karten nie „Neu"), Neu-Nutzer = Registrierungszeitpunkt.
+- Schreibbar über die bestehende `profiles_update_own`-Policy (nur eigene Zeile).
+
+**Baustein 3 — Mitgliedschafts-Historie + Lese-RLS** (`20260716101341_proj17_membership_history_read_rls`, **RLS-Änderung vom Nutzer freigegeben 2026-07-16**)
+- Neue Tabelle `group_members_history` (PK group_id+user_id, `left_at`), befüllt ausschließlich per `AFTER DELETE`-Trigger auf `group_members`; Kaskaden-Schutz prüft Existenz von Gruppe/User, damit Gruppen-/Account-Löschung nicht blockiert. RLS: Nutzer liest nur eigene Zeilen, keine Schreib-Policies.
+- Neue Helper `is_or_was_group_member(gid)` / `is_or_was_activity_group_member(aid)` (SECURITY DEFINER, wie bestehende Helper).
+- Auf „ist ODER war Mitglied" erweiterte SELECT-Policies (nur Lesen, Schreibrechte unverändert): `groups`, `group_members`, `activities`, `activity_votes`, `activity_comments`, `activity_responsibilities`, `activity_photos`, `activity_polls`, `activity_poll_options`, `activity_poll_votes` sowie Storage-SELECT für Buckets `activity-photos` und `activity-comment-images`.
+
+**Härtung** (`20260716101643_proj17_harden_trigger_functions`): EXECUTE-Revoke für die beiden Trigger-Funktionen (PROJ-15-Muster).
+
+**Frontend-Datenpfad (vorbereitet für /frontend):**
+- `useArchive(groupFilter?)` umgestellt: Mitgliedschaften = `group_members` ∪ `group_members_history`, Sortierung nach `completed_at desc` (statt `created_at`), Gruppen-Filter serverseitig, liefert zusätzlich `groups` (Filter-Chips), `completed_at` + `duration_category` (Farbakzent) pro Aktivität.
+- `AuthContext`-Profile-Typ um `album_last_seen_at` erweitert (Profil lädt via `select('*')`, Feld ist damit verfügbar).
+- `database.types.ts` regeneriert (handverengte `status`-Union erhalten).
+
+**Tests:** `useArchive.test.ts` erweitert (Historie-Union, Dedupe, Server-Filter, Chips, `completed_at`) — 361/361 Tests grün, Build ok. Trigger-/Backfill-Logik zusätzlich per SQL-Rollback-Test in Produktion verifiziert.
+
+**Bewusste Scope-Grenzen:** Kein Realtime, kein Reveal-Persistenz-Backend (rein client-seitig, /frontend), Cover-Kette wird client-seitig beim Anzeigen berechnet (ein gebündelter `activity_photos`-Query pro Album-Seite — /frontend).
 
 ## QA Test Results
 _To be added by /qa_

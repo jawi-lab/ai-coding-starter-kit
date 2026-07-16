@@ -4,21 +4,28 @@ import { useArchive } from './useArchive'
 
 // ─── Supabase mock ─────────────────────────────────────────────────────────────
 
-const { mockMemberships, mockActivitiesResult } = vi.hoisted(() => ({
+const { mockMemberships, mockFormerMemberships, mockGroupsResult, mockActivitiesResult, activitiesInSpy } = vi.hoisted(() => ({
   mockMemberships: vi.fn(),
+  mockFormerMemberships: vi.fn(),
+  mockGroupsResult: vi.fn(),
   mockActivitiesResult: vi.fn(),
+  activitiesInSpy: vi.fn(),
 }))
 
 // Build a mock that dispatches calls by table name
 vi.mock('@/lib/supabase', () => {
-  // We need the table-specific mock to work with a chained API.
   // group_members → select().eq() → mockMemberships
+  // group_members_history → select().eq() → mockFormerMemberships
+  // groups → select().in().order() → mockGroupsResult
   // activities → select().eq().in().order().range() → mockActivitiesResult
 
   function buildActivitiesChain() {
     const chain: Record<string, unknown> = {}
     chain.eq = () => chain
-    chain.in = () => chain
+    chain.in = (_col: string, ids: string[]) => {
+      activitiesInSpy(ids)
+      return chain
+    }
     chain.order = () => chain
     chain.range = mockActivitiesResult
     return chain
@@ -31,6 +38,22 @@ vi.mock('@/lib/supabase', () => {
           return {
             select: () => ({
               eq: () => mockMemberships(),
+            }),
+          }
+        }
+        if (table === 'group_members_history') {
+          return {
+            select: () => ({
+              eq: () => mockFormerMemberships(),
+            }),
+          }
+        }
+        if (table === 'groups') {
+          return {
+            select: () => ({
+              in: () => ({
+                order: () => mockGroupsResult(),
+              }),
             }),
           }
         }
@@ -65,8 +88,10 @@ function makeActivity(id: string) {
     location: null,
     start_date: null,
     end_date: null,
+    duration_category: 'spontan',
     status: 'abgeschlossen',
     created_at: '2026-01-01',
+    completed_at: '2026-01-02T10:00:00Z',
     groups: { id: 'group-1', name: 'Freunde' },
   }
 }
@@ -76,6 +101,8 @@ function makeActivity(id: string) {
 describe('useArchive', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFormerMemberships.mockResolvedValue({ data: [] })
+    mockGroupsResult.mockResolvedValue({ data: [{ id: 'group-1', name: 'Freunde' }] })
   })
 
   it('returns empty list when user has no group memberships', async () => {
@@ -83,6 +110,7 @@ describe('useArchive', () => {
     const { result } = renderHook(() => useArchive())
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.activities).toHaveLength(0)
+    expect(result.current.groups).toHaveLength(0)
     expect(result.current.hasMore).toBe(false)
   })
 
@@ -94,6 +122,41 @@ describe('useArchive', () => {
     expect(result.current.activities).toHaveLength(2)
     expect(result.current.activities[0].group_name).toBe('Freunde')
     expect(result.current.activities[0].status).toBe('abgeschlossen')
+    expect(result.current.activities[0].completed_at).toBe('2026-01-02T10:00:00Z')
+  })
+
+  it('includes former memberships from group_members_history (PROJ-17)', async () => {
+    mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
+    mockFormerMemberships.mockResolvedValue({ data: [{ group_id: 'group-2' }] })
+    mockActivitiesResult.mockResolvedValue({ data: [makeActivity('a1')] })
+    const { result } = renderHook(() => useArchive())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(activitiesInSpy).toHaveBeenCalledWith(['group-1', 'group-2'])
+  })
+
+  it('deduplicates group ids present in both active and former memberships', async () => {
+    mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
+    mockFormerMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
+    mockActivitiesResult.mockResolvedValue({ data: [] })
+    const { result } = renderHook(() => useArchive())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(activitiesInSpy).toHaveBeenCalledWith(['group-1'])
+  })
+
+  it('passes the group filter to the query instead of all memberships', async () => {
+    mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }, { group_id: 'group-2' }] })
+    mockActivitiesResult.mockResolvedValue({ data: [] })
+    const { result } = renderHook(() => useArchive('group-2'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(activitiesInSpy).toHaveBeenCalledWith(['group-2'])
+  })
+
+  it('exposes the group list for filter chips', async () => {
+    mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
+    mockActivitiesResult.mockResolvedValue({ data: [] })
+    const { result } = renderHook(() => useArchive())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.groups).toEqual([{ id: 'group-1', name: 'Freunde' }])
   })
 
   it('falls back to "Unbekannte Gruppe" when groups join is null', async () => {

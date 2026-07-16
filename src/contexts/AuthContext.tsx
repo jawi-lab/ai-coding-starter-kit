@@ -13,6 +13,8 @@ type Profile = {
   updated_at: string
   status: 'pending' | 'active'
   onboarded: boolean
+  // PROJ-17: Karten mit completed_at jünger als dieser Zeitstempel gelten als „neu"
+  album_last_seen_at: string
 }
 
 type AuthContextValue = {

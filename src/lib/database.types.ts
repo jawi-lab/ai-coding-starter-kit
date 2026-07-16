@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       activities: {
         Row: {
+          completed_at: string | null
           created_at: string
           current_votes: number
           description: string | null
@@ -34,6 +35,7 @@ export type Database = {
           url: string | null
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           current_votes?: number
           description?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           url?: string | null
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           current_votes?: number
           description?: string | null
@@ -519,6 +522,32 @@ export type Database = {
           },
         ]
       }
+      group_members_history: {
+        Row: {
+          group_id: string
+          left_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          left_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          left_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_history_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_momentum: {
         Row: {
           completed_count: number
@@ -682,6 +711,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          album_last_seen_at: string
           avatar_url: string | null
           created_at: string
           display_name: string
@@ -692,6 +722,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          album_last_seen_at?: string
           avatar_url?: string | null
           created_at?: string
           display_name: string
@@ -701,6 +732,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          album_last_seen_at?: string
           avatar_url?: string | null
           created_at?: string
           display_name?: string
@@ -785,6 +817,11 @@ export type Database = {
       is_activity_polls_writable: { Args: { aid: string }; Returns: boolean }
       is_group_admin: { Args: { gid: string }; Returns: boolean }
       is_group_member: { Args: { gid: string }; Returns: boolean }
+      is_or_was_activity_group_member: {
+        Args: { aid: string }
+        Returns: boolean
+      }
+      is_or_was_group_member: { Args: { gid: string }; Returns: boolean }
       join_group_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
