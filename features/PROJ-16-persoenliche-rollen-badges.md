@@ -1,8 +1,8 @@
 # PROJ-16: Persönliche Rollen-Badges (Gamification)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-15
+**Last Updated:** 2026-07-16
 
 ## Dependencies
 - PROJ-3 (Gruppe & Mitglieder-Management) — Mitgliederliste als zweiter Anzeigeort der Badges
@@ -251,7 +251,69 @@ Keine neuen Pakete. Alles läuft über Supabase (DB-Automatik + JS Client) und d
 - `next lint` ist in Next 16 entfernt (bekanntes, bestehendes Problem des `lint`-Scripts, unabhängig von PROJ-16); Verifikation lief über `npm test` + `npm run build`.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-07-15/16
+**App URL:** http://localhost:3000 (+ DB-Tests direkt gegen Supabase, Rollback-Transaktionen)
+**Tester:** QA Engineer (AI)
+
+### Acceptance Criteria Status
+
+#### Profil (Badge-Sektion)
+- [x] Badge-Sektion mit allen vier Badges, Stufe/„noch nicht erreicht" + Fortschrittsbalken (manuell + E2E AC-PROFIL-1/2)
+- [x] 0 Aktionen → ausgegraut mit „Noch 5 bis Bronze" (manuell verifiziert, QA-Bot-Account)
+- [x] Gold → Rohzahl statt Fortschrittsbalken (E2E AC-PROFIL-2 prüft beide Zweige)
+- [x] „Neu"-Hervorhebung bei verdient > angesehen; erlischt nach dem Ansehen dauerhaft — DB-synchronisiert via `mark_own_badges_seen` (manuell verifiziert)
+
+#### Verdienen & Toast
+- [x] Toast „Neues Badge: {Name} {🥉/🥈/🥇}" unmittelbar beim Stufen-Aufstieg (manuell verifiziert)
+- [x] Kein Toast ohne Stufen-Aufstieg (manuell verifiziert)
+- [x] Vote-Toggeln zählt nur einmal pro Aktivität (DB-Zähltest: vote → unvote → vote ⇒ Zähler +1)
+- [x] Mitwirkung + Abschluss → ✅ Immer dabei +1 (DB-Zähltest)
+- [x] PROJ-15-Vollbild-Feier + Badge-Toast koexistieren, ohne sich zu blockieren (manuell verifiziert; Sonner rendert über der Feier)
+
+#### Mitgliederliste
+- [x] Verdiente Badges als kleine Icons mit Stufen-Kennzeichnung neben dem Namen (E2E AC-LISTE-1, aria-label-Muster)
+- [x] Ohne verdientes Badge: keine Icons, kein Platzhalter (manuell verifiziert)
+- [x] Fremde Sicht zeigt ausschließlich verdiente Stufen — technisch via `get_group_badges` (E2E AC-LISTE-2 + RLS-Audit)
+
+#### Zählung, Backfill & Dauerhaftigkeit
+- [x] Globale Zählung über alle Gruppen (Schema: `user_badges` pro Nutzer, ohne Gruppenbezug; DB-Zähltests)
+- [x] Backfill: historische Aktionen gezählt, Stufen still verdient + angesehen — keine Toast-/„Neu"-Flut (Backend-Verifikation, alle Bestandsnutzer geprüft)
+- [x] Löschen senkt Zähler, Stufe bleibt (DB-Zähltest: Monotonie via GREATEST)
+- [x] Kein Re-Toast beim erneuten Überschreiten einer bereits verdienten Schwelle (persistierte monotone Stufe + `pendingToastTier`, Unit-Tests)
+
+### Edge Cases Status
+- [x] Frisch registrierte·r Nutzer·in: 4 ausgegraute Badges mit 0/5 (Seed-Trigger + defensives 0er-Mapping im Hook)
+- [x] Vote-Toggeln: dedupliziert pro Ziel (DB-Zähltest)
+- [x] Umfrage-Mehrfachauswahl: zählt als 1 Vote (DB-Zähltest)
+- [x] Gruppe verlassen/gelöscht: Stufe bleibt (Monotonie, gleiche GREATEST-Regel — DB-Zähltest Löschpfad)
+- [x] Re-Abschließen derselben Aktivität: zählt einmal (Recount aus Bestandsdaten, DB-Zähltest)
+- [x] Mehrere Stufen übersprungen: ein Toast für die höchste Stufe (DB-Zähltest: Bulk-30-Aktionen → Gold direkt; `pendingToastTier`-Unit-Tests)
+- [x] Zwei Geräte: Toast nur auf dem auslösenden Gerät; „Neu" erlischt DB-synchronisiert (manuell verifiziert)
+- [x] Netzwerkfehler im Profil: Fehlerzustand mit „Erneut versuchen", Rest des Profils nutzbar (manuell mit simuliertem Fetch-Fail + E2E AC-PROFIL-3)
+- [x] Große Gruppe: EIN gebündelter `get_group_badges`-Abruf pro Liste (Code-Review + Netzwerk-Check)
+
+### Security Audit Results
+- [x] Authentication: Badge-Daten nur eingeloggt erreichbar; /groups leitet unauthentifiziert auf /login (E2E AC-GUARD)
+- [x] Authorization (RLS): fremde `user_badges`-Zeilen unsichtbar; Schreibversuche als `authenticated` scheitern (keine Client-Schreib-Policies); `get_group_badges` liefert nur verdiente Stufen von Mitgliedern gemeinsamer Gruppen
+- [x] Manipulationssicherheit: Zähler/Stufen ausschließlich per DB-Trigger; interne Funktionen aus der REST-API revoked
+- [x] Supabase Advisors: keine PROJ-16-spezifischen Findings (nur bekannte, unabhängige Warnings)
+
+### Test-Läufe
+- **Vitest:** 357/357 grün (inkl. 23 Tests `badges.test.ts`, 8 Tests `badge-toasts.test.ts`)
+- **Playwright Regression (chromium, bestehende Suite):** 34 passed, 0 failed
+- **Playwright PROJ-16 (`tests/PROJ-16-persoenliche-rollen-badges.spec.ts`, 6 Tests):** chromium 6/6 grün; Mobile 6/6 grün (iPhone-13-Emulation auf Chromium — Viewport/Touch/Mobile-UA; WebKit-Engine-Lauf bewusst übersprungen: kein Safari-spezifisches API im Feature, WebKit-Binary-Download wiederholt abgebrochen)
+- **Responsive:** 375/768/1440px + Dark Mode manuell geprüft — sauber
+
+### Bugs Found
+Keine. (Zwei Locator-Fixes in der neuen E2E-Datei selbst waren Test-, keine Produktfehler.)
+
+### Summary
+- **Acceptance Criteria:** 16/16 passed
+- **Bugs Found:** 0 total
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Deploy
 
 ## Deployment
 _To be added by /deploy_
