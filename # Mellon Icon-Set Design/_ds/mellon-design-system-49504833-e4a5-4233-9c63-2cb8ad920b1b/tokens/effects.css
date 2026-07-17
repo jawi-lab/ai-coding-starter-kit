@@ -1,0 +1,35 @@
+/* Mellon shape, elevation, glass & motion. */
+:root {
+  /* ── Radii — generously rounded, friendly ── */
+  --radius-sm:   10px;   /* small inputs, badges, thumbs */
+  --radius-md:   16px;   /* inputs, prompt rows */
+  --radius-lg:   22px;   /* cards, list items */
+  --radius-xl:   30px;   /* sheets, photo cards, modals */
+  --radius-pill: 999px;  /* buttons, chips, avatars */
+
+  /* ── Shadows — soft, warm, low-contrast ── */
+  --shadow-sm: 0 1px 2px rgba(34, 30, 25, 0.05);
+  --shadow-md: 0 6px 20px rgba(34, 30, 25, 0.07);
+  --shadow-lg: 0 18px 44px rgba(34, 30, 25, 0.13);
+  --shadow-float: 0 10px 28px rgba(34, 30, 25, 0.16); /* floating round buttons */
+
+  /* ── Liquid glass (iOS floating chrome: tab bars, headers, FABs) ── */
+  --glass-fill:   rgba(255, 255, 255, 0.58);
+  --glass-fill-strong: rgba(255, 255, 255, 0.78);
+  --glass-stroke: rgba(255, 255, 255, 0.70);
+  --glass-blur:   blur(22px) saturate(1.6); /* @kind other */
+  --glass-shadow: 0 8px 32px rgba(34, 30, 25, 0.12), inset 0 1px 0 rgba(255,255,255,.75);
+  --glass-fill-dark: rgba(23, 56, 41, 0.55);  /* over photos */
+
+  /* ── Photo treatment ── */
+  --photo-radius: var(--radius-xl);
+  --photo-protect: linear-gradient(180deg, transparent 55%, rgba(23,32,27,.55) 100%); /* @kind color */
+
+  /* ── Motion — calm, decisive ── */
+  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1); /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.5, 1); /* @kind other */ /* sheets, hearts, votes */
+  --dur-fast:    140ms; /* @kind other */ /* press, hover */
+  --dur-base:    240ms; /* @kind other */ /* fades, reveals */
+  --dur-slow:    420ms; /* @kind other */ /* sheets sliding up */
+  --press-scale: 0.97; /* @kind other */ /* buttons shrink slightly on press */
+}

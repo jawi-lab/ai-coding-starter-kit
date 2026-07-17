@@ -1,0 +1,82 @@
+/* Mellon color system — warm, friendly, clean.
+   Derived from the Mellon brand illustration (forest green, honey gold,
+   blush pink on cream) applied to a Hinge-like near-white canvas. */
+:root {
+  /* ── Base palette ── */
+  --cream-50:  #FBF8F3;  /* app background (light, calm) */
+  --cream-100: #F6F0E6;  /* recessed surfaces, segmented tracks */
+  --cream-200: #EDE4D4;  /* pressed / hover on cream */
+  --white:     #FFFFFF;
+
+  --ink-900: #221E19;    /* warm black — primary text */
+  --ink-600: #575046;    /* secondary text */
+  --ink-400: #8E8578;    /* tertiary text, placeholders */
+  --ink-200: #C9C0B2;    /* disabled text/icons */
+
+  --green-800: #173829;  /* deepest green — dark surfaces */
+  --green-700: #1E4634;  /* brand green — primary actions */
+  --green-600: #2A5A44;  /* hover/pressed on green */
+  --green-100: #DFE9DF;  /* green tint surfaces */
+
+  --gold-600:  #C08A2E;  /* honey gold — accents, highlights */
+  --gold-500:  #D9A24B;
+  --gold-100:  #F5E7CB;  /* gold tint */
+
+  --blush-500: #DC9C88;  /* blush — warmth, memories/archive */
+  --blush-100: #F7E7DF;  /* blush tint */
+
+  --red-600:   #BF3A2B;  /* errors, destructive */
+  --red-100:   #F6DFD9;
+
+  /* ── Semantic aliases ── */
+  --bg:            var(--cream-50);
+  --surface:       var(--white);       /* cards, sheets, inputs */
+  --surface-2:     var(--cream-100);   /* recessed: tracks, wells */
+  --surface-ink:   var(--green-800);   /* inverted hero/dark blocks */
+
+  --text-body:     var(--ink-900);
+  --text-muted:    var(--ink-600);
+  --text-faint:    var(--ink-400);
+  --text-on-dark:  #F6F1E7;
+
+  --line:          #E9E1D3;            /* hairline borders, dividers */
+  --line-strong:   #D8CDBA;            /* input borders */
+
+  --primary:       var(--green-700);
+  --primary-hover: var(--green-600);
+  --primary-soft:  var(--green-100);
+  --accent:        var(--gold-500);
+  --accent-deep:   var(--gold-600);
+  --accent-soft:   var(--gold-100);
+  --blush:         var(--blush-500);
+  --blush-soft:    var(--blush-100);
+
+  --success:       #2E7D51;
+  --success-soft:  #DEEDE2;
+  --warning:       var(--gold-600);
+  --warning-soft:  var(--gold-100);
+  --error:         var(--red-600);
+  --error-soft:    var(--red-100);
+
+  --focus-ring:    var(--gold-500);    /* 3px gold focus ring */
+
+  /* ── Role colors (Admin / Redakteur / Beobachter) ── */
+  --role-admin:         var(--green-700);
+  --role-admin-soft:    var(--green-100);
+  --role-editor:        var(--gold-600);
+  --role-editor-soft:   var(--gold-100);
+  --role-observer:      var(--blush-500);
+  --role-observer-soft: var(--blush-100);
+
+  /* ── Activity cover gradients (photo fallbacks) ── */
+  --cover-green: linear-gradient(150deg, #2A5A44, #173829); /* @kind color */
+  --cover-gold:  linear-gradient(150deg, #D9A24B, #A16E1E); /* @kind color */
+  --cover-blush: linear-gradient(150deg, #DC9C88, #B06B54); /* @kind color */
+  --cover-ink:   linear-gradient(150deg, #575046, #221E19); /* @kind color */
+
+  /* ── Kanban status dots ── */
+  --status-zu-planen:     var(--blush-500);
+  --status-in-planung:    var(--gold-500);
+  --status-abgestimmt:    var(--green-600);
+  --status-abgeschlossen: var(--success);
+}
