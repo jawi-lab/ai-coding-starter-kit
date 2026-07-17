@@ -398,3 +398,7 @@ const dtend = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10).rep
 - Edge Function `get-group-availability` deployed to Supabase (Version 2, ACTIVE)
 - `npm run lint` is broken in Next.js 16 (`next lint` command was removed) — does not affect Vercel builds (Vercel ran the build clean). Fix: update `package.json` lint script to use `eslint` directly.
 - GitHub auto-deploy did not trigger (webhook delay); deployed manually via `npx vercel --prod`
+
+## Design-Polish (2026-07-17)
+
+- **DateFinderSheet auf Mellon-Tokens umgestellt**: Verfügbarkeits-Farben der Kalendertage nutzen jetzt `success-soft`/`secondary-soft`/`error-soft`/`surface-2` statt roher Tailwind-Farben (amber/green/red/gray) — damit automatisch Dark-Mode-fähig und palettenkonform. Hinweis-Banner („ohne Kalender") in Honiggold-Tokens, „Aktualisieren" als Pill-Button rechtsbündig, Legende in einer eigenen Karte (`border-line`/`bg-surface`), Legendenpunkte in `success`/`secondary`/`error`/`line-strong`.

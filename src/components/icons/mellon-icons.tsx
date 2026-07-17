@@ -203,6 +203,68 @@ export function MedalIcon({ rank, ...props }: IconProps & { rank: MedalRank }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* A4 · Rollen-Badge-Serie (PROJ-16) — ersetzt die Emoji-Icons.        */
+/* Gleicher Stroke-Stil wie das restliche Set, currentColor.           */
+/* ------------------------------------------------------------------ */
+
+export type BadgeRole = 'ideengeber' | 'entscheider' | 'planer' | 'immer_dabei'
+
+/** Ideengeber · Glühbirne */
+export function BadgeIdeengeberIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <path d="M15 14.2c.2-1 .7-1.8 1.5-2.6 1-.9 1.6-2.2 1.6-3.5a6.1 6.1 0 0 0-12.2 0c0 1.3.6 2.6 1.6 3.5.8.8 1.3 1.6 1.5 2.6" />
+      <path d="M9.4 17.6h5.2" />
+      <path d="M10.4 20.6h3.2" />
+    </StrokeIcon>
+  )
+}
+
+/** Entscheider · Blitz */
+export function BadgeEntscheiderIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <path d="M13.2 2.8L5.6 13.1h5.2l-1.4 8.1 7.6-10.3h-5.2z" />
+    </StrokeIcon>
+  )
+}
+
+/** Planer · Kalender mit Häkchen */
+export function BadgePlanerIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <path d="M17 5.5H7A3.5 3.5 0 0 0 3.5 9v7A3.5 3.5 0 0 0 7 19.5h10a3.5 3.5 0 0 0 3.5-3.5V9A3.5 3.5 0 0 0 17 5.5z" />
+      <path d="M8.5 3.5v3.5" />
+      <path d="M15.5 3.5v3.5" />
+      <path d="M3.5 10.5h17" />
+      <path d="M9.3 15l1.9 1.9 3.5-3.7" />
+    </StrokeIcon>
+  )
+}
+
+/** Immer dabei · Check im Kreis */
+export function BadgeImmerDabeiIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M8.4 12.3l2.5 2.5 4.7-5" />
+    </StrokeIcon>
+  )
+}
+
+const BADGE_ROLE_ICONS: Record<BadgeRole, (props: IconProps) => React.JSX.Element> = {
+  ideengeber: BadgeIdeengeberIcon,
+  entscheider: BadgeEntscheiderIcon,
+  planer: BadgePlanerIcon,
+  immer_dabei: BadgeImmerDabeiIcon,
+}
+
+export function BadgeRoleIcon({ badge, ...props }: IconProps & { badge: BadgeRole }) {
+  const Icon = BADGE_ROLE_ICONS[badge]
+  return <Icon {...props} />
+}
+
+/* ------------------------------------------------------------------ */
 /* B · Empty-State-Familie — gedämpft, currentColor, ~28 px            */
 /* ------------------------------------------------------------------ */
 

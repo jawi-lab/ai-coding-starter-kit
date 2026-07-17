@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MedalIcon } from '@/components/icons/mellon-icons'
+import { BadgeRoleIcon, MedalIcon } from '@/components/icons/mellon-icons'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -88,10 +88,10 @@ function BadgeCard({ badge, isNew }: { badge: UserBadgeState; isNew: boolean }) 
     >
       <span
         aria-hidden="true"
-        className={`h-10 w-10 rounded-full bg-surface-2 flex items-center justify-center
-          text-[20px] flex-shrink-0 ${earned ? '' : 'grayscale opacity-50'}`}
+        className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0
+          ${earned ? 'bg-primary-soft text-primary' : 'bg-surface-2 text-ink-3'}`}
       >
-        {info.icon}
+        <BadgeRoleIcon badge={badge.key} className="h-5 w-5" />
       </span>
 
       <div className="flex-1 min-w-0">

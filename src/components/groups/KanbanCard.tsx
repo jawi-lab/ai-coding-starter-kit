@@ -1,12 +1,7 @@
 'use client'
 
-import { MoreHorizontal, ArrowRight, CheckCircle, CheckCheck } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { CalendarSearch, CheckCircle, CheckCheck } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { ActivityWithInitiator } from '@/lib/activity-types'
 import { PLACEHOLDER_IMAGE } from '@/lib/activity-types'
 import { formatGermanDateRange } from '@/lib/date-format'
@@ -26,6 +21,13 @@ interface KanbanCardProps {
   isDragging?: boolean
 }
 
+/** Pro Spalte gibt es genau EINE Weiter-Aktion — direkt als Button auf der
+ *  Karte statt versteckt hinter einem Drei-Punkte-Menü. */
+const STATUS_ACTION: Record<string, { label: string; icon: LucideIcon }> = {
+  zu_planen: { label: 'Termin finden', icon: CalendarSearch },
+  in_planung: { label: 'Planung abschließen', icon: CheckCircle },
+  planung_abgeschlossen: { label: 'Abschließen', icon: CheckCheck },
+}
 
 export function KanbanCard({
   activity,
@@ -46,6 +48,13 @@ export function KanbanCard({
     openEndedPrefix: 'Ab ',
   })
   const draggable = canManage && !!onDragStartActivity
+  const action = canManage ? STATUS_ACTION[activity.status] : undefined
+
+  function handleAction() {
+    if (activity.status === 'zu_planen') onMoveToPlanning(activity)
+    else if (activity.status === 'in_planung') onConfirmFinishPlanning(activity)
+    else if (activity.status === 'planung_abgeschlossen') onConfirmComplete(activity)
+  }
 
   return (
     <div
@@ -71,55 +80,6 @@ export function KanbanCard({
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-
-        {/* Action menu — top right corner over image */}
-        {canManage && (
-          <div className="absolute top-2 right-2" onClick={e => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="h-7 w-7 rounded-[8px] flex items-center justify-center
-                             bg-black/40 text-white hover:bg-black/60 transition-colors backdrop-blur-sm"
-                  aria-label="Aktionen"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-52 bg-surface border-line rounded-md"
-              >
-                {activity.status === 'zu_planen' && (
-                  <DropdownMenuItem
-                    onClick={() => onMoveToPlanning(activity)}
-                    className="text-[14px] gap-2 cursor-pointer rounded-[8px]"
-                  >
-                    <ArrowRight className="h-4 w-4 text-ink-2" />
-                    Termin finden
-                  </DropdownMenuItem>
-                )}
-                {activity.status === 'in_planung' && (
-                  <DropdownMenuItem
-                    onClick={() => onConfirmFinishPlanning(activity)}
-                    className="text-[14px] gap-2 cursor-pointer rounded-[8px]"
-                  >
-                    <CheckCircle className="h-4 w-4 text-ink-2" />
-                    Planung abschließen
-                  </DropdownMenuItem>
-                )}
-                {activity.status === 'planung_abgeschlossen' && (
-                  <DropdownMenuItem
-                    onClick={() => onConfirmComplete(activity)}
-                    className="text-[14px] gap-2 cursor-pointer rounded-[8px]"
-                  >
-                    <CheckCheck className="h-4 w-4 text-ink-2" />
-                    Als abgeschlossen markieren
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
       </div>
 
       {/* Body */}
@@ -134,6 +94,24 @@ export function KanbanCard({
           <span className="inline-flex w-fit items-center gap-1.5 rounded-pill bg-primary-soft px-2.5 py-1 text-[11.5px] font-bold text-primary truncate">
             {dateRange}
           </span>
+        )}
+
+        {/* Direkte Weiter-Aktion */}
+        {action && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleAction()
+            }}
+            className="mt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-pill
+                       border-[1.5px] border-primary/25 bg-primary-soft px-3 py-2
+                       text-[12.5px] font-[700] text-primary transition-colors
+                       hover:bg-primary hover:border-primary hover:text-white active:scale-[0.98]"
+          >
+            <action.icon className="h-3.5 w-3.5" />
+            {action.label}
+          </button>
         )}
       </div>
     </div>

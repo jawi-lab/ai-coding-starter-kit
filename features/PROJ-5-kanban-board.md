@@ -405,3 +405,7 @@ _To be added by /deploy_
 - **Eigene Seite:** Das Kanban-Board lebt jetzt unter `app/groups/[groupId]/planung/page.tsx` (vollbreite Route, bis `max-w-5xl`) statt im schmalen Sheet — die 4 Spalten haben endlich Platz.
 - **Drag & Drop ergänzt** (`KanbanBoard.tsx`, `KanbanColumn.tsx`, `KanbanCard.tsx`): War nie implementiert. Native HTML5-DnD auf dem Desktop-Grid. Karten sind ziehbar (nur wenn `canManage`), Zielspalte hebt sich bei gültigem Drop hervor. Erlaubt ist nur **ein Schritt vorwärts**, gemappt auf dieselben gateten Aktionen wie die Buttons (z. B. `zu_planen → in_planung` öffnet den Terminfindungs-Dialog). Ungültige/Rückwärts-Drops zeigen einen Hinweis-Toast.
 - **Hinweis:** Mobil nutzt das Board weiterhin Tabs (kein Touch-DnD; HTML5-DnD reagiert nicht auf Touch). Echtes Touch-Dragging via `@dnd-kit` ist als Folgeaufgabe vorgesehen.
+
+## Design-Polish (2026-07-17)
+
+- **Direkter Aktions-Button statt ⋯-Menü** (`KanbanCard.tsx`): Das Drei-Punkte-Dropdown enthielt pro Spalte ohnehin genau eine Aktion und wurde ersetzt durch einen vollbreiten Pill-Button unten auf der Karte — „Termin finden" (Zu Planen), „Planung abschließen" (In Planung), „Abschließen" (Planung abgeschlossen). Nur sichtbar bei `canManage`; Karten-Tap öffnet weiterhin das Detail (stopPropagation auf dem Button). Drag & Drop unverändert.

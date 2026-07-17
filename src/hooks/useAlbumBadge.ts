@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -17,6 +17,15 @@ export function useAlbumBadge(active: boolean) {
   const { user, profile, refreshProfile } = useAuth()
   const [hasNew, setHasNew] = useState(false)
   const lastSeenAt = profile?.album_last_seen_at ?? null
+
+  // Sobald markSeen lief, darf eine noch laufende Abfrage (gestartet beim
+  // Sheet-Öffnen, mit dem ALTEN Zeitstempel) den Punkt nicht wieder anzeigen.
+  // Pro Sheet-Besuch zurückgesetzt.
+  const seenRef = useRef(false)
+
+  useEffect(() => {
+    if (active) seenRef.current = false
+  }, [active])
 
   useEffect(() => {
     // Nur prüfen, solange das Profil-Sheet offen ist — es bleibt auf
@@ -43,7 +52,7 @@ export function useAlbumBadge(active: boolean) {
         .in('group_id', groupIds)
         .gt('completed_at', lastSeenAt)
 
-      if (!cancelled) setHasNew((count ?? 0) > 0)
+      if (!cancelled && !seenRef.current) setHasNew((count ?? 0) > 0)
     })()
 
     return () => {
@@ -53,6 +62,7 @@ export function useAlbumBadge(active: boolean) {
 
   const markSeen = useCallback(async () => {
     if (!user) return
+    seenRef.current = true
     setHasNew(false)
     await supabase
       .from('profiles')

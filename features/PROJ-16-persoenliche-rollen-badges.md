@@ -323,3 +323,8 @@ Keine. (Zwei Locator-Fixes in der neuen E2E-Datei selbst waren Test-, keine Prod
 - **Pre-Deploy-Checks:** `npm run build` grün (Static Export, 13 Seiten); `npm run lint` weiterhin projektweit defekt (`next lint` in Next 16 entfernt — bekanntes, PROJ-16-unabhängiges Problem; TypeScript-Check läuft im Build)
 - **Post-Deploy live verifiziert (QA-Bot-Account):** Login → Profil → „Meine Badges"-Sektion rendert mit allen vier Badges (verdiente Stufen + Fortschrittsbalken), Konsole fehlerfrei
 - **Hinweis:** Beim QA-Bot zeigt z.B. Ideengeber „Bronze" bei gleichzeitigem Fortschritt „Noch 4 bis Bronze" — Artefakt der QA-Testdaten-Bereinigung (Löschungen senken den Zähler, Stufe bleibt monoton erhalten; spezifiziertes Verhalten, kein Bug)
+
+## Design-Polish (2026-07-17)
+
+- **Emoji-Icons ersetzt**: Neue Rollen-Badge-Serie im Mellon-Icon-Set (`mellon-icons.tsx`: `BadgeRoleIcon` — Glühbirne/Blitz/Kalender-Check/Kreis-Check im Haus-Stroke-Stil). Profil (`BadgeSection`): Icon im Kreis, verdient = `primary-soft`/`primary`, nicht erreicht = gedämpft (`surface-2`/`ink-3`, kein grayscale-Emoji mehr). Emoji in `badges.ts` bleibt nur als Text-Fallback für Toasts.
+- **Mitgliederliste entschlackt** (`MemberBadgeIcons.tsx`): statt Pille mit Emoji + Medaillen-Icon pro Badge jetzt nur noch ein kleines Rollen-Icon im Metallton der Stufe (Bronze/Silber/Gold), Tooltip/aria-Label unverändert.

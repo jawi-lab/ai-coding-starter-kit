@@ -406,3 +406,9 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - **Pre-Deploy-Checks:** `npm run build` ✓ (Static Export, 13 Seiten), Vitest 370/370 ✓, credentialed E2E nachgeholt ✓ (`npm run lint` pre-existing defekt: `next lint` in Next 16 entfernt — kein PROJ-17-Blocker)
 - **Post-Deploy live verifiziert (Mobile-Viewport 390×844, qa-bot):** Login, Profil → Album-Tab, Memory Card „Picknick im Stadtpark" (Cover, Gruppen-Badge, Termin-Datum 12.07.26), Karten-Tap → read-only Detail-Sheet. Konsole: nur die bekannte BUG-17-3-A11y-Warnung (Low, pre-existing, bewusst zurückgestellt) — keine neuen Fehler.
 - **Hinweis:** Im selben Push ging unabhängige Icon-Arbeit live (Commit `ececcb1`, Mellon-Icon-Set + LoginForm-429-Fehlermeldung) — nicht Teil von PROJ-17.
+
+## Bug-Fix (2026-07-17): Album-Punkt blieb sichtbar
+
+- **Symptom:** Der „Neu"-Punkt am Album-Tab verschwand nach dem Öffnen des Albums nicht zuverlässig.
+- **Ursache:** Race in `useAlbumBadge` — die beim Sheet-Öffnen gestartete Head-Count-Abfrage (mit dem alten `album_last_seen_at`) konnte NACH `markSeen()` auflösen und `hasNew` wieder auf `true` setzen.
+- **Fix:** `seenRef`-Guard: nach `markSeen()` werden verspätete Abfrage-Ergebnisse ignoriert; Reset pro Sheet-Öffnung. Verifiziert im Browser (Punkt erscheint bei neuer Karte, erlischt beim Album-Klick dauerhaft; „Neu"-Badge im Grid bleibt für den Besuch — Spec-Verhalten).

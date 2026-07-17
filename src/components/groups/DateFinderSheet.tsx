@@ -37,10 +37,10 @@ interface DateFinderSheetProps {
 // ─── Day colour legend ────────────────────────────────────────────────────────
 
 const COLOR_CLASS: Record<DayColor, string> = {
-  green: 'bg-green-100 dark:bg-green-900/30',
-  yellow: 'bg-amber-100 dark:bg-amber-900/30',
-  red: 'bg-red-100 dark:bg-red-900/20',
-  grey: 'bg-gray-50 dark:bg-gray-800/30',
+  green: 'bg-success-soft',
+  yellow: 'bg-secondary-soft',
+  red: 'bg-error-soft',
+  grey: 'bg-surface-2',
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -199,9 +199,9 @@ export function DateFinderSheet({
 
           {/* Missing calendar banner */}
           {!availLoading && !availError && totalMembers > 0 && membersWithoutCalendar > 0 && (
-            <div className="mx-4 mt-4 flex items-start gap-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md px-3.5 py-2.5">
-              <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[12.5px] text-amber-800 dark:text-amber-200 leading-snug">
+            <div className="mx-4 mt-4 flex items-start gap-2.5 bg-secondary-soft border border-secondary/25 rounded-md px-3.5 py-2.5">
+              <Info className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" />
+              <p className="text-[12.5px] text-ink-2 leading-snug">
                 {membersWithoutCalendar === 1
                   ? `1 von ${totalMembers} Mitgliedern`
                   : `${membersWithoutCalendar} von ${totalMembers} Mitgliedern`}{' '}
@@ -212,11 +212,12 @@ export function DateFinderSheet({
 
           {/* Cache refresh bar */}
           {!availLoading && !availError && cachedAt && (
-            <div className="mx-4 mt-3 flex items-center gap-2 text-[12px] text-ink-3">
+            <div className="mx-4 mt-3 flex items-center justify-between gap-2 text-[12px] text-ink-3">
               <span>Zuletzt aktualisiert: {formatRelativeTime(cachedAt)}</span>
               <button
                 onClick={refresh}
-                className="flex items-center gap-1 text-secondary hover:text-secondary/80 transition-colors"
+                className="flex items-center gap-1 rounded-pill border border-line bg-surface px-2.5 py-1
+                           font-[700] text-ink-2 hover:border-primary/40 hover:text-ink transition-colors"
               >
                 <RefreshCw className="h-3 w-3" />
                 Aktualisieren
@@ -252,7 +253,8 @@ export function DateFinderSheet({
 
           {/* Legend */}
           {!availLoading && (
-            <div className="px-4 mt-4 mb-2 flex flex-wrap gap-3">
+            <div className="mx-4 mt-3 mb-2 flex flex-wrap items-center gap-x-3.5 gap-y-1.5
+                            rounded-md border border-line bg-surface px-3 py-2">
               <LegendDot color="green" label="Alle frei" />
               <LegendDot color="yellow" label="Mehrheit frei" />
               <LegendDot color="red" label="Mehrheit belegt" />
@@ -333,10 +335,10 @@ export function DateFinderSheet({
 
 function LegendDot({ color, label }: { color: DayColor; label: string }) {
   const dotClass: Record<DayColor, string> = {
-    green: 'bg-green-400',
-    yellow: 'bg-amber-400',
-    red: 'bg-red-400',
-    grey: 'bg-gray-300',
+    green: 'bg-success',
+    yellow: 'bg-secondary',
+    red: 'bg-error',
+    grey: 'bg-line-strong',
   }
   return (
     <div className="flex items-center gap-1.5">
