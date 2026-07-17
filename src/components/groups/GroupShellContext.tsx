@@ -40,6 +40,12 @@ export interface GroupShell {
    * Auf Shell-Ebene gerendert und hinter der PROJ-15-Feier eingereiht.
    */
   showCardReveal: (activity: RevealActivity) => void
+  /**
+   * Mellon Rückblick (PROJ-18): öffnet den Vollbild-Story-Viewer für ein Jahr.
+   * Auf Shell-Ebene gerendert (z-[70]) — aufgerufen vom Teaser-Banner
+   * (laufendes Jahr) und aus dem Rückblick-Archiv (beliebiges Jahr).
+   */
+  openWrapped: (year: number) => void
 }
 
 const GroupShellCtx = createContext<GroupShell | null>(null)

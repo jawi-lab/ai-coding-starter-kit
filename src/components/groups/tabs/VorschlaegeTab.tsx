@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MomentumBanner } from '@/components/groups/MomentumBanner'
 import { MomentumLevelSheet } from '@/components/groups/MomentumLevelSheet'
+import { WrappedBanner } from '@/components/wrapped/WrappedBanner'
+import { useWrappedAvailability } from '@/hooks/useWrappedAvailability'
 import { ProposalCard } from '@/components/groups/ProposalCard'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { DeleteProposalDialog } from '@/components/groups/DeleteProposalDialog'
@@ -32,8 +34,12 @@ const FILTER_CHIPS: { label: string; value: FilterValue }[] = [
 
 export function VorschlaegeTab() {
   const { user } = useAuth()
-  const { groupId, isAdmin, canCreate, memberCount, momentum, openActivityDetail, openCreateProposal, registerProposalsRefetch } =
+  const { groupId, isAdmin, canCreate, memberCount, momentum, openActivityDetail, openCreateProposal, registerProposalsRefetch, openWrapped } =
     useGroupShell()
+
+  // Mellon Rückblick (PROJ-18): saisonaler Teaser nur, wenn das laufende Jahr
+  // JETZT verfügbar ist (Dezember + ≥ 3 Abschlüsse). Live-Berechnung im Hook.
+  const { currentYearLive, currentYear } = useWrappedAvailability(groupId)
 
   const [activeFilter, setActiveFilter] = useState<FilterValue>(null)
   const [editProposal, setEditProposal] = useState<ActivityWithInitiator | null>(null)
@@ -73,7 +79,17 @@ export function VorschlaegeTab() {
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col">
-      {/* Momentum-Banner (PROJ-15) — ganz oben, über den Filter-Chips.
+      {/* Rückblick-Teaser (PROJ-18) — saisonal ganz oben, über dem Momentum-Banner.
+          Erscheint nur im Dezember bei ≥ 3 Abschlüssen des laufenden Jahres. */}
+      {currentYearLive && (
+        <div className="flex-shrink-0">
+          <div className="max-w-5xl mx-auto w-full px-4 pt-3">
+            <WrappedBanner year={currentYear} onOpen={() => openWrapped(currentYear)} />
+          </div>
+        </div>
+      )}
+
+      {/* Momentum-Banner (PROJ-15) — über den Filter-Chips.
           Blendet sich still aus, solange die Fortschritts-Akte fehlt. */}
       {momentum && (
         <div className="flex-shrink-0">

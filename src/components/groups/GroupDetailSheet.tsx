@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Pencil, Check, X, Loader2 } from 'lucide-react'
 import { InviteCodeCard } from './InviteCodeCard'
 import { MemberList } from './MemberList'
+import { WrappedArchiveSection } from '@/components/wrapped/WrappedArchiveSection'
 import { LeaveGroupDialog } from './LeaveGroupDialog'
 import { DeleteGroupDialog } from './DeleteGroupDialog'
 import { useGroupDetail } from '@/hooks/useGroupDetail'
@@ -27,6 +28,8 @@ interface GroupDetailSheetProps {
   onClose: () => void
   onGroupLeft: () => void
   onGroupDeleted: () => void
+  /** Rückblick-Jahr aus dem Archiv öffnen (PROJ-18) — schließt das Sheet. */
+  onOpenWrapped: (year: number) => void
 }
 
 export function GroupDetailSheet({
@@ -34,6 +37,7 @@ export function GroupDetailSheet({
   onClose,
   onGroupLeft,
   onGroupDeleted,
+  onOpenWrapped,
 }: GroupDetailSheetProps) {
   const { user } = useAuth()
   const {
@@ -199,6 +203,14 @@ export function GroupDetailSheet({
             onChangeRole={changeMemberRole}
             onRemove={removeMember}
           />
+
+          {groupId && (
+            <>
+              <Separator className="bg-line" />
+              {/* Rückblick-Archiv (PROJ-18) — fester, ganzjähriger Einstieg. */}
+              <WrappedArchiveSection groupId={groupId} onOpenYear={onOpenWrapped} />
+            </>
+          )}
         </div>
 
         {/* Footer actions */}

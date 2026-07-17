@@ -13,6 +13,7 @@ import { useGroupDetail } from '@/hooks/useGroupDetail'
 import { useGroupMomentum } from '@/hooks/useGroupMomentum'
 import { MomentumCelebration } from '@/components/groups/MomentumCelebration'
 import { MemoryCardReveal, type RevealActivity } from '@/components/memory/MemoryCardReveal'
+import { WrappedStoryViewer } from '@/components/wrapped/WrappedStoryViewer'
 import { GroupDetailSheet } from '@/components/groups/GroupDetailSheet'
 import { ActivityDetailSheet } from '@/components/groups/ActivityDetailSheet'
 import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
@@ -53,6 +54,11 @@ function GroupView() {
   // Aktivität — rein lokal, ohne Persistenz (verpasster Reveal wird laut Spec
   // nicht nachgeholt).
   const [revealActivity, setRevealActivity] = useState<RevealActivity | null>(null)
+
+  // Mellon Rückblick (PROJ-18): das geöffnete Rückblick-Jahr (null = zu). Auf
+  // Shell-Ebene, damit der Story-Viewer über allem liegt (Banner UND Archiv
+  // öffnen ihn) — analog zur Momentum-Feier.
+  const [wrappedYear, setWrappedYear] = useState<number | null>(null)
 
   // Die Übersicht (VorschlaegeTab) registriert hier ihren refetch, damit das
   // zentral gerenderte Create-Sheet die Liste nach dem Erstellen aktualisiert.
@@ -176,6 +182,7 @@ function GroupView() {
               openCreateProposal,
               registerProposalsRefetch,
               showCardReveal: setRevealActivity,
+              openWrapped: setWrappedYear,
             }}
           >
             {activeSeg === 'vorschlaege' && <VorschlaegeTab />}
@@ -223,6 +230,7 @@ function GroupView() {
         onClose={() => setSettingsOpen(false)}
         onGroupLeft={() => { setSettingsOpen(false); router.push('/groups') }}
         onGroupDeleted={() => { setSettingsOpen(false); router.push('/groups') }}
+        onOpenWrapped={(year) => { setSettingsOpen(false); setWrappedYear(year) }}
       />
 
       {/* Vollbild-Meilenstein-Feier (PROJ-15) — einmalig pro Meilenstein,
@@ -244,6 +252,14 @@ function GroupView() {
           onDismiss={() => setRevealActivity(null)}
         />
       )}
+
+      {/* Mellon Rückblick (PROJ-18) — Vollbild-Story-Viewer, öffnet bei Slide 1.
+          Liegt mit z-[70] über Bottom-Nav und Feier-Overlays. */}
+      <WrappedStoryViewer
+        groupId={groupId}
+        year={wrappedYear}
+        onClose={() => setWrappedYear(null)}
+      />
 
       {/* Shared activity detail sheet */}
       <ActivityDetailSheet

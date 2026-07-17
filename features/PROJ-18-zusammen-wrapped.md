@@ -1,8 +1,8 @@
 # PROJ-18: ZUSAMMEN Wrapped (Gamification)
 
-## Status: Architected
+## Status: Deployed
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-14
+**Last Updated:** 2026-07-17
 
 ## Dependencies
 - Requires: PROJ-4 (Aktivitäts-Vorschläge & Voting) — `activities` + `votes` als Datenquelle (Vorschläge, Votes, Initiator:innen)
@@ -223,8 +223,162 @@ Alles andere (Capacitor Share + Filesystem, Supabase JS, shadcn/ui) ist bereits 
 1. `/backend` (klein): Migration `completed_at` + Trigger — bewusst **vor** `/frontend`, damit ab sofort Abschluss-Zeitpunkte erfasst werden und bis Dezember möglichst viele Aktivitäten präzise zugeordnet sind.
 2. `/frontend`: Datensammler-Hook, Story-Viewer, Banner, Archiv-Einstieg, Share-Bild-Export.
 
+## Backend Implementation Notes
+
+**Erledigt am:** 2026-07-17 · **Ergebnis: Keine neue Backend-Arbeit nötig — die einzige Backend-Anforderung war bereits vorhanden.**
+
+Der in der Umsetzungs-Reihenfolge (Schritt 1) geplante Baustein „Migration `completed_at` + Trigger" wurde bereits **vollständig von PROJ-17 (Memory Cards & Album)** geliefert und ist auf der Produktions-DB live. PROJ-17 brauchte denselben fälschungssicheren Abschluss-Zeitstempel und hat ihn identisch zur PROJ-18-Technical-Decision gebaut.
+
+Migration `20260716101227_proj17_activity_completed_at.sql` (+ Härtung `20260716101643_proj17_harden_trigger_functions.sql`) liefert:
+
+| PROJ-18-Anforderung | Live auf Remote (verifiziert `execute_sql`) |
+|---|---|
+| Feld `activities.completed_at timestamptz` | ✅ vorhanden |
+| Von DB-Trigger gesetzt beim Wechsel auf `abgeschlossen` | ✅ `trg_activity_completed_at` aktiv, setzt `now()` beim Eintritt, erhält den Wert solange abgeschlossen, leert bei Verlassen |
+| Fälschungssicher (Client kann nicht schreiben) | ✅ `set_activity_completed_at()` von public/anon/authenticated `revoke`d — kein EXECUTE-Recht |
+| Bestandsdaten zugeordnet | ✅ Backfill `coalesce(start_date, created_at)`; 0 abgeschlossene Aktivitäten ohne Zeitstempel |
+| Index für die Rückblick-Query | ✅ `idx_activities_completed_at` |
+
+Die Jahreszuordnungs-Fallback-Kette (`start_date` → `completed_at` → `created_at`) ist reine Client-Leselogik und gehört in den Datensammler-Hook (`useGroupWrapped`) → `/frontend`.
+
+Alle weiteren Datenquellen des Rückblicks (`activity_votes`, `group_members`, `profiles`, `group_momentum`, `groups`) bestehen bereits und sind RLS-geschützt — damit ist die Sicherheits-AC „Nicht-Mitglied erhält keine Daten" ohne neue Policies erfüllt. Es wurde bewusst **keine** duplizierte `completed_at`-Migration angelegt (würde mit PROJ-17 kollidieren).
+
+**Fazit:** Backend ist ein No-op. Feature ist bereit für `/frontend`.
+
+## Frontend Implementation Notes
+
+**Erledigt am:** 2026-07-17 · **Feature-Name in der App:** „Mellon Rückblick" (interne Bezeichner neutral `wrapped`).
+
+### Neue Dateien
+| Datei | Zweck |
+|---|---|
+| `src/lib/wrapped.ts` | Reine Rechen-Datei: Jahres-/Monatsregel (Fallback-Kette `start_date → completed_at → created_at`, lokale Zeit), Saison-Gate (Dezember), Verfügbarkeits-/Archiv-Jahre, **`buildWrappedSlides`** mit allen Zähl-, Gleichstands- und Skip-Regeln. Kein Supabase/React. |
+| `src/lib/wrapped.test.ts` | 26 Unit-Tests: Jahreszuordnung inkl. UTC-Off-by-one, Saison, Archiv-Jahre, Shout-out-Tie/Fallthrough/>3-Skip, Momentum-Meilenstein-Herleitung, Top-Monat/-Aktivität-Gleichstände. |
+| `src/hooks/useWrappedAvailability.ts` | Leichte Vorab-Prüfung (nur abgeschlossene Aktivitäten, Realtime auf `activities`) → `availableYears` (Archiv) + `currentYearLive` (Banner). |
+| `src/hooks/useGroupWrapped.ts` | Datensammler: lädt beim Öffnen Aktivitäten/Votes/Mitglieder/Profile/Momentum der Gruppe und ruft `buildWrappedSlides`. Liefert nur anzeigbare Slides. |
+| `src/lib/wrapped-share.ts` | Bild-Export via `html-to-image` (Design-Bühne 360×640 → `pixelRatio 3` → 1080×1920) + Teilen (nativ / Web-Share / Download-Fallback). |
+| `src/lib/native/share-image.ts` | Native Share-Bridge (Cache-Datei + Share-Sheet), exakt nach PROJ-7/9-Muster. |
+| `src/components/wrapped/WrappedSlide.tsx` | Eine Slide (9 Typen), hart kodierte warme Paletten (identisch für Anzeige & PNG), Serif für Nutzer-Inhalte. |
+| `src/components/wrapped/WrappedStoryViewer.tsx` | Vollbild-Story-Viewer (z-[70]): Fortschritts-Segmente, Tipp-Zonen (rechts/links), Schließen/Teilen, Tastatur (Pfeile/Escape), unsichtbare Share-Bühne. |
+| `src/components/wrapped/WrappedBanner.tsx` | Saisonaler Teaser-Banner (invertierter Grün-Block). |
+| `src/components/wrapped/WrappedArchiveSection.tsx` | Ganzjähriger Archiv-Einstieg im Gruppen-Detail-Sheet (Jahrgangs-Liste + Leerzustand). |
+
+### Integration
+- `GroupShellContext` um `openWrapped(year)` erweitert; die Group-View-Seite hält `wrappedYear` und rendert den Viewer auf Shell-Ebene (neben Momentum-Feier / Card-Reveal, z-[70] über allem).
+- `VorschlaegeTab`: Teaser-Banner über dem Momentum-Banner, nur wenn `currentYearLive` (Dezember + ≥ 3 Abschlüsse).
+- `GroupDetailSheet`: neue Pflicht-Prop `onOpenWrapped`; Archiv-Sektion unter der Mitgliederliste (schließt das Sheet und öffnet den Viewer).
+
+### Abweichungen / Entscheidungen im /frontend
+- **Archiv als Sektion im Detail-Sheet** statt separatem verschachteltem Modal — vermeidet Modal-in-Modal, bleibt konsistent mit den übrigen Sektionen (InviteCode, Mitglieder).
+- **Shout-out-Avatare als Initialen-Medaillons** (kein externes Bild) — robust für `html-to-image` (kein CORS-Taint) und konsistent mit `MemberRow`.
+- **Slide-Farben hart kodiert** (nicht Theme-Tokens) — die Slides sind ein eigenständiger, immersiver Look, identisch in Light/Dark und im geteilten PNG (gleiches Vorgehen wie PROJ-15-Feier / PROJ-17-Reveal).
+- **Momentum-Slide** erscheint, sobald eine `group_momentum`-Akte existiert (zeigt dann Level + ggf. Jahres-Meilensteine); ohne Akte wird sie übersprungen.
+
+### Verifikation
+- `npm run build` grün (TypeScript + Static Export). `npx vitest run`: **396/396** Tests grün (davon 26 neu für `wrapped.ts`).
+- Live-Smoke-Test (QA-Account, iPhone-Emulation, lokal): Gruppe lädt ohne Fehler, **kein** Teaser-Banner im Juli (Saison-Gate korrekt), Archiv-Sektion rendert mit korrektem Leerzustand, keine Konsolen-Fehler aus den neuen Hooks/Realtime.
+- **Nicht live gefahren:** das visuelle Abspielen des Story-Viewers mit echten Slide-Daten — dafür bräuchte eine Gruppe ≥ 3 Abschlüsse in einem vergangenen Jahr; das Seeden von Produktionsdaten wurde bewusst geblockt und nicht umgangen. Die Slide-Erzeugung (Datengrundlage des Viewers) ist über die 26 Unit-Tests abgedeckt. → In `/qa` mit Testdaten visuell prüfen (Slides, Tipp-Navigation, Bild-Export/Teilen, lange Namen).
+
+### Offen für /qa
+- Story-Viewer mit echten Daten (Slides 1–9, Skip-Verhalten, Tipp-Zonen, Fortschritt).
+- Bild-Export & Teilen: nativ (Share-Sheet) und Web (Web-Share bzw. Download-Fallback).
+- Lange Aktivitäts-/Nutzernamen auf Slides (Umbruch/Clamp).
+- Dezember-Freischaltung (Saison-Gate) — ggf. per Systemdatum/Testdaten.
+
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-07-17
+**App URL:** http://localhost:3000
+**Tester:** QA Engineer (AI)
+
+### Testansatz
+Der Rückblick ist gezielt so gebaut, dass die gesamte Zähl-/Skip-/Gleichstands-Logik in der reinen
+`wrapped.ts` isoliert testbar liegt (**26 Unit-Tests, alle grün**). Die visuellen ACs (9 Slide-Typen,
+lange Namen, Story-Format, Branding-Fuß) wurden über eine wegwerfbare Render-Bühne (`/qa-wrapped`,
+nach dem Test wieder entfernt) mit echten Slide-Formen im Browser (Chrome) verifiziert und danach
+gelöscht. Produktions-/QA-Daten wurden bewusst **nicht** geseedet (Vorgabe aus `/frontend`).
+Volle Suite: **396/396 Unit-Tests grün**, `npm run build` (Static Export, 13 Routen) grün.
+
+### Acceptance Criteria Status
+
+#### Verfügbarkeit & Einstieg
+- [x] ≥ 3 Abschlüsse + ab 1.12. → Teaser-Banner (`isCurrentYearWrappedLive`, unit-getestet; `VorschlaegeTab`-Integration geprüft)
+- [x] < 3 Abschlüsse im Dezember → kein Banner/kein Wrapped (unit-getestet)
+- [x] Vor dem 1.12. → kein Banner, unabhängig von der Aktivitätszahl (Saison-Gate `isWrappedSeason`, unit-getestet)
+- [x] Jede Rolle (Admin/Redakteur/Beobachter) sieht das Wrapped gleich — keine Rollen-Gatekeeper im Code (kollektiv)
+- [x] Archiv listet alle Vorjahre mit ≥ 3 Abschlüssen, neueste zuerst (`availableWrappedYears` unit-getestet; `WrappedArchiveSection` inkl. Leerzustand gerendert)
+
+#### Story-Viewer
+- [x] Öffnet bei Slide 1 mit Fortschritts-Segmenten (Code-Review + Render-Bühne)
+- [x] Rechte Hälfte = weiter, linke = zurück (Tipp-Zonen als aria-beschriftete Buttons; Kontroll-Buttons liegen mit z-10 darüber)
+- [x] Schließen-Button schließt das Overlay (Escape ebenfalls; `onClose`)
+- [x] Slide ohne Daten wird still übersprungen — Reihenfolge bleibt (Skip im Datensammler, unit-getestet: votes/momentum/shoutout/top-activity/top-month)
+- [x] Live-Berechnung: jedes Öffnen lädt frisch, kein Snapshot (`useGroupWrapped` re-fetcht bei `year`-Wechsel)
+
+#### Inhalte & Zählregeln
+- [x] Slide 2 zählt nur `abgeschlossen`-Aktivitäten mit Bezugsdatum im Jahr (Fallback `start_date → completed_at → created_at`, unit-getestet inkl. UTC-Off-by-one)
+- [x] Top-Aktivität bei Vote-Gleichstand → früher stattgefunden (unit-getestet); ohne Votes übersprungen
+- [x] Aktivster Monat bei Gleichstand → früherer Monat (unit-getestet)
+- [x] Momentum-Slide: aktuelles Level + im Jahr überschrittene Meilensteine (5/10/25), hergeleitet (unit-getestet)
+- [x] Ideengeber:in-Shout-out: eigener Name + eigene Zahl, keine Fremdzahlen (unit-getestet)
+- [x] Gleichstand: bis 3 gemeinsam, > 3 entfällt (unit-getestet)
+- [x] Erstplatzierte:r hat Gruppe verlassen → nächste Stufe rückt nach / sonst entfällt (unit-getestet)
+
+#### Teilen
+- [x] Slide-Bild im Story-Format 9:16 mit dezentem Branding-Fuß „MELLON RÜCKBLICK · {Jahr}" (Share-Bühne 360×640 → `pixelRatio 3` → 1080×1920; `variant="share"` gerendert)
+- [~] Browser ohne Web-Share → Download-Fallback: Code-Review korrekt (`navigator.canShare` → sonst `<a download>`); **nicht end-to-end** aus dem Viewer mit Live-Daten ausgelöst (siehe Restrisiko)
+- [~] Nativ (Capacitor) Share-Sheet: exakt das erprobte PROJ-7/9-Muster (Cache-Datei + `Share.share`); Code-Review, nicht auf Gerät ausgelöst
+
+#### Sicherheit
+- [x] Nicht-Mitglied erhält keine Daten: rein lesend über bestehende, RLS-geschützte Tabellen (`groups`, `activities`, `group_members`, `group_momentum`, `profiles`, `activity_votes`); keine neuen Tabellen/Policies. Realtime-Kanal signalisiert nur Refetch, der für Nicht-Mitglieder leer bleibt.
+
+### Edge Cases Status
+- [x] **Lange Aktivitäts-/Gruppen-/Nutzernamen:** kein Frame bricht das 9:16-Layout (`scrollWidth==clientWidth` je Slide-Root; H2 `break-words line-clamp-3/4`, Rest-Delta 2px sub-pixel). Visuell bestätigt.
+- [x] **Knapp unter der Schwelle (2 Abschlüsse):** kein Wrapped; 3. Aktivität im Dezember schaltet live frei (unit-getestet)
+- [x] **Aktivität ohne Startdatum:** Fallback-Kette → genau ein Jahr (unit-getestet)
+- [x] **Shout-out-Kandidat:in hat Gruppe verlassen:** nur aktuelle Mitglieder (unit-getestet)
+- [x] **Jahreswechsel:** ab 1.1. nur noch übers Archiv, Banner erst wieder am 1.12. (Saison-Gate)
+- [x] **Momentum-Akte fehlt:** Slide entfällt (unit-getestet)
+
+### Security Audit Results
+- [x] Authorization: Datenzugriff ausschließlich über RLS der Quelltabellen; Client schreibt nichts (`completed_at` per Trigger, für Clients revoke'd)
+- [x] Input/XSS: alle Slide-Inhalte als React-Textknoten gerendert (kein `dangerouslySetInnerHTML`); Avatare als Initialen-Medaillons (kein externes Bild → kein CORS-Taint im PNG)
+- [x] Keine Secrets/sensiblen Felder in den Queries (nur `display_name`, Zählwerte, Datumsfelder)
+- [x] Kein öffentlicher Share-Link — Gruppendaten verlassen die App nur als bewusst geteiltes Bild
+
+### Bugs Found
+Keine Critical-, High-, Medium- oder Low-Bugs.
+
+#### Beobachtungen (kein Bug, spec-konform)
+- **OBS-1 (Info):** Die Momentum-Slide eines **archivierten** Jahrgangs zeigt das *heutige* Gruppen-Level (Live-Zähler `group_momentum`), während die Meilensteine korrekt jahresbezogen sind. Das entspricht der Spec-Formulierung „Aktuelles Gruppen-Level", kann auf einem alten Rückblick aber leicht inkonsistent zu den Jahres-Meilensteinen wirken. Bewusst als spec-konform akzeptiert.
+- **OBS-2 (Info):** Top-Aktivität berücksichtigt nur abgeschlossene Aktivitäten, der Ideengeber-Shout-out zählt Vorschläge aller Status. Beide Lesarten sind spec-gedeckt (Slide 4 „Aktivität des Jahres" vs. Slide 7 „Vorschläge eingebracht").
+
+### Restrisiko (nicht end-to-end verifiziert)
+Das Auslösen des **Teilen-Flows aus dem laufenden Viewer mit Live-Daten** (html-to-image-Export → natives Share-Sheet bzw. Web-Share/Download) wurde nicht end-to-end gefahren, da dafür eine Gruppe mit ≥ 3 Abschlüssen in einem Jahr geseedet werden müsste (bewusst geblockt). Slide-Rendering (Datengrundlage des Exports) und beide Fallback-Pfade sind über Render-Bühne bzw. Code-Review abgedeckt; der native Pfad ist 1:1 das in Produktion bewährte PROJ-7/9-Muster. Empfehlung: beim ersten realen Dezember-Wrapped (oder mit einer QA-Testgruppe mit Alt-Daten) das Teilen einmal auf Gerät bestätigen.
+
+### Summary
+- **Acceptance Criteria:** 20/20 erfüllt (2 Teilen-ACs code-verifiziert statt end-to-end — siehe Restrisiko)
+- **Bugs Found:** 0 (0 Critical, 0 High, 0 Medium, 0 Low) + 2 spec-konforme Beobachtungen
+- **Security:** Pass (rein lesend über bestehende RLS, keine neue Angriffsfläche)
+- **Tests:** 396/396 Unit-Tests grün · `npm run build` (Static Export) grün
+- **Production Ready:** YES
+- **Recommendation:** Deploy — Restrisiko (Teilen-Flow auf Gerät) beim ersten echten Wrapped bestätigen.
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-07-17 · **Production URL:** https://qt-voting-app.vercel.app
+
+### Pre-Deployment Checks
+- ✅ `npm run build` grün — Static Export, 13 Routen, TypeScript-Check bestanden
+- ✅ `npx vitest run` grün — **396/396** Unit-Tests (26 neu für `wrapped.ts`)
+- ✅ QA approved (20/20 ACs, 0 Bugs, Production Ready: YES)
+- ✅ Keine Secrets im Diff; neue Abhängigkeit `html-to-image@^1.11.13` in `package.json` + `package-lock.json` gepinnt
+- ✅ Keine neue Migration nötig — `activities.completed_at` (Trigger, fälschungssicher) bereits mit PROJ-17 live
+- ⚠️ `npm run lint` projektweit defekt (`next lint` in Next.js 16 entfernt) — betrifft den Vercel-Build **nicht**; Typsicherheit deckt der TS-Check im Build ab
+
+### Deploy
+- Auto-Deploy via Push auf `main` → Vercel-Projekt `qt-voting-app`
+- Deployte Dateien: `src/lib/wrapped.ts` (+ Tests), `src/lib/wrapped-share.ts`, `src/lib/native/share-image.ts`, `src/hooks/useGroupWrapped.ts`, `src/hooks/useWrappedAvailability.ts`, `src/components/wrapped/*` + Integration in `groups/view/page.tsx`, `GroupDetailSheet`, `GroupShellContext`, `VorschlaegeTab`
+
+### Restrisiko (aus /qa, unverändert)
+Der Teilen-Flow (html-to-image-Export → natives Share-Sheet / Web-Share / Download) wurde nicht end-to-end mit Live-Daten gefahren (setzt eine Gruppe mit ≥ 3 Abschlüssen voraus, Seeden bewusst geblockt). Slide-Rendering und beide Fallback-Pfade sind über Render-Bühne/Code-Review abgedeckt; der native Pfad ist 1:1 das in Produktion bewährte PROJ-7/9-Muster. **Beim ersten echten Dezember-Wrapped einmal auf Gerät bestätigen.**
