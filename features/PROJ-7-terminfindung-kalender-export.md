@@ -410,6 +410,20 @@ const dtend = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10).rep
 - **Verfügbarkeits-Bänder mit runden Enden**: Die farbigen `avail_*`-Bänder werden pro Wochenzeile am ersten und letzten Tag abgerundet (`[&:first-child]:rounded-l-[10px]` / `[&:last-child]:rounded-r-[10px]`), statt als harte Blöcke bis zum Rand zu laufen.
 - Verifiziert im Browser (Einzelauswahl und Bereichsauswahl über eine Wochengrenze, Light Mode).
 
-### Bekanntes Problem (vorbestehend, nicht durch diesen Pass verursacht)
+### Bereichsauswahl-Kontrast — behoben (2026-09-09)
+
+- **Fix:** `range_middle` bekommt in `src/components/ui/calendar.tsx` statt der deckenden
+  Creme-Fläche `bg-accent` jetzt den halbtransparenten Grün-Schleier `bg-primary/15`
+  (plus `font-medium`). Weil der Schleier additiv über der Zelle liegt, bleibt er auf
+  allen vier Verfügbarkeits-Bandfarben sichtbar **und** die Bandfarbe darunter lesbar —
+  eine deckende Fläche hätte die Verfügbarkeitsinfo verdeckt.
+- Im Browser gegengeprüft: ausgewählte Mitteltage `rgba(31,71,53,0.15)` über dem Band,
+  nicht ausgewählte transparent; die Spanne ist als zusammenhängender Block erkennbar.
+- Wirkt auf beide Range-Kalender der App: `DateFinderSheet` und `MoveToPlanningDialog`.
+
+<details>
+<summary>Ursprüngliche Fehlerbeschreibung</summary>
 
 - **Bereichsauswahl visuell nicht erkennbar:** Bei `mode="range"` sind Start- und Endtag grün gefüllt, die Tage dazwischen aber praktisch unsichtbar. Ursache: die `DayButton` in `src/components/ui/calendar.tsx` gibt `range_middle` die Klasse `bg-accent` — im Mellon-Theme eine Creme-Fläche (`rgb(246,239,229)`), die auf dem Verfügbarkeits-Band `bg-surface-2` (`rgb(246,240,230)`) aufliegt. Differenz: ein Farbwert pro Kanal. Per `git stash` gegen den Stand vor dem Design-Pass gegengeprüft — dort identisches Verhalten. Fix-Vorschlag: `range_middle` einen eigenen Token geben (z. B. `primary-soft`), damit die Spanne gegen alle vier Bandfarben sichtbar bleibt.
+
+</details>
