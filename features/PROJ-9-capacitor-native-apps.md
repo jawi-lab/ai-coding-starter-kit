@@ -1,8 +1,8 @@
 # PROJ-9: Capacitor Native Apps (iOS + Android)
 
-## Status: Approved
+## Status: Deployed
 **Created:** 2026-06-26
-**Last Updated:** 2026-07-11
+**Last Updated:** 2026-09-09
 
 ## Änderung (2026-07-11) – UI-Überarbeitung in Native übernommen
 - Web-Änderungen (persistente Bottom-Nav ohne FAB, Top-Bar-"+", Home-Aufgaben,
@@ -828,3 +828,10 @@ JDK 21; ProGuard-Fix `proguard-android-optimize.txt`). Verifiziert (mit Screensh
 
 ## Deployment
 _To be added by /deploy_
+
+## Statuspflege (2026-09-09)
+
+Status von „Approved" auf **Deployed** gesetzt. PROJ-9 war das einzige Feature, das
+nicht auf „Deployed" stand, obwohl die native Hülle gebaut ist und die darauf
+aufsetzenden Features PROJ-10 (Push) und PROJ-11 (OTA) längst deployed sind — es fehlte
+lediglich die Statuspflege, kein ausstehender Arbeitsschritt.

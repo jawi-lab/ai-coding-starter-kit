@@ -6,8 +6,8 @@
 
 ## Stand
 
-Mellon ist funktional komplett und live. 17 von 18 Features stehen in
-`features/INDEX.md` auf **Deployed**; einzige Ausnahme ist PROJ-9 (siehe Punkt 8).
+Mellon ist funktional komplett und live. **Alle 18 Features** stehen in
+`features/INDEX.md` auf **Deployed**.
 
 Letzte Arbeit vor dieser Session: 2026-07-17. Diese Session hat den seitdem
 uncommitteten Design-Pass verifiziert und eingecheckt.
@@ -17,7 +17,7 @@ uncommitteten Design-Pass verifiziert und eingecheckt.
 - `tsc --noEmit`: sauber
 - `npm run build`: grün, 13 statische Seiten (Next.js 16.1.1, Static Export)
 - PROJ-8-E2E: 24 grün, 1 sachlich korrekter Skip
-- `git`: `main`, Working Tree sauber, **8 Commits ungepusht**
+- `git`: `main`, Working Tree sauber, mit `origin/main` synchron
 
 ## Was diese Session gemacht hat
 
@@ -41,32 +41,12 @@ Theme-Wechsel, Einzel- und Bereichsauswahl im Kalender.
 
 ## Offene Punkte
 
-Stand nach der Abarbeitungs-Session vom 2026-09-09: **Punkte 2–7 und 9 sind erledigt**
-(siehe „Erledigt" unten). Offen bleiben genau zwei, und beide brauchen eine
-Entscheidung des Nutzers.
+Stand nach der Abarbeitungs-Session vom 2026-09-09: **alle neun Punkte sind erledigt.**
+Es bleibt ein bewusst abgegrenzter Restbefund (siehe unten).
 
-### 1. Acht Commits sind nicht gepusht — Entscheidung nötig
+### ~~1. Commits nicht gepusht~~ — erledigt
 
-```
-128f8ba chore: .gitignore deckt .mcp.json-Varianten ab
-ca38f52 chore: Linting wieder in Betrieb nehmen + TS-Fehler und Typografie beheben
-890884a test(PROJ-8): E2E-Suite instandsetzen
-0474eeb fix(PROJ-17): BUG-17-3 — Aktivitäts-Detail-Sheet ohne Dialog-Titel
-9c423f9 fix(PROJ-7): Bereichsauswahl im Kalender sichtbar machen
-78a197a docs: Session-Übergabe auf Stand 2026-09-09
-3155cc6 docs(PROJ-7,PROJ-8): Design-Polish dokumentieren
-45475f0 refactor(PROJ-8): Profil-Sheet als Drill-down-Navigation
-```
-
-Push löst über die GitHub-Integration ein **Production-Deploy** aus. Nicht ohne
-ausdrückliche Freigabe pushen.
-
-### 8. PROJ-9 steht auf „Approved" — Sachstand nur beim Nutzer bekannt
-
-`features/INDEX.md` führt PROJ-9 (Capacitor Native Apps) als einziges Feature nicht als
-„Deployed". Die native Hülle ist gebaut, PROJ-10 (Push) und PROJ-11 (OTA) setzen darauf
-auf und sind deployed. Ob nur die Statuspflege fehlt oder tatsächlich noch ein
-Store-Release aussteht, lässt sich aus dem Repo nicht beantworten — beim Nutzer klären.
+Auf Freigabe des Nutzers nach `origin/main` gepusht; Vercel deployt automatisch.
 
 ### Bekannter Restbefund: 43 Lint-Fehler, alle `react-hooks/*`
 
@@ -110,6 +90,9 @@ dann aber mit Begründung in der Config, nicht stillschweigend.
 - **Punkt 7 — Lint:** `eslint.config.js` angelegt, Script auf `eslint .` umgestellt.
   Behoben: 5 Typografie-Fehler, 2 Fehler in der Config selbst, 13 Warnungen im
   Design-Bundle (jetzt ignoriert). Rest siehe oben.
+- **Punkt 8 — PROJ-9:** Auf Auskunft des Nutzers reine Statuspflege — Status in
+  `features/INDEX.md` und der Spec auf **Deployed** gesetzt. Damit stehen alle 18
+  Features auf „Deployed".
 - **Punkt 9 — TS-Fehler:** `ical-export.test.ts` nutzt statt des untypisierten
   Vitest-Internals `createElement.wrappedObject` das vor dem Spy gesicherte Original.
   `tsc --noEmit` ist erstmals fehlerfrei.
@@ -149,6 +132,9 @@ dann aber mit Begründung in der Config, nicht stillschweigend.
 
 ## Nächste Schritte
 
-1. **Push freigeben oder zurückhalten** (Punkt 1) — löst ein Production-Deploy aus.
-2. **PROJ-9-Status klären** (Punkt 8).
-3. Danach, wenn Zeit ist: die 43 `react-hooks/*`-Befunde hookweise angehen.
+Nichts Dringendes offen. Wenn Zeit für einen sauberen Durchgang ist: die 43
+`react-hooks/*`-Befunde hookweise angehen (Entscheidung des Nutzers am 2026-09-09:
+vorerst so lassen, Lint läuft, die Befunde sind dokumentiert).
+
+Nach dem Push gilt: **Vercel-Deploy im Blick behalten** — der Push enthält den
+Profil-Sheet-Umbau, den Kalender-Fix und den A11y-Fix.
