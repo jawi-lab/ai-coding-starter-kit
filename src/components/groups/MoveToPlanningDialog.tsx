@@ -89,7 +89,7 @@ export function MoveToPlanningDialog({
 
         <p className="text-[13px] text-ink-2 leading-snug -mt-1">
           Wähle einen Zeitraum für{' '}
-          <span className="font-[700] text-ink">„{activityName}"</span>.
+          <span className="font-[700] text-ink">„{activityName}“</span>.
         </p>
 
         {/* Date Range Picker */}

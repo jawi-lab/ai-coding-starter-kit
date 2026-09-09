@@ -24,9 +24,12 @@ beforeEach(() => {
     set download(v: string) { capturedDownloadName = v },
     click() { anchorClicked = true },
   }
-  vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+  // Das Original sichern, bevor der Spy es ersetzt — sonst rekursiert der
+  // Fallback in sich selbst.
+  const createElement = document.createElement.bind(document)
+  vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
     if (tag === 'a') return mockAnchor as unknown as HTMLElement
-    return document.createElement.wrappedObject?.call(document, tag) ?? document.createElement(tag)
+    return createElement(tag)
   })
   vi.spyOn(document.body, 'appendChild').mockImplementation((n) => n)
   vi.spyOn(document.body, 'removeChild').mockImplementation((n) => n)

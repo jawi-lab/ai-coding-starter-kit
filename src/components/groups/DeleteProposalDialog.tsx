@@ -42,7 +42,7 @@ export function DeleteProposalDialog({
             Vorschlag löschen?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-[14px] text-ink-2">
-            „{proposalName}" und alle zugehörigen Votes werden unwiderruflich gelöscht.
+            „{proposalName}“ und alle zugehörigen Votes werden unwiderruflich gelöscht.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

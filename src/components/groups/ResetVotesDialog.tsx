@@ -42,7 +42,7 @@ export function ResetVotesDialog({
             Erneut zur Abstimmung?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-[14px] text-ink-2">
-            Alle Votes für „{proposalName}" werden zurückgesetzt. Die Abstimmung beginnt von vorne.
+            Alle Votes für „{proposalName}“ werden zurückgesetzt. Die Abstimmung beginnt von vorne.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -42,7 +42,7 @@ export function DeletePollDialog({
             Umfrage löschen?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-[14px] text-ink-2">
-            „{question}" wird mit allen Optionen und Stimmen unwiderruflich entfernt.
+            „{question}“ wird mit allen Optionen und Stimmen unwiderruflich entfernt.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
