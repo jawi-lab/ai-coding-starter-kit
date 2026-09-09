@@ -418,3 +418,11 @@ Der `client_secret` existiert ausschließlich als Supabase Edge Function Environ
 ## Post-Deployment Fixes (2026-06-23)
 
 - **Blockierungs-Ansicht mobil korrigiert** (`DateBlocksSection.tsx`): Zeile gegen Overflow gehärtet (`min-w-0` + `truncate`). Eigentliche Ursache des "abgeschnitten"-Problems war globaler horizontaler Overflow → in PROJ-3 via `globals.css` (`overflow-x: hidden`) behoben.
+
+## Design-Polish (2026-09-09)
+
+- **„Mein Konto" als Drill-down-Navigation** (`ProfileSheet.tsx`): Die lange Scroll-Liste aus sieben untereinander gestapelten Sektionen ist einer gruppierten Settings-Liste gewichen — Identity-Header (Avatar, Anzeigename in Serif, E-Mail) plus die Gruppen „Konto" (Profil-Infos, Benachrichtigungen, Darstellung, Meine Badges) und „Verbindungen" (Google Kalender, Blockierte Zeiträume), darunter „Ausloggen". Jede Zeile öffnet eine eigene Unterseite mit Zurück-Pfeil im Sheet-Header.
+- **Sektions-Überschriften entfernt** (`ProfileSection`, `BadgeSection`, `AppearanceSection`, `NotificationPreferencesSection`, `CalendarConnectionSection`, `DateBlocksSection`): Der Titel steht jetzt im Header der jeweiligen Unterseite, die Komponenten rendern nur noch ihren Inhalt.
+- **E-Mail-Deep-Link angepasst** (BUG-12-1): `scrollToNotifications` springt direkt in die Benachrichtigungs-Unterseite, statt nach 350 ms zum Anker `#notification-settings` zu scrollen. Der Anker entfällt.
+- **Album-Tab unverändert** — Tab-Leiste und Punkt-Indikator (PROJ-17) bleiben auf der Wurzelebene.
+- Verifiziert im Browser (Light + Dark Mode, alle sechs Unterseiten, Zurück-Navigation, Theme-Wechsel). Vitest 396/396, Production-Build grün.

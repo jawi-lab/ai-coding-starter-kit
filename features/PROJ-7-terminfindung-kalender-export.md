@@ -402,3 +402,14 @@ const dtend = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10).rep
 ## Design-Polish (2026-07-17)
 
 - **DateFinderSheet auf Mellon-Tokens umgestellt**: Verfügbarkeits-Farben der Kalendertage nutzen jetzt `success-soft`/`secondary-soft`/`error-soft`/`surface-2` statt roher Tailwind-Farben (amber/green/red/gray) — damit automatisch Dark-Mode-fähig und palettenkonform. Hinweis-Banner („ohne Kalender") in Honiggold-Tokens, „Aktualisieren" als Pill-Button rechtsbündig, Legende in einer eigenen Karte (`border-line`/`bg-surface`), Legendenpunkte in `success`/`secondary`/`error`/`line-strong`.
+
+## Design-Polish (2026-09-09)
+
+- **Kalender über die volle Sheet-Breite** (`DateFinderSheet.tsx`): Der Kalender saß zuvor in einem schmalen `px-2`-Container mit Standard-Zellenbreite. Jetzt `w-full max-w-[440px]`, Monate untereinander (`gap-8`), Wochentags-Kopf und Wochenzeilen füllen die Breite, Tageszellen quadratisch (`aspect-square`).
+- **Legende entrahmt**: Die eigene Karte (`border-line`/`bg-surface`) ist weggefallen, die Legendenpunkte stehen frei über dem Kalender.
+- **Verfügbarkeits-Bänder mit runden Enden**: Die farbigen `avail_*`-Bänder werden pro Wochenzeile am ersten und letzten Tag abgerundet (`[&:first-child]:rounded-l-[10px]` / `[&:last-child]:rounded-r-[10px]`), statt als harte Blöcke bis zum Rand zu laufen.
+- Verifiziert im Browser (Einzelauswahl und Bereichsauswahl über eine Wochengrenze, Light Mode).
+
+### Bekanntes Problem (vorbestehend, nicht durch diesen Pass verursacht)
+
+- **Bereichsauswahl visuell nicht erkennbar:** Bei `mode="range"` sind Start- und Endtag grün gefüllt, die Tage dazwischen aber praktisch unsichtbar. Ursache: die `DayButton` in `src/components/ui/calendar.tsx` gibt `range_middle` die Klasse `bg-accent` — im Mellon-Theme eine Creme-Fläche (`rgb(246,239,229)`), die auf dem Verfügbarkeits-Band `bg-surface-2` (`rgb(246,240,230)`) aufliegt. Differenz: ein Farbwert pro Kanal. Per `git stash` gegen den Stand vor dem Design-Pass gegengeprüft — dort identisches Verhalten. Fix-Vorschlag: `range_middle` einen eigenen Token geben (z. B. `primary-soft`), damit die Spanne gegen alle vier Bandfarben sichtbar bleibt.
