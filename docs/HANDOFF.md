@@ -12,15 +12,17 @@ Mellon ist funktional komplett und live. 17 von 18 Features stehen in
 Letzte Arbeit vor dieser Session: 2026-07-17. Diese Session hat den seitdem
 uncommitteten Design-Pass verifiziert und eingecheckt.
 
-**Grüne Basis (in dieser Session gemessen):**
+**Grüne Basis (zuletzt gemessen 2026-09-09):**
 - Vitest: **396/396** über 36 Dateien
+- `tsc --noEmit`: sauber
 - `npm run build`: grün, 13 statische Seiten (Next.js 16.1.1, Static Export)
-- `git`: `main`, zwei neue Commits, sonst sauber
+- PROJ-8-E2E: 24 grün, 1 sachlich korrekter Skip
+- `git`: `main`, Working Tree sauber, **8 Commits ungepusht**
 
 ## Was diese Session gemacht hat
 
-Der Design-Pass (Mellon Design System) lag uncommittet im Working Tree und wurde
-im Browser gegen die laufende App verifiziert — nicht nur gelesen:
+Zuerst den uncommitteten Design-Pass (Mellon Design System) im Browser gegen die
+laufende App verifiziert und eingecheckt:
 
 - `45475f0` — **refactor(PROJ-8):** „Mein Konto" von einer langen Scroll-Liste auf
   eine gruppierte Drill-down-Navigation umgebaut (Identity-Header, Gruppen „Konto"
@@ -39,123 +41,81 @@ Theme-Wechsel, Einzel- und Bereichsauswahl im Kalender.
 
 ## Offene Punkte
 
-### 1. Zwei Commits sind noch nicht gepusht — zuerst erledigen
+Stand nach der Abarbeitungs-Session vom 2026-09-09: **Punkte 2–7 und 9 sind erledigt**
+(siehe „Erledigt" unten). Offen bleiben genau zwei, und beide brauchen eine
+Entscheidung des Nutzers.
+
+### 1. Acht Commits sind nicht gepusht — Entscheidung nötig
 
 ```
-3155cc6 docs(PROJ-7,PROJ-8): Design-Polish dokumentieren + Range-Kontrast-Problem festhalten
-45475f0 refactor(PROJ-8): Profil-Sheet als Drill-down-Navigation, Terminfinder-Kalender full-width
+128f8ba chore: .gitignore deckt .mcp.json-Varianten ab
+ca38f52 chore: Linting wieder in Betrieb nehmen + TS-Fehler und Typografie beheben
+890884a test(PROJ-8): E2E-Suite instandsetzen
+0474eeb fix(PROJ-17): BUG-17-3 — Aktivitäts-Detail-Sheet ohne Dialog-Titel
+9c423f9 fix(PROJ-7): Bereichsauswahl im Kalender sichtbar machen
+78a197a docs: Session-Übergabe auf Stand 2026-09-09
+3155cc6 docs(PROJ-7,PROJ-8): Design-Polish dokumentieren
+45475f0 refactor(PROJ-8): Profil-Sheet als Drill-down-Navigation
 ```
 
-`origin/main` hängt zwei Commits zurück. **Push nur nach Rückfrage beim Nutzer** —
-GitHub ist mit Vercel verdrahtet, ein Push löst ein Production-Deploy aus.
+Push löst über die GitHub-Integration ein **Production-Deploy** aus. Nicht ohne
+ausdrückliche Freigabe pushen.
 
-### 2. `.gitignore` ist uncommittet und stammt nicht aus dem Design-Pass
+### 8. PROJ-9 steht auf „Approved" — Sachstand nur beim Nutzer bekannt
 
-Einzige Änderung: `.mcp.json` → `.mcp.json*` (deckt auch `.mcp.json.bak` o. Ä. ab).
-Inhaltlich sinnvoll und sicherheitsrelevant, gehörte aber nicht in den
-Design-Commit. Entweder als eigener `chore:`-Commit einchecken oder verwerfen —
-Nutzer fragen, die Änderung ist nicht von ihm angekündigt worden.
+`features/INDEX.md` führt PROJ-9 (Capacitor Native Apps) als einziges Feature nicht als
+„Deployed". Die native Hülle ist gebaut, PROJ-10 (Push) und PROJ-11 (OTA) setzen darauf
+auf und sind deployed. Ob nur die Statuspflege fehlt oder tatsächlich noch ein
+Store-Release aussteht, lässt sich aus dem Repo nicht beantworten — beim Nutzer klären.
 
-### 3. Testdaten in der QA-Testgruppe aufräumen
+### Bekannter Restbefund: 43 Lint-Fehler, alle `react-hooks/*`
 
-Diese Session hat zum Verifizieren des Kalenders eine Aktivität angelegt und konnte
-sie nicht wieder löschen (der Supabase-MCP war in der Session mit HTTP 401 abgestürzt;
-über die UI gibt es keinen Löschweg, sobald eine Aktivität aus den Vorschlägen ins
-Board gewandert ist — `DeleteProposalDialog` hängt nur am Vorschläge-Tab).
+`npm run lint` läuft wieder, meldet aber 43 Fehler und 11 Warnungen:
 
-**Der MCP ist inzwischen wieder verbunden.** Zu löschen, Projekt `fogldssdmqgeffpuhvxd`:
-
-| Feld | Wert |
+| Anzahl | Regel |
 |---|---|
-| Aktivität | `Design-Check Terminfinder` |
-| ID | `5e6197ba-a6c9-4910-b857-356fdb4e4c91` |
-| Gruppe | `576db580-b3e6-4424-8db2-6507d58c0cc4` (QA Testgruppe) |
-| Status | `zu_planen`, kein Termin gesetzt |
+| 32 | `react-hooks/set-state-in-effect` |
+| 7 | `react-hooks/refs` |
+| 3 | `react-hooks/immutability` |
+| 1 | `react-hooks/purity` |
 
-```sql
-delete from activities where id = '5e6197ba-a6c9-4910-b857-356fdb4e4c91';
-```
+Das sind die React-Compiler-Regeln aus `eslint-plugin-react-hooks` v6, die auf nie
+gelintetem Code erstmals greifen. Sie zu beheben heißt, produktive, live laufende Hooks
+umzubauen (`setLoading(true)` direkt im Effect-Body u. Ä.) — echtes Refactoring mit
+Regressionsrisiko, kein Aufräumen. Bewusst nicht nebenbei erledigt.
 
-**Nur diese eine Zeile.** Die beiden anderen Aktivitäten in der Gruppe
-(`Picknick im Stadtpark`, `Kanutour planen`) sind ältere QA-Fixtures und bleiben.
-Nach dem Löschen greift der `refresh_group_momentum`-Trigger — das ist erwartet und
-seit der BUG-17-1-Migration abgesichert.
-
-### 4. Bereichsauswahl im Kalender ist unsichtbar (PROJ-7) — echter UX-Bug
-
-Bei `mode="range"` sind Start- und Endtag grün gefüllt, die Tage dazwischen aber
-praktisch unsichtbar. Der Nutzer sieht nicht, dass er eine Spanne gewählt hat; nur
-die Fußzeile verrät es.
-
-**Ursache:** die `DayButton` in `src/components/ui/calendar.tsx:204` gibt
-`range_middle` die Klasse `bg-accent`. Im Mellon-Theme ist das eine Creme-Fläche
-(`rgb(246,239,229)`), die auf dem Verfügbarkeits-Band `bg-surface-2`
-(`rgb(246,240,230)`) aufliegt — ein Farbwert Unterschied pro Kanal.
-
-**Wichtig: vorbestehend, nicht vom Design-Pass verursacht.** Per `git stash` gegen
-den Stand davor gegengeprüft, dort identisches Verhalten. Nicht „Regression durch
-den Umbau" diagnostizieren.
-
-**Fix-Richtung:** `range_middle` einen eigenen Token geben (z. B. `primary-soft`),
-der gegen alle vier Bandfarben (`success-soft`, `secondary-soft`, `error-soft`,
-`surface-2`) trägt. `calendar.tsx` ist eine shadcn-Komponente — laut `CLAUDE.md`
-nicht neu bauen, nur die Klasse anpassen. Achtung: die Änderung wirkt auf jeden
-Range-Kalender der App, also gegenprüfen, wo sonst `mode="range"` läuft.
-
-### 5. BUG-17-3: `DialogContent` ohne `DialogTitle`
-
-In dieser Session im Browser bestätigt: Beim Öffnen des Aktivitäts-Detail-Sheets
-wirft die Konsole „`DialogContent` requires a `DialogTitle`", zusätzlich
-„Missing `Description` or `aria-describedby`". Der Dialog erscheint im
-Accessibility-Baum als Dialog **ohne Namen** — Screenreader-Nutzer bekommen keinen
-Kontext.
-
-Betroffen ist `ActivityDetailSheet.tsx`. Das Muster ist laut alter Übergabe
-repo-weit, also beim Fixen gleich alle `ResponsiveModal`-/`Dialog`-Verwendungen
-durchgehen. `ProfileSheet.tsx` macht es richtig (Titel + `sr-only`-Description) und
-taugt als Vorlage.
-
-### 6. PROJ-8-E2E-Tests laufen ins Leere
-
-`tests/PROJ-8-nutzerprofil-archiv.spec.ts` sucht noch den Tab „Archiv", der in
-PROJ-17 zu „Album" umbenannt wurde. Die Tests **skippen stumm** statt zu failen —
-gefährlich, weil grüne Läufe hier nichts beweisen.
-
-Zusätzlich beachten: Der Umbau aus `45475f0` hat die Profil-UI grundlegend
-geändert. Tests, die Sektionen direkt im Sheet erwarten, müssen jetzt erst die
-passende Unterseite öffnen. Beim Anfassen der Datei gleich mitziehen.
-
-### 7. Lint ist im Projekt nicht funktionsfähig
-
-`npm run lint` ruft `next lint` auf — in Next.js 16 entfernt, bricht mit
-„Invalid project directory: …/lint" ab. Zusätzlich existiert **gar keine**
-`eslint.config.js`, ESLint 9 findet also auch direkt keine Konfiguration.
-
-In PROJ-7 ist der kaputte Script seit dem Deploy als bekannt notiert, aber nie
-behoben worden. Zwei Schritte nötig: `eslint.config.js` (Flat Config) anlegen und
-das `package.json`-Script auf `eslint` umstellen. Vercel-Builds sind davon nicht
-betroffen — die laufen sauber durch.
-
-### 8. PROJ-9 steht auf „Approved"
-
-`features/INDEX.md` führt PROJ-9 (Capacitor Native Apps) als einziges Feature nicht
-als „Deployed". Die native Hülle ist gebaut und PROJ-10 (Push) und PROJ-11 (OTA)
-setzen darauf auf und sind deployed — es fehlt also nur der Store-Release bzw. die
-Statuspflege. Mit dem Nutzer klären, was davon tatsächlich noch offen ist.
-
-### 9. TypeScript-Fehler in einer Testdatei
-
-`npx tsc --noEmit` meldet genau einen Fehler:
-
-```
-src/lib/ical-export.test.ts(29,35): error TS2339:
-Property 'wrappedObject' does not exist on type '{ ... createElement ... }'
-```
-
-Vorbestehend, nur Testcode, blockiert weder Build noch Testlauf (Vitest ist grün).
-Kleinigkeit für nebenbei.
+**Vorschlag:** hookweise angehen, jeweils mit Vitest- und E2E-Lauf absichern; die
+dichtesten Stellen zuerst (`useWrappedAvailability.ts`, `useAlbumBadge.ts`,
+`ActivityDetailSheet.tsx`). Alternativ bewusst als Warnung einstufen, bis Zeit dafür ist —
+dann aber mit Begründung in der Config, nicht stillschweigend.
 
 ---
+
+## Erledigt am 2026-09-09
+
+- **Punkt 2 — `.gitignore`:** als `chore` committet (`.mcp.json*` statt `.mcp.json`).
+- **Punkt 3 — Testdaten:** Aktivität `Design-Check Terminfinder` gelöscht. Zusätzlich
+  drei Altlast-Blockierungen (31.12.2026) im QA-Account gefunden und entfernt, die
+  AC-BLOCK-5 über frühere Läufe angesammelt hatte. QA-Gruppe enthält wieder genau die
+  beiden ursprünglichen Fixtures.
+- **Punkt 4 — Kalender-Kontrast:** `range_middle` bekommt `bg-primary/15` statt
+  `bg-accent`. Halbtransparent gewählt, damit die Verfügbarkeitsfarbe unter der Auswahl
+  lesbar bleibt. Im Browser gegengeprüft.
+- **Punkt 5 — BUG-17-3:** Aktivitätsname im Detail-Sheet auf `ResponsiveModalTitle`
+  gehoben, `sr-only`-Description ergänzt. Dialog hat jetzt `aria-labelledby` und
+  `aria-describedby`, Radix-Meldungen sind weg. Repo-weit gegengeprüft.
+- **Punkt 6 — E2E-Suite:** Ursache war nicht nur „Archiv"→„Album", sondern ein toter
+  Selektor im Einstiegs-Helper, durch den *alle* 25 Tests stumm skippten. Jetzt 24 grün,
+  1 sachlich korrekter Skip. Details in der PROJ-8-Spec.
+- **Punkt 7 — Lint:** `eslint.config.js` angelegt, Script auf `eslint .` umgestellt.
+  Behoben: 5 Typografie-Fehler, 2 Fehler in der Config selbst, 13 Warnungen im
+  Design-Bundle (jetzt ignoriert). Rest siehe oben.
+- **Punkt 9 — TS-Fehler:** `ical-export.test.ts` nutzt statt des untypisierten
+  Vitest-Internals `createElement.wrappedObject` das vor dem Spy gesicherte Original.
+  `tsc --noEmit` ist erstmals fehlerfrei.
+
+**Grüne Basis am Ende der Session:** Vitest 396/396 · `tsc --noEmit` sauber ·
+`npm run build` grün (13 Seiten) · PROJ-8-E2E 24/25 · Working Tree sauber.
 
 ## Umgebung & Gotchas
 
@@ -187,10 +147,8 @@ Kleinigkeit für nebenbei.
   Der etablierte Stil für nachträgliche Design-Änderungen ist ein Abschnitt
   `## Design-Polish (JJJJ-MM-TT)` am Ende der Spec.
 
-## Vorschlag zur Reihenfolge
+## Nächste Schritte
 
-1. Punkte 1–3 (Push klären, `.gitignore`, Testdaten löschen) — schnell, räumt auf.
-2. Punkt 4 (Range-Kontrast) — einziger echter UX-Bug, klein umzusetzen.
-3. Punkt 5 (A11y) und 6 (E2E) — gehören inhaltlich zusammen, beide betreffen das
-   Profil-/Detail-Sheet.
-4. Punkte 7–9 — Aufräumarbeiten ohne Nutzerwirkung.
+1. **Push freigeben oder zurückhalten** (Punkt 1) — löst ein Production-Deploy aus.
+2. **PROJ-9-Status klären** (Punkt 8).
+3. Danach, wenn Zeit ist: die 43 `react-hooks/*`-Befunde hookweise angehen.
