@@ -86,10 +86,6 @@ export function ProfileSection() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
-        Profil
-      </h3>
-
       <div className="flex items-center gap-4">
         {/* Avatar with tap-to-change */}
         <div className="relative flex-shrink-0">

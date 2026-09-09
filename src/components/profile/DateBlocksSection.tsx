@@ -70,10 +70,6 @@ export function DateBlocksSection() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
-        Meine Blockierungen
-      </h3>
-
       {loading ? (
         <div className="space-y-2">
           {[1, 2].map(i => (

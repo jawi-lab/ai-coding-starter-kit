@@ -14,9 +14,6 @@ export function AppearanceSection() {
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[12px] font-[700] tracking-[0.06em] text-ink-3">
-        Darstellung
-      </p>
       <div
         role="radiogroup"
         aria-label="Farbschema"

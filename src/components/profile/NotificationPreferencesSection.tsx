@@ -25,10 +25,6 @@ export function NotificationPreferencesSection() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
-        Benachrichtigungen
-      </h3>
-
       {/* OS push activation (native only, PROJ-10) — headingless under this section. */}
       {showPush && <PushNotificationSection hideHeading />}
 
