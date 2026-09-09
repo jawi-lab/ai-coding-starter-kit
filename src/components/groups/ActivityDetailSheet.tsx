@@ -12,7 +12,10 @@ import {
   MapPin, ExternalLink, Check, CalendarClock, CalendarPlus,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { ResponsiveModal, ResponsiveModalContent } from '@/components/ui/responsive-modal'
+import {
+  ResponsiveModal, ResponsiveModalContent,
+  ResponsiveModalTitle, ResponsiveModalDescription,
+} from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -1079,6 +1082,10 @@ export function ActivityDetailSheet({
               : undefined
           }
         >
+          <ResponsiveModalDescription className="sr-only">
+            Details der Aktivität: Beschreibung, Termin, Aufgaben, Umfragen und Kommentare.
+          </ResponsiveModalDescription>
+
           {/* ── Header ── */}
           <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
             <button
@@ -1088,9 +1095,9 @@ export function ActivityDetailSheet({
             >
               <X className="h-4 w-4" />
             </button>
-            <p className="flex-1 font-serif font-medium text-[18px] tracking-[-0.015em] text-ink truncate">
+            <ResponsiveModalTitle className="flex-1 font-serif font-medium text-[18px] tracking-[-0.015em] text-ink truncate">
               {activity?.name ?? ''}
-            </p>
+            </ResponsiveModalTitle>
             {canEdit && (
               <button
                 onClick={editing ? () => setEditing(false) : enterEditMode}
@@ -1185,7 +1192,7 @@ export function ActivityDetailSheet({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-ink">Verantwortlichkeit löschen?</AlertDialogTitle>
             <AlertDialogDescription className="text-ink-3">
-              „{deleteRespTarget?.label}" wird entfernt.
+              „{deleteRespTarget?.label}“ wird entfernt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
