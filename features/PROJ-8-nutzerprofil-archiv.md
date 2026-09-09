@@ -426,3 +426,56 @@ Der `client_secret` existiert ausschließlich als Supabase Edge Function Environ
 - **E-Mail-Deep-Link angepasst** (BUG-12-1): `scrollToNotifications` springt direkt in die Benachrichtigungs-Unterseite, statt nach 350 ms zum Anker `#notification-settings` zu scrollen. Der Anker entfällt.
 - **Album-Tab unverändert** — Tab-Leiste und Punkt-Indikator (PROJ-17) bleiben auf der Wurzelebene.
 - Verifiziert im Browser (Light + Dark Mode, alle sechs Unterseiten, Zurück-Navigation, Theme-Wechsel). Vitest 396/396, Production-Build grün.
+
+## Wartung (2026-09-09)
+
+### E2E-Suite instandgesetzt
+
+`tests/PROJ-8-nutzerprofil-archiv.spec.ts` lief faktisch nicht mehr: Der Helper
+`openProfileSheet` suchte einen Button „Profil öffnen", den es nach dem Nav-Umbau
+nicht mehr gibt. Er gab daraufhin `false` zurück, woraufhin **jeder** Test der Datei
+stumm skippte — grüne Läufe, die nichts bewiesen.
+
+- **Einstieg repariert und abgesichert:** Der Helper trifft jetzt Bottom-Nav („Profil")
+  wie Desktop-Sidebar („… Profil & Archiv") und **wirft**, statt zu skippen. Ein
+  fehlender Einstiegspunkt ist ein Fehler, kein Skip-Grund.
+- **An die Drill-down-Navigation angepasst:** Neue Helper `openSubview` / `backToRoot`;
+  die Sektions-Tests öffnen erst ihre Unterseite. Neu: AC-OPEN-3 (alle sechs
+  Listeneinträge vorhanden) und AC-OPEN-4 (Unterseite + Zurück-Navigation).
+- **Archiv → Album:** Tab-Name und Empty-State-Texte auf PROJ-17 gezogen
+  („Noch keine Erinnerungen" / „Schließt eure erste Aktivität ab…"), AC-ARCH-* zu
+  AC-ALBUM-* umbenannt. AC-OPEN-1 prüft zusätzlich, dass es keinen „Archiv"-Tab mehr gibt.
+- **Karten-Selektor stabilisiert:** Der alte Selektor zielte auf die Utility-Klasse
+  `rounded-[18px]` der früheren Archiv-Liste und fand die Memory-Cards nicht. Die Karte
+  trägt jetzt `data-testid="memory-card"`.
+- **Testdaten-Hygiene:** AC-BLOCK-5 legte pro Lauf eine Blockierung an und räumte sie
+  nie weg (drei Altlasten im QA-Account gefunden und entfernt) — der Test löscht seine
+  Blockierung jetzt selbst. AC-BLOCK-6 hing umgekehrt an genau diesem Datenmüll und
+  skippte auf einem aufgeräumten Account dauerhaft; er legt sich seine Blockierung jetzt
+  bei Bedarf selbst an. AC-BLOCK-2 wartet auf den geladenen Zustand, statt den Skeleton
+  als „unerwarteten Zustand" zu lesen.
+- **Feste `waitForTimeout` durch Zustands-Anker ersetzt** (Web-First-Assertions).
+
+**Ergebnis:** 24 grün, 1 sachlich korrekter Skip (AC-ALBUM-2 — der QA-Account hat
+Erinnerungen, der Empty-State ist dort nicht prüfbar), 0 Fehler, ~47 s.
+Vorher: 25 stumme Skips.
+
+> **Hinweis für Folgeläufe:** Mehrere credentialed Läufe kurz hintereinander laufen in
+> das Supabase-Auth-Rate-Limit. Das äußert sich als sprunghaft wechselnde Fehler in
+> `loginAs` und stark steigende Laufzeit (56 s → 6,3 min) — kein Suite-Defekt. Immer
+> `--workers=1` und zwischen Läufen etwas Abstand.
+
+### BUG-17-3 behoben — `DialogContent` ohne `DialogTitle`
+
+Das Aktivitäts-Detail-Sheet importierte nur `ResponsiveModal` und
+`ResponsiveModalContent`; der Aktivitätsname stand in einem `<p>`. Radix fand damit
+keinen Titel — der Dialog war im Accessibility-Baum namenlos, dazu kam die Warnung zur
+fehlenden Description.
+
+- Name auf `ResponsiveModalTitle` gehoben (Styling unverändert, `twMerge` behält die
+  Serif-Klassen), `sr-only`-`ResponsiveModalDescription` ergänzt.
+- Verifiziert: Der Dialog trägt jetzt `aria-labelledby` (Name = Aktivitätsname) und
+  `aria-describedby`; beide Radix-Meldungen sind aus der Konsole verschwunden.
+- Repo-weit gegengeprüft: Alle übrigen `ResponsiveModalContent`/`DialogContent`/
+  `SheetContent`-Verwendungen haben einen Titel. `src/components/ui/command.tsx` hat
+  keinen, wird aber nirgends importiert.

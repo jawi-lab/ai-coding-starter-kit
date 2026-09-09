@@ -41,6 +41,7 @@ export function MemoryCard({
 
   return (
     <Comp
+      data-testid="memory-card"
       {...(onClick ? { type: 'button' as const, onClick } : {})}
       className={`w-full text-left bg-surface border border-line rounded-lg overflow-hidden shadow-sm
                   ${onClick ? 'hover:border-primary/30 transition-colors active:scale-[0.98]' : ''}`}
