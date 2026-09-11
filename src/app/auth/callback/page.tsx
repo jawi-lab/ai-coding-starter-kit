@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useClientValue } from '@/hooks/useClientValue'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 
@@ -41,17 +42,18 @@ function parseUrlError(): ErrorKind | null {
 }
 
 export default function AuthCallbackPage() {
-  const [state, setState] = useState<PageState>('loading')
-  const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
+  // Supabase-Fehler stehen direkt in der URL (abgelaufener / bereits benutzter
+  // Link). Der Wert ändert sich nicht mehr, also beim Rendern lesen statt im
+  // Effect in State schreiben (react-hooks/set-state-in-effect).
+  const urlError = useClientValue(parseUrlError, null)
+  // Erst der Timeout unten kann noch einen Fehler ergänzen.
+  const [timedOut, setTimedOut] = useState(false)
+
+  const errorKind: ErrorKind = urlError ?? 'generic'
+  const state: PageState = urlError || timedOut ? 'error' : 'loading'
 
   useEffect(() => {
-    // Check for Supabase error parameters in URL (expired / already-used links)
-    const urlError = parseUrlError()
-    if (urlError) {
-      setErrorKind(urlError)
-      setState('error')
-      return
-    }
+    if (urlError) return
 
     // Capture the link type BEFORE supabase-js processes and clears the URL,
     // so a recovery link is still routed correctly even via the getSession path.
@@ -75,8 +77,7 @@ export default function AuthCallbackPage() {
     const timeout = setTimeout(() => {
       if (done) return
       done = true
-      setErrorKind('generic')
-      setState('error')
+      setTimedOut(true)
     }, 10_000)
 
     // Listen for auth events (covers slow URL detection / recovery)
@@ -129,7 +130,7 @@ export default function AuthCallbackPage() {
       clearTimeout(timeout)
       subscription.unsubscribe()
     }
-  }, [])
+  }, [urlError])
 
   if (state === 'error') {
     const msg = ERROR_MESSAGES[errorKind]

@@ -24,6 +24,7 @@ import { DesktopSidebar } from '@/components/groups/DesktopSidebar'
 import { MyTasksSection } from '@/components/profile/MyTasksSection'
 import { groupHref } from '@/lib/group-routes'
 import { getLastGroupId } from '@/lib/last-group'
+import { useClientValue } from '@/hooks/useClientValue'
 
 function GroupsContent() {
   const router = useRouter()
@@ -36,11 +37,8 @@ function GroupsContent() {
   const [scrollToNotifications, setScrollToNotifications] = useState(false)
 
   // Zielgruppe für die persistenten Bottom-Nav-Tabs: zuletzt geöffnete Gruppe
-  // (localStorage, erst nach Mount lesbar), Fallback = erste Gruppe.
-  const [lastGroupId, setLastGroupId] = useState<string | null>(null)
-  useEffect(() => {
-    setLastGroupId(getLastGroupId())
-  }, [])
+  // (localStorage, erst im Browser lesbar), Fallback = erste Gruppe.
+  const lastGroupId = useClientValue(getLastGroupId, null)
   const navTargetGroupId = lastGroupId ?? groups[0]?.id ?? null
 
   // Open group from query param (e.g., after creation/join) → navigate to its page
@@ -53,13 +51,19 @@ function GroupsContent() {
 
   // Email "Benachrichtigungen verwalten" deep-link (BUG-12-1): open the profile
   // sheet and scroll to the notification settings section, then clear the param.
+  // Das Öffnen passiert im Render (der Param ist beim ersten Render schon da),
+  // das Aufräumen der URL bleibt Seiteneffekt im Effect.
+  const wantsNotificationSettings = searchParams.get('settings') === 'notifications'
+  const [notificationDeepLinkHandled, setNotificationDeepLinkHandled] = useState(false)
+  if (wantsNotificationSettings && !notificationDeepLinkHandled) {
+    setNotificationDeepLinkHandled(true)
+    setProfileSheetOpen(true)
+    setScrollToNotifications(true)
+  }
+
   useEffect(() => {
-    if (searchParams.get('settings') === 'notifications') {
-      setProfileSheetOpen(true)
-      setScrollToNotifications(true)
-      router.replace('/groups')
-    }
-  }, [searchParams, router])
+    if (wantsNotificationSettings) router.replace('/groups')
+  }, [wantsNotificationSettings, router])
 
   // Show toast after successful Google Calendar OAuth
   useEffect(() => {

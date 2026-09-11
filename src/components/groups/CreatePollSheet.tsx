@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -43,15 +43,19 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
   const isMobile = useIsMobile()
   const keyboard = useKeyboardInset(isMobile && open)
 
-  // Reset bei jedem Öffnen.
-  useEffect(() => {
+  // Reset bei jedem Öffnen. Bewusst während des Renderns statt im Effect: React
+  // rendert direkt mit dem leeren Formular weiter, statt erst das alte
+  // anzuzeigen und danach zu überschreiben (react-hooks/set-state-in-effect).
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) {
       setQuestion('')
       setOptions(['', ''])
       setQuestionError('')
       setOptionsError('')
     }
-  }, [open])
+  }
 
   function setOption(index: number, value: string) {
     setOptions((prev) => prev.map((o, i) => (i === index ? value : o)))

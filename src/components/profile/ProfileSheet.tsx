@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getInitials } from '@/lib/avatar'
 import { ProfileSection } from './ProfileSection'
@@ -88,15 +88,20 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
   }
 
   // Pro Sheet-Öffnung frisch starten. Der E-Mail-Deep-Link (BUG-12-1) springt
-  // direkt in die Benachrichtigungs-Unterseite.
-  useEffect(() => {
+  // direkt in die Benachrichtigungs-Unterseite. Die Angleichung läuft im
+  // Render statt im Effect: so erscheint das Sheet sofort auf der richtigen
+  // Unterseite, statt kurz die letzte zu zeigen (react-hooks/set-state-in-effect).
+  const openSignature = `${open}|${scrollToNotifications ?? false}`
+  const [lastOpenSignature, setLastOpenSignature] = useState(openSignature)
+  if (openSignature !== lastOpenSignature) {
+    setLastOpenSignature(openSignature)
     if (open) {
       setTab('profil')
       setView(scrollToNotifications ? 'notifications' : 'root')
       setAlbumVisited(false)
       setAlbumSeenSnapshot(null)
     }
-  }, [open, scrollToNotifications])
+  }
 
   async function handleLogout() {
     setLogoutDialogOpen(false)

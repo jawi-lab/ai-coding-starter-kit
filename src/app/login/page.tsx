@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useClientValue } from '@/hooks/useClientValue'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -17,20 +18,24 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   generic: 'Der Login konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 }
 
+function readAuthError(): string | null {
+  const kind = new URLSearchParams(window.location.search).get('auth_error')
+  if (!kind) return null
+  return AUTH_ERROR_MESSAGES[kind] ?? AUTH_ERROR_MESSAGES.generic
+}
+
 export default function LoginPage() {
   const { user, loading } = useAuth()
-  const [authError, setAuthError] = useState<string | null>(null)
+
+  // Der Fehler steht in der URL und ändert sich nicht mehr — direkt beim
+  // Rendern lesen statt per Effect nachtragen.
+  const authError = useClientValue(readAuthError, null)
 
   useEffect(() => {
     if (!loading && user) {
       window.location.href = '/'
     }
   }, [user, loading])
-
-  useEffect(() => {
-    const kind = new URLSearchParams(window.location.search).get('auth_error')
-    if (kind) setAuthError(AUTH_ERROR_MESSAGES[kind] ?? AUTH_ERROR_MESSAGES.generic)
-  }, [])
 
   if (loading || user) return null
 

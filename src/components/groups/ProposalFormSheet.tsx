@@ -78,8 +78,15 @@ export function ProposalFormSheet({
     values.url.trim() || null
   )
 
-  // Populate form when editing
-  useEffect(() => {
+  // Formular füllen, sobald das Sheet für einen anderen Zweck geöffnet wird.
+  // Im Render statt im Effect: das Sheet zeigt sofort die richtigen Werte,
+  // statt kurz die alten (react-hooks/set-state-in-effect). Verglichen wird
+  // die Vorschlags-ID, nicht das Objekt — ein Realtime-Refetch überschreibt so
+  // keine gerade getippten Änderungen.
+  const formSignature = `${open}|${mode}|${proposal?.id ?? ''}`
+  const [lastFormSignature, setLastFormSignature] = useState(formSignature)
+  if (formSignature !== lastFormSignature) {
+    setLastFormSignature(formSignature)
     if (mode === 'edit' && proposal) {
       setValues({
         name: proposal.name,
@@ -93,7 +100,7 @@ export function ProposalFormSheet({
     }
     setErrors({})
     setApiError(null)
-  }, [open, mode, proposal])
+  }
 
   function validate(): boolean {
     const next: Partial<Record<keyof FormValues, string>> = {}

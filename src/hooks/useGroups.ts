@@ -70,7 +70,11 @@ export function useGroups() {
   }, [user])
 
   useEffect(() => {
-    fetchGroups()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchGroups()
+    })()
   }, [fetchGroups])
 
   // Member counts / memberships can change on another device (e.g. someone

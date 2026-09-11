@@ -114,6 +114,7 @@ If any questions came up during the design that couldn't be resolved, add them t
 - [ ] Any new Open Questions added to spec
 - [ ] User has reviewed and approved
 - [ ] `features/INDEX.md` status updated to "Architected"
+- [ ] `docs/PRD.md` roadmap table updated to match
 
 ## Handoff
 After approval, tell the user:

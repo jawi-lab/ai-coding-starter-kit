@@ -35,6 +35,8 @@ const POLL_SELECT = `
   )
 `
 
+const NO_POLLS: ActivityPoll[] = []
+
 export function useActivityPolls(activityId: string | null): UseActivityPollsResult {
   const { user, profile } = useAuth()
   const [polls, setPolls] = useState<ActivityPoll[]>([])
@@ -67,12 +69,15 @@ export function useActivityPolls(activityId: string | null): UseActivityPollsRes
   }, [activityId])
 
   useEffect(() => {
-    if (!activityId) {
-      setPolls([])
-      return
-    }
+    // Ohne Aktivität gibt es nichts zu laden; die Liste wird beim Lesen
+    // ausgeblendet (siehe return), statt sie hier zurückzusetzen.
+    if (!activityId) return
 
-    fetchPolls()
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body
+    // (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchPolls()
+    })()
 
     // Ein Kanal pro Aktivität, live auf allen drei Umfrage-Tabellen (nach
     // activity_id gefiltert) – konsistent mit useActivityComments (PROJ-6).
@@ -243,5 +248,14 @@ export function useActivityPolls(activityId: string | null): UseActivityPollsRes
     [user, profile, pending, polls]
   )
 
-  return { polls, loading, error, pending, createPoll, deletePoll, toggleVote }
+  return {
+    // Ohne Aktivität keine Umfragen — abgeleitet statt im Effect zurückgesetzt.
+    polls: activityId ? polls : NO_POLLS,
+    loading,
+    error,
+    pending,
+    createPoll,
+    deletePoll,
+    toggleVote,
+  }
 }

@@ -11,6 +11,8 @@ export type NotificationRow = Database['public']['Tables']['notifications']['Row
 /** Most recent N shown in the center — the server prunes to 30 days (/backend). */
 const FETCH_LIMIT = 100
 
+const NO_NOTIFICATIONS: NotificationRow[] = []
+
 /**
  * PROJ-12 in-app inbox. Loads the user's cross-group notification history, keeps a
  * Supabase Realtime subscription open (filtered to their own rows) so new entries
@@ -23,18 +25,23 @@ const FETCH_LIMIT = 100
  */
 export function useNotifications() {
   const { user } = useAuth()
-  const [notifications, setNotifications] = useState<NotificationRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadedNotifications, setNotifications] = useState<NotificationRow[]>([])
+  // Der Posteingang gehört zu genau einem Konto: statt ihn beim Abmelden im
+  // Effect zurückzusetzen (zusätzliche Render-Runde), gilt er nur für das
+  // Konto, für das er geladen wurde.
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
 
   const userId = user?.id ?? null
 
+  const isCurrent = !!userId && loadedFor === userId
+  const notifications = isCurrent ? loadedNotifications : NO_NOTIFICATIONS
+  const loading = !!userId && !isCurrent
+
   const fetchNotifications = useCallback(async () => {
-    if (!userId) {
-      setNotifications([])
-      setLoading(false)
-      return
-    }
+    // Ohne Konto gibt es nichts zu laden; der Posteingang ist dann ohnehin leer
+    // (siehe `notifications` oben).
+    if (!userId) return
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -42,25 +49,20 @@ export function useNotifications() {
       .order('created_at', { ascending: false })
       .limit(FETCH_LIMIT)
 
-    if (error) {
-      // Table may not exist yet (frontend built before backend) or transient
-      // network error — keep the UI alive with whatever we already have.
-      setLoading(false)
-      return
-    }
+    // Fertig geladen — auch im Fehlerfall (die Tabelle kann fehlen, wenn das
+    // Frontend vor dem Backend deployt wurde, oder das Netz war kurz weg).
+    setLoadedFor(userId)
+    if (error) return
     setNotifications(data ?? [])
-    setLoading(false)
   }, [userId])
 
   useEffect(() => {
-    if (!userId) {
-      setNotifications([])
-      setLoading(false)
-      return
-    }
+    if (!userId) return
 
-    setLoading(true)
-    fetchNotifications()
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body.
+    void (async () => {
+      await fetchNotifications()
+    })()
 
     const channel = supabase
       .channel(`notifications:${userId}`)

@@ -44,7 +44,7 @@ Use `/refine PROJ-X` at any point to revisit and improve an existing feature spe
 
 ## Feature Tracking
 
-All features tracked in `features/INDEX.md`. Every skill reads it at start and updates it when done. Feature specs live in `features/PROJ-X-name.md`.
+All features tracked in `features/INDEX.md` — the single source of truth for feature status. Every skill reads it at start and updates it when done, and mirrors the change into the roadmap table in `docs/PRD.md`. Feature specs live in `features/PROJ-X-name.md`.
 
 ## Key Conventions
 

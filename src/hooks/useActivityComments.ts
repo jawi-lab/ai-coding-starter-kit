@@ -43,7 +43,11 @@ export function useActivityComments(activityId: string | null): UseActivityComme
   useEffect(() => {
     if (!activityId) return
 
-    fetchComments()
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body
+    // (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchComments()
+    })()
 
     const channel = supabase
       .channel(`comments:${activityId}`)

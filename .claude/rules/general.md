@@ -36,7 +36,7 @@ Before starting ANY work, check if the project has been initialized:
 ## Status Updates (MANDATORY - Write-Then-Verify)
 After completing work on any feature, you MUST update tracking files. Follow this exact sequence:
 
-1. **Read** the feature spec (`features/PROJ-X-*.md`) and `features/INDEX.md` BEFORE editing
+1. **Read** the feature spec (`features/PROJ-X-*.md`), `features/INDEX.md` and `docs/PRD.md` BEFORE editing
 2. **Write** your changes using the Edit tool — do NOT just describe what you would write
 3. **Re-read** the file AFTER editing to verify the changes are actually present
 4. **If changes are missing**, repeat step 2 — never claim updates were made without verifying
@@ -56,6 +56,13 @@ After completing work on any feature, you MUST update tracking files. Follow thi
   - **In Review**: after `/qa` starts
   - **Approved**: after `/qa` passes (no critical/high bugs)
   - **Deployed**: after `/deploy`
+
+**What to update in `docs/PRD.md`:**
+- The "Core Features (Roadmap)" table mirrors `features/INDEX.md` — same ID, same feature name, same status
+- Update the status cell for the feature you worked on, and add a row for any feature newly added to INDEX.md
+- Update the `_Stand: YYYY-MM-DD_` line under the table heading
+- `docs/PRD.md` is loaded into EVERY session via `@docs/PRD.md` in CLAUDE.md — a stale table means every new session starts with a wrong picture of the project state
+- On conflict, `features/INDEX.md` wins: fix the PRD to match it, never the other way round
 
 **NEVER do this:**
 - Do NOT say "I've updated the feature spec" without actually calling the Edit tool

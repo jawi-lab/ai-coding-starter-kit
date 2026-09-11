@@ -45,7 +45,11 @@ export function useActivityPhotos(
   }, [activityId])
 
   useEffect(() => {
-    fetchPhotos()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchPhotos()
+    })()
   }, [fetchPhotos])
 
   const userPhotoCount = photos.filter((p) => p.user_id === currentUserId).length

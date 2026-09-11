@@ -67,9 +67,14 @@ export function GroupDetailSheet({
   const [nameError, setNameError] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (group) setNameInput(group.name)
-  }, [group])
+  // Der Name der geladenen Gruppe ist der Ausgangswert des Eingabefelds. Die
+  // Angleichung passiert im Render, damit das Feld nie kurz den alten Namen
+  // zeigt (react-hooks/set-state-in-effect).
+  const [nameSource, setNameSource] = useState<string | null>(null)
+  if (group && group.name !== nameSource) {
+    setNameSource(group.name)
+    setNameInput(group.name)
+  }
 
   useEffect(() => {
     if (editingName) nameInputRef.current?.focus()

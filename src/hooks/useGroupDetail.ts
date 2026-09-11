@@ -6,13 +6,26 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { Group, GroupMember, GroupRole } from '@/lib/group-types'
 import { generateInviteCode } from '@/lib/group-types'
 
+const NO_MEMBERS: GroupMember[] = []
+
 export function useGroupDetail(groupId: string | null) {
   const { user } = useAuth()
-  const [group, setGroup] = useState<Group | null>(null)
-  const [members, setMembers] = useState<GroupMember[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loadedGroup, setGroup] = useState<Group | null>(null)
+  const [loadedMembers, setMembers] = useState<GroupMember[]>([])
+  // Statt Zurücksetzen und `setLoading(true)` im Effect-Body (jeweils eine
+  // zusätzliche Render-Runde) merkt sich der Hook, zu welcher Gruppe die
+  // geladenen Daten gehören. Beim Wechsel gilt der alte Stand sofort als
+  // ungültig — es blitzt nie kurz die vorherige Gruppe auf.
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  const isCurrent = !!groupId && loadedFor === groupId
+  const group = isCurrent ? loadedGroup : null
+  const members = isCurrent ? loadedMembers : NO_MEMBERS
+  // Ohne angemeldetes Konto lädt `fetchDetail` nicht — dann steht der Hook auch
+  // nicht dauerhaft auf „lädt".
+  const loading = !!groupId && !!user && !isCurrent
 
   const myMembership = members.find((m) => m.user_id === user?.id)
   const myRole = myMembership?.role ?? null
@@ -33,6 +46,9 @@ export function useGroupDetail(groupId: string | null) {
           .select('group_id, user_id, role, joined_at, profiles!group_members_user_id_profiles_fkey(id, display_name, avatar_url)')
           .eq('group_id', groupId),
       ])
+
+    // Auch im Fehlerfall ist der Ladevorgang für diese Gruppe abgeschlossen.
+    setLoadedFor(groupId)
 
     if (groupErr) {
       setError(groupErr.message)
@@ -59,16 +75,15 @@ export function useGroupDetail(groupId: string | null) {
 
   useEffect(() => {
     if (!groupId) {
-      setGroup(null)
-      setMembers([])
-      setLoading(false)
       channelRef.current?.unsubscribe()
       channelRef.current = null
       return
     }
 
-    setLoading(true)
-    fetchDetail().finally(() => setLoading(false))
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body.
+    void (async () => {
+      await fetchDetail()
+    })()
 
     channelRef.current?.unsubscribe()
     channelRef.current = supabase

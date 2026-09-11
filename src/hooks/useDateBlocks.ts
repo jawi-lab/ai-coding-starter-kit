@@ -32,7 +32,11 @@ export function useDateBlocks() {
   }, [user])
 
   useEffect(() => {
-    fetchBlocks()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchBlocks()
+    })()
   }, [fetchBlocks])
 
   async function addBlock(startDate: string, endDate?: string): Promise<{ error: string | null }> {

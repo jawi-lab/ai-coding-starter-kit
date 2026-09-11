@@ -50,7 +50,7 @@ export function ResetPasswordForm() {
       return
     }
 
-    window.location.href = '/'
+    window.location.assign('/')
   }
 
   return (

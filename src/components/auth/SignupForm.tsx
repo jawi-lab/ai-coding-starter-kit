@@ -85,7 +85,7 @@ export function SignupForm() {
     }
 
     if (data.user) {
-      window.location.href = `/signup/pending?email=${encodeURIComponent(values.email)}`
+      window.location.assign(`/signup/pending?email=${encodeURIComponent(values.email)}`)
     }
   }
 

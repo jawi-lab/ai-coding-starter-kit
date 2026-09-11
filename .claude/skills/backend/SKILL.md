@@ -102,6 +102,7 @@ See [checklist.md](checklist.md) for the full implementation checklist.
 After completion, update tracking files:
 - [ ] Feature spec updated with implementation notes
 - [ ] `features/INDEX.md` status updated to "In Progress"
+- [ ] `docs/PRD.md` roadmap table updated to match
 
 ## Handoff
 After completion:

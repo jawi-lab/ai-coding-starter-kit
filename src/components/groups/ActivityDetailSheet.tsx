@@ -210,7 +210,6 @@ export function ActivityDetailSheet({
   // ── Members (for @-mentions + responsibility assignment) ───────────────────
   const [members, setMembers] = useState<GroupMember[]>([])
   const membersRef = useRef<GroupMember[]>([])
-  membersRef.current = members
 
   useEffect(() => {
     if (!groupId) return
@@ -277,13 +276,10 @@ export function ActivityDetailSheet({
 
   // Stable refs so Tiptap's render closures always call the latest setter
   const setMentionOpenRef = useRef(setMentionOpen)
-  setMentionOpenRef.current = setMentionOpen
   const setMentionItemsRef = useRef(setMentionItems)
-  setMentionItemsRef.current = setMentionItems
 
   // Stable ref for activityId (used inside editor callbacks)
   const activityIdRef = useRef(activityId)
-  activityIdRef.current = activityId
 
   // ── Tiptap editor ──────────────────────────────────────────────────────────
   const editorRef = useRef<ReturnType<typeof useEditor>>(null)
@@ -297,9 +293,14 @@ export function ActivityDetailSheet({
       StarterKit,
       PlaceholderExt.configure({ placeholder: 'Kommentar schreiben…' }),
       ImageExt,
+      // `suggestion.items` unten liest `membersRef` — Tiptap ruft die Funktion
+      // beim Tippen auf, nicht beim Rendern, der Zugriff findet also nie
+      // während eines Renders statt. Der React-Compiler kann das an dieser
+      // Stelle nicht unterscheiden und meldet es trotzdem: bewusst hier (und
+      // nur hier) abgeschaltet, alle übrigen Ref-Spiegel laufen inzwischen
+      // über den Effect weiter unten.
       MentionExt.configure({
         HTMLAttributes: { class: 'tiptap-mention' },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         suggestion: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           items: ({ query }: any) =>
@@ -356,8 +357,6 @@ export function ActivityDetailSheet({
     },
   })
 
-  // Keep editorRef in sync
-  editorRef.current = editor
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const isMobile = useIsMobile()
@@ -496,7 +495,23 @@ export function ActivityDetailSheet({
       toast.error('Kommentar konnte nicht gespeichert werden')
     }
   }
-  sendCommentRef.current = handleSendComment
+
+  // Alle Spiegel-Refs für die Tiptap-Callbacks werden nach dem Commit
+  // aktualisiert. Während des Renderns zu schreiben ist unter Concurrent
+  // Rendering nicht erlaubt (react-hooks/refs) — Durchläufe, die React wieder
+  // verwirft, würden sonst durchschlagen. Gelesen werden sie ausschließlich in
+  // Tiptap-Callbacks, die frühestens nach dem Commit feuern.
+  // Absichtlich ohne Abhängigkeitsliste: die Spiegel sollen nach JEDEM Commit
+  // den aktuellen Stand tragen.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    membersRef.current = members
+    setMentionOpenRef.current = setMentionOpen
+    setMentionItemsRef.current = setMentionItems
+    activityIdRef.current = activityId
+    editorRef.current = editor
+    sendCommentRef.current = handleSendComment
+  })
 
   async function handleDeleteComment() {
     if (!deleteCommentTarget) return

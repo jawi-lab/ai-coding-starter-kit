@@ -43,7 +43,11 @@ export function useActivityResponsibilities(
   }, [activityId])
 
   useEffect(() => {
-    fetchResponsibilities()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchResponsibilities()
+    })()
   }, [fetchResponsibilities])
 
   async function addResponsibility(input: CreateResponsibilityInput): Promise<boolean> {

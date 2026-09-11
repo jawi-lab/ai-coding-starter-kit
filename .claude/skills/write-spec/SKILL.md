@@ -95,7 +95,9 @@ Update `features/INDEX.md`:
 - If Entry Point B: also update the "Next Available ID" line
 
 Update `docs/PRD.md`:
-- Update the status column in the roadmap table for this feature (if listed there)
+- Update the status column in the roadmap table for this feature to "Planned"
+- If the feature is NOT in the table yet (Entry Point B), ADD a row: ID, priority, feature name — identical wording to INDEX.md. Never skip this: `docs/PRD.md` is loaded into every session, a missing row hides the feature from all future sessions
+- Update the `_Stand: YYYY-MM-DD_` line under the table heading
 
 ## Feature Granularity (Single Responsibility)
 Each spec = ONE testable, deployable unit.
@@ -147,7 +149,7 @@ This format ensures every criterion is unambiguous and directly testable by QA.
 - [ ] Feature ID assigned (PROJ-X)
 - [ ] File saved to `features/PROJ-X-feature-name.md`
 - [ ] `features/INDEX.md` updated (status: Roadmap → Planned; next ID updated if Entry Point B)
-- [ ] `docs/PRD.md` roadmap table updated if applicable
+- [ ] `docs/PRD.md` roadmap table updated (row added for Entry Point B; status set to Planned)
 - [ ] User has reviewed and approved the spec
 
 ## Handoff

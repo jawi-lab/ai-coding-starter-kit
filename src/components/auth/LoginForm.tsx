@@ -62,7 +62,7 @@ export function LoginForm() {
     }
 
     if (data.session) {
-      window.location.href = '/'
+      window.location.assign('/')
     }
   }
 

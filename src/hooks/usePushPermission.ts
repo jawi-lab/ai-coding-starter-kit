@@ -22,15 +22,19 @@ export function usePushPermission() {
   const [enabling, setEnabling] = useState(false)
 
   const refresh = useCallback(async () => {
-    setState(await getPushPermissionState())
-  }, [])
-
-  useEffect(() => {
     if (!isNativePlatform()) {
       setState('unsupported')
       return
     }
-    void refresh()
+    setState(await getPushPermissionState())
+  }, [])
+
+  useEffect(() => {
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body
+    // (react-hooks/set-state-in-effect).
+    void (async () => {
+      await refresh()
+    })()
   }, [refresh])
 
   const enable = useCallback(async (): Promise<PushPermissionResult> => {

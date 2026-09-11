@@ -27,6 +27,9 @@ function defaultMap(): PreferenceMap {
   return map
 }
 
+/** Stand ohne (geladenes) Konto: überall die Vorgabewerte. */
+const FALLBACK_PREFERENCES: PreferenceMap = defaultMap()
+
 /**
  * PROJ-12 per-type channel switches. Reads the user's rows (missing rows fall back
  * to push-on / email-off, matching the send-push fan-out), then toggles optimistically
@@ -38,21 +41,23 @@ function defaultMap(): PreferenceMap {
  */
 export function useNotificationPreferences() {
   const { user } = useAuth()
-  const [preferences, setPreferences] = useState<PreferenceMap>(defaultMap)
-  const [loading, setLoading] = useState(true)
+  const [loadedPreferences, setPreferences] = useState<PreferenceMap>(defaultMap)
+  // Die Einstellungen gehören zu einem Konto. Sie an dieses zu binden erspart
+  // das Zurücksetzen und `setLoading(true)` im Effect-Body — beides je eine
+  // zusätzliche Render-Runde (react-hooks/set-state-in-effect).
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [savingKey, setSavingKey] = useState<string | null>(null)
 
   const userId = user?.id ?? null
 
+  const isCurrent = !!userId && loadedFor === userId
+  const preferences = isCurrent ? loadedPreferences : FALLBACK_PREFERENCES
+  const loading = !!userId && !isCurrent
+
   useEffect(() => {
     let cancelled = false
-    if (!userId) {
-      setPreferences(defaultMap())
-      setLoading(false)
-      return
-    }
+    if (!userId) return
 
-    setLoading(true)
     supabase
       .from('notification_preferences')
       .select('event, push_enabled, email_enabled')
@@ -71,7 +76,7 @@ export function useNotificationPreferences() {
           }
           setPreferences(next)
         }
-        setLoading(false)
+        setLoadedFor(userId)
       })
 
     return () => {

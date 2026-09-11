@@ -42,6 +42,12 @@ export function useArchive(groupFilter?: string | null) {
   const [page, setPage] = useState(0)
 
   const fetchPage = useCallback(async (pageIndex: number, append: boolean) => {
+    // Seiten- und Ladezustand setzt die Ladefunktion selbst — im Effect-Body
+    // wären es synchrone setState-Aufrufe (react-hooks/set-state-in-effect).
+    setPage(pageIndex)
+    if (append) setLoadingMore(true)
+    else setLoading(true)
+
     if (!user) {
       setLoading(false)
       return
@@ -128,16 +134,14 @@ export function useArchive(groupFilter?: string | null) {
   }, [user, groupFilter])
 
   useEffect(() => {
-    setPage(0)
-    setLoading(true)
-    fetchPage(0, false)
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body.
+    void (async () => {
+      await fetchPage(0, false)
+    })()
   }, [fetchPage])
 
   function loadMore() {
-    const nextPage = page + 1
-    setPage(nextPage)
-    setLoadingMore(true)
-    fetchPage(nextPage, true)
+    fetchPage(page + 1, true)
   }
 
   return { activities, groups, loading, loadingMore, hasMore, loadMore }

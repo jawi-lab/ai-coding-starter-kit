@@ -145,6 +145,7 @@ If your context was compacted mid-task:
 - [ ] Production-ready decision made
 - [ ] `features/INDEX.md` status updated to "In Review" (at QA start)
 - [ ] `features/INDEX.md` status updated to "Approved" (if production-ready) OR kept "In Review" (if bugs remain)
+- [ ] `docs/PRD.md` roadmap table updated to match
 
 ## Handoff
 If production-ready:

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   availableWrappedYears,
@@ -32,28 +32,30 @@ export interface WrappedAvailability {
  */
 export function useWrappedAvailability(groupId: string): WrappedAvailability {
   const [completed, setCompleted] = useState<DatedActivity[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchCompleted = useCallback(async () => {
-    if (!groupId) return
-    const { data, error } = await supabase
-      .from('activities')
-      .select('start_date, completed_at, created_at')
-      .eq('group_id', groupId)
-      .eq('status', 'abgeschlossen')
-
-    if (error || !data) {
-      setCompleted([])
-      setLoading(false)
-      return
-    }
-    setCompleted(data as DatedActivity[])
-    setLoading(false)
-  }, [groupId])
+  // Ladezustand wird abgeleitet, nicht im Effect gesetzt: `setLoading(true)` direkt im
+  // Effect-Body löst eine zusätzliche Render-Runde aus (react-hooks/set-state-in-effect).
+  // Gemerkt wird stattdessen, für welche Gruppe die Daten zuletzt eintrafen — wechselt
+  // groupId, ist `loading` schon im selben Render wieder true.
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
 
   useEffect(() => {
     if (!groupId) return
-    setLoading(true)
+    let cancelled = false
+
+    // Ladefunktion bewusst im Effect statt als useCallback: so sieht React, dass
+    // vor dem ersten `await` nichts synchron in den State schreibt.
+    const fetchCompleted = async () => {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('start_date, completed_at, created_at')
+        .eq('group_id', groupId)
+        .eq('status', 'abgeschlossen')
+
+      if (cancelled) return
+      setCompleted(error || !data ? [] : (data as DatedActivity[]))
+      setLoadedFor(groupId)
+    }
+
     fetchCompleted()
 
     // Schließt/löscht irgendwer eine Aktivität, kann der Banner erscheinen oder
@@ -68,15 +70,16 @@ export function useWrappedAvailability(groupId: string): WrappedAvailability {
       .subscribe()
 
     return () => {
+      cancelled = true
       supabase.removeChannel(channel)
     }
-  }, [groupId, fetchCompleted])
+  }, [groupId])
 
   const now = new Date()
   return {
+    loading: loadedFor !== groupId,
     availableYears: availableWrappedYears(completed, now),
     currentYearLive: isCurrentYearWrappedLive(completed, now),
     currentYear: now.getFullYear(),
-    loading,
   }
 }

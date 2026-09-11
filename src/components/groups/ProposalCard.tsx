@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Heart, MoreHorizontal, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -41,14 +41,24 @@ export function ProposalCard({
   onReset,
   onOpenDetail,
 }: ProposalCardProps) {
-  const [displayVoted, setDisplayVoted] = useState(hasVoted)
-  const [displayVotes, setDisplayVotes] = useState(proposal.current_votes)
+  // Der optimistische Stand merkt sich, von welchem Server-Stand er abgeleitet
+  // wurde. Trifft per Realtime ein neuer ein, passt der Vermerk nicht mehr und
+  // die Server-Wahrheit gilt sofort wieder — ohne Effect, der Props in State
+  // spiegelt (react-hooks/set-state-in-effect, zusätzliche Render-Runde).
+  const [optimistic, setOptimistic] = useState<{
+    fromVoted: boolean
+    fromVotes: number
+    voted: boolean
+    votes: number
+  } | null>(null)
 
-  // Sync with server state after realtime refetch
-  useEffect(() => {
-    setDisplayVoted(hasVoted)
-    setDisplayVotes(proposal.current_votes)
-  }, [hasVoted, proposal.current_votes])
+  const optimisticApplies =
+    optimistic !== null &&
+    optimistic.fromVoted === hasVoted &&
+    optimistic.fromVotes === proposal.current_votes
+
+  const displayVoted = optimisticApplies ? optimistic.voted : hasVoted
+  const displayVotes = optimisticApplies ? optimistic.votes : proposal.current_votes
 
   const progress = Math.min(displayVotes / proposal.required_votes, 1)
   const isInitiator = proposal.initiator_id === currentUserId
@@ -59,12 +69,15 @@ export function ProposalCard({
     if (isPending) return
     const baseVoted = displayVoted
     const baseVotes = displayVotes
+    // Server-Stand, auf den sich die optimistische Anzeige bezieht.
+    const fromVoted = hasVoted
+    const fromVotes = proposal.current_votes
 
     onVote(proposal.id, baseVoted, (_id, newVoted) => {
-      setDisplayVoted(newVoted)
-      if (newVoted && !baseVoted) setDisplayVotes(baseVotes + 1)
-      else if (!newVoted && baseVoted) setDisplayVotes(baseVotes - 1)
-      else setDisplayVotes(baseVotes)
+      let votes = baseVotes
+      if (newVoted && !baseVoted) votes = baseVotes + 1
+      else if (!newVoted && baseVoted) votes = baseVotes - 1
+      setOptimistic({ fromVoted, fromVotes, voted: newVoted, votes })
     })
   }
 

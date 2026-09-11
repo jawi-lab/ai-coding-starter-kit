@@ -95,9 +95,16 @@ function GroupView() {
   // Detail-Sheet dieser Aktivität. Danach strippen wir den Param, damit das
   // Schließen des Sheets es nicht erneut öffnet. Ein nicht mehr existierender
   // Inhalt wird vom ActivityDetailSheet abgefangen (kein leerer Screen).
+  // Das Sheet wird im Render geöffnet (der Param liegt beim ersten Render vor),
+  // das Strippen der URL bleibt Seiteneffekt (react-hooks/set-state-in-effect).
+  const [openedFromParam, setOpenedFromParam] = useState<string | null>(null)
+  if (activityParam && groupId && openedFromParam !== activityParam) {
+    setOpenedFromParam(activityParam)
+    setDetailActivityId(activityParam)
+  }
+
   useEffect(() => {
     if (!activityParam || !groupId) return
-    setDetailActivityId(activityParam)
     router.replace(groupHref(groupId, activeSeg))
   }, [activityParam, groupId, activeSeg, router])
 

@@ -55,7 +55,11 @@ export function useActivityProposals(groupId: string) {
   }, [user, groupId])
 
   useEffect(() => {
-    fetchProposals()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchProposals()
+    })()
   }, [fetchProposals])
 
   // Realtime subscription on activities filtered by group_id

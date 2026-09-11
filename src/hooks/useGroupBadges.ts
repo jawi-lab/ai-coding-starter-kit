@@ -10,6 +10,8 @@ export interface MemberBadge {
   earnedTier: number
 }
 
+const NO_BADGES: Map<string, MemberBadge[]> = new Map()
+
 /**
  * Fremd-Sicht für die Mitgliederliste (PROJ-16): EIN gebündelter Abruf pro
  * Gruppe über `get_group_badges` — die RPC liefert ausschließlich verdiente
@@ -17,13 +19,16 @@ export interface MemberBadge {
  * erscheinen schlicht keine Badge-Icons, die Liste selbst bleibt nutzbar.
  */
 export function useGroupBadges(groupId: string | null): Map<string, MemberBadge[]> {
-  const [badgesByUser, setBadgesByUser] = useState<Map<string, MemberBadge[]>>(new Map())
+  // Das Ergebnis trägt seine Gruppe mit sich. Damit entfällt das Zurücksetzen im
+  // Effect-Body (Render-Kaskade) und ein Gruppenwechsel zeigt nie kurz die
+  // Badges der vorherigen Gruppe.
+  const [loaded, setLoaded] = useState<{
+    groupId: string
+    badgesByUser: Map<string, MemberBadge[]>
+  } | null>(null)
 
   useEffect(() => {
-    if (!groupId) {
-      setBadgesByUser(new Map())
-      return
-    }
+    if (!groupId) return
 
     let cancelled = false
     supabase.rpc('get_group_badges', { p_group_id: groupId }).then(({ data, error }) => {
@@ -40,7 +45,7 @@ export function useGroupBadges(groupId: string | null): Map<string, MemberBadge[
       for (const list of map.values()) {
         list.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key))
       }
-      setBadgesByUser(map)
+      setLoaded({ groupId, badgesByUser: map })
     })
 
     return () => {
@@ -48,5 +53,5 @@ export function useGroupBadges(groupId: string | null): Map<string, MemberBadge[
     }
   }, [groupId])
 
-  return badgesByUser
+  return loaded && loaded.groupId === groupId ? loaded.badgesByUser : NO_BADGES
 }

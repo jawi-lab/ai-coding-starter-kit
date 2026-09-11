@@ -16,6 +16,8 @@ import {
   type BadgeKey,
 } from '@/lib/badges'
 
+const NO_HIGHLIGHT: ReadonlySet<BadgeKey> = new Set()
+
 /**
  * Badge-Sektion im eigenen Profil (PROJ-16): alle 4 Rollen-Badges mit Stufe,
  * Fortschritt zur nächsten Stufe und „Neu"-Hervorhebung. Kein Vergleich mit
@@ -28,18 +30,26 @@ export function BadgeSection() {
   // Badges eine noch nicht angesehene Stufe haben — die bleiben für DIESE
   // Ansicht hervorgehoben, während der Angesehen-Stand in der DB sofort
   // nachgezogen wird (geräteübergreifend; beim nächsten Öffnen erloschen).
-  const [highlighted, setHighlighted] = useState<ReadonlySet<BadgeKey>>(new Set())
+  const [highlighted, setHighlighted] = useState<ReadonlySet<BadgeKey>>(NO_HIGHLIGHT)
+  const [captured, setCaptured] = useState(false)
   const markedRef = useRef(false)
 
-  useEffect(() => {
-    if (markedRef.current || !badges) return
-    markedRef.current = true
+  // Der Schnappschuss entsteht im Render, sobald die Badges da sind — als
+  // Effect wäre es ein setState direkt im Effect-Body und die Hervorhebung
+  // erschiene eine Render-Runde später (react-hooks/set-state-in-effect).
+  if (!captured && badges) {
+    setCaptured(true)
     const unseen = badges.filter((b) => hasUnseenTier(b.earnedTier, b.seenTier))
-    if (unseen.length > 0) {
-      setHighlighted(new Set(unseen.map((b) => b.key)))
-      markSeen()
-    }
-  }, [badges, markSeen])
+    if (unseen.length > 0) setHighlighted(new Set(unseen.map((b) => b.key)))
+  }
+
+  // Der Angesehen-Stand ist ein Seiteneffekt (RPC) und gehört damit in einen
+  // Effect — genau einmal pro Ansicht.
+  useEffect(() => {
+    if (markedRef.current || highlighted.size === 0) return
+    markedRef.current = true
+    markSeen()
+  }, [highlighted, markSeen])
 
   return (
     <div className="space-y-3">

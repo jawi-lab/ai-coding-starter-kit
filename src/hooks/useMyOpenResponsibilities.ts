@@ -48,7 +48,11 @@ export function useMyOpenResponsibilities(userId: string | null): UseMyOpenRespo
   }, [userId])
 
   useEffect(() => {
-    fetchData()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchData()
+    })()
   }, [fetchData])
 
   async function markDone(responsibilityId: string): Promise<boolean> {

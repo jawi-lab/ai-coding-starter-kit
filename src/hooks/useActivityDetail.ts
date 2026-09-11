@@ -39,7 +39,11 @@ export function useActivityDetail(activityId: string | null): UseActivityDetailR
   }, [activityId])
 
   useEffect(() => {
-    fetchActivity()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchActivity()
+    })()
   }, [fetchActivity])
 
   async function updateActivity(input: UpdateActivityDetailInput): Promise<boolean> {

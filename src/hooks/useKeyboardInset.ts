@@ -31,10 +31,9 @@ export function useKeyboardInset(enabled: boolean): KeyboardViewport {
   const [state, setState] = useState<KeyboardViewport>(EMPTY)
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined' || !window.visualViewport) {
-      setState(EMPTY)
-      return
-    }
+    // Zurückgesetzt wird im Cleanup (siehe unten) — ein setState direkt im
+    // Effect-Body löst eine zusätzliche Render-Runde aus.
+    if (!enabled || typeof window === 'undefined' || !window.visualViewport) return
 
     const vv = window.visualViewport
     // Below this, the gap is browser chrome / rounding rather than a keyboard.
@@ -58,6 +57,8 @@ export function useKeyboardInset(enabled: boolean): KeyboardViewport {
     return () => {
       vv.removeEventListener('resize', update)
       vv.removeEventListener('scroll', update)
+      // Deaktiviert (Sheet zu, Desktop) heißt: kein Keyboard-Inset mehr.
+      setState(EMPTY)
     }
   }, [enabled])
 

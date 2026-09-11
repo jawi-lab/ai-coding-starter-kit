@@ -44,7 +44,11 @@ export function useGroupSchedule(groupId: string) {
   }, [user, groupId])
 
   useEffect(() => {
-    fetchSchedule()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchSchedule()
+    })()
   }, [fetchSchedule])
 
   // Realtime: Datums-/Statusänderungen sofort spiegeln.

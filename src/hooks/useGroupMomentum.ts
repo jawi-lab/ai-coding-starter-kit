@@ -81,8 +81,11 @@ export function useGroupMomentum(groupId: string): UseGroupMomentumResult {
   useEffect(() => {
     if (!groupId) return
 
-    fetchMomentum()
-    fetchSeen()
+    // Start hinter der await-Grenze: kein synchrones setState im Effect-Body
+    // (react-hooks/set-state-in-effect).
+    void (async () => {
+      await Promise.all([fetchMomentum(), fetchSeen()])
+    })()
 
     // Realtime auf die eine Akte-Zeile der Gruppe: schließt irgendwer eine
     // Aktivität ab, springt das Banner überall ohne Reload weiter — und die

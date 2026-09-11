@@ -22,6 +22,7 @@
 - [ ] All acceptance criteria from feature spec addressed in API
 - [ ] All API endpoints return correct status codes (test with curl or browser)
 - [ ] `features/INDEX.md` status updated to "In Progress"
+- [ ] `docs/PRD.md` roadmap table updated to match
 - [ ] Code committed to git
 
 ## Performance Checklist

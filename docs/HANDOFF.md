@@ -12,12 +12,14 @@ Mellon ist funktional komplett und live. **Alle 18 Features** stehen in
 Letzte Arbeit vor dieser Session: 2026-07-17. Diese Session hat den seitdem
 uncommitteten Design-Pass verifiziert und eingecheckt.
 
-**Grüne Basis (zuletzt gemessen 2026-09-09):**
-- Vitest: **396/396** über 36 Dateien
+**Grüne Basis (zuletzt gemessen 2026-09-09, nach dem Lint-Durchgang):**
+- Vitest: **415/415** über 39 Dateien
+- `npm run lint`: **0 Fehler** (11 Warnungen, alle Altbestand: ungenutzte Variablen)
 - `tsc --noEmit`: sauber
 - `npm run build`: grün, 13 statische Seiten (Next.js 16.1.1, Static Export)
-- PROJ-8-E2E: 24 grün, 1 sachlich korrekter Skip
-- `git`: `main`, Working Tree sauber, mit `origin/main` synchron
+- E2E (chromium): 35 grün — die 148 Tests mit Login sind ohne
+  `TEST_USER_EMAIL` / `TEST_USER_PASSWORD` in der Umgebung übersprungen
+- `git`: `main`, mit `origin/main` synchron
 
 ## Was diese Session gemacht hat
 
@@ -42,18 +44,54 @@ Theme-Wechsel, Einzel- und Bereichsauswahl im Kalender.
 ## Offene Punkte
 
 Stand nach der Abarbeitungs-Session vom 2026-09-09: **alle neun Punkte sind erledigt.**
-Es bleibt ein bewusst abgegrenzter Restbefund (siehe unten).
+Der damals abgegrenzte Restbefund (43 `react-hooks/*`-Lint-Fehler) ist inzwischen
+ebenfalls abgearbeitet — siehe unten.
 
 ### ~~1. Commits nicht gepusht~~ — erledigt
 
 Auf Freigabe des Nutzers nach `origin/main` gepusht; Vercel deployt automatisch.
 
-### Bekannter Restbefund: 43 Lint-Fehler, alle `react-hooks/*`
+### ~~Bekannter Restbefund: 43 Lint-Fehler, alle `react-hooks/*`~~ — erledigt
 
-`npm run lint` läuft wieder, meldet aber 43 Fehler und 11 Warnungen:
+`npm run lint` meldet **0 Fehler**. Die 43 Befunde (32× `set-state-in-effect`,
+7× `refs`, 3× `immutability`, 1× `purity`) sind hookweise abgearbeitet, jeweils
+mit Vitest-Absicherung. Angewandte Muster — sie gelten ab jetzt als Hausstil:
 
-| Anzahl | Regel |
-|---|---|
+| Muster | Wo | Statt |
+|---|---|---|
+| Ladezustand ableiten (`loadedFor !== key`) | Daten-Hooks mit Schlüssel (Gruppe, Konto, Aktivität) | `setLoading(true)` im Effect-Body |
+| Ergebnis an seinen Schlüssel binden | `useGroupDetail`, `useGroupBadges`, `useNotifications`, `useNotificationPreferences` | Zurücksetzen im Effect (`setX([])`) |
+| Ladefunktion im Effect definieren | `useWrappedAvailability` | `useCallback`, im Effect aufgerufen |
+| Start hinter `await`-Grenze (`void (async () => { await fetchX() })()`) | Hooks, deren Ladefunktion auch außerhalb genutzt wird (Refetch nach Mutation) | direkter Aufruf im Effect-Body |
+| State während des Renderns angleichen (React-Doku „Adjusting state when props change") | Sheets mit „Reset beim Öffnen", `ProposalCard`, Deep-Link-Params | Props→State-Spiegel-Effect |
+| `useSyncExternalStore` | `useTheme`, `useClientValue` (URL/localStorage) | Lesen im Mount-Effect + `setState` |
+| Refs nach dem Commit spiegeln | `ActivityDetailSheet` (Tiptap-Closures) | `ref.current = x` während des Renderns |
+| `window.location.assign(…)` | Auth-Formulare | `window.location.href = …` |
+
+Nebenbei mit erledigt:
+- **`useTheme` hydriert nicht mehr per Effect** (`useSyncExternalStore`) — hält
+  außerdem mehrere Aufrufer synchron und zieht Änderungen aus anderen Tabs nach.
+- **Hydration-Fehler in `SidebarMenuSkeleton`** (`Math.random()` im Render, Server
+  und Client zogen verschiedene Breiten) — jetzt deterministisch aus `useId()`.
+- **`GroupDetailSheet`** überschreibt das Namensfeld nicht mehr bei jedem
+  Realtime-Refetch, sondern nur bei echter Namensänderung.
+- **`ProposalFormSheet`** vergleicht die Vorschlags-ID statt der Objekt-Identität —
+  ein Refetch überschreibt keine getippten Änderungen mehr.
+- **`src/test/setup.ts`** stellt `localStorage`/`sessionStorage` bereit: Node 26
+  bringt ein eigenes globales `localStorage` mit, das ohne `--localstorage-file`
+  undefined ist und die jsdom-Variante verdeckt.
+
+Eine bewusste Ausnahme, dokumentiert an Ort und Stelle: der Effect in
+`ActivityDetailSheet`, der die Tiptap-Spiegel-Refs nach jedem Commit setzt, hat
+absichtlich keine Abhängigkeitsliste (`eslint-disable react-hooks/exhaustive-deps`).
+
+Neue Tests: `useWrappedAvailability` (6), `useTheme` (7), `ProposalCard` (6).
+
+**Noch offen:** Der E2E-Lauf deckt bisher nur die 35 Tests ohne Login ab. Die 148
+Tests mit Konto brauchen `TEST_USER_EMAIL` / `TEST_USER_PASSWORD` in der Umgebung
+(`--project=chromium --workers=1`, siehe Auth-Rate-Limit).
+
+---|---|
 | 32 | `react-hooks/set-state-in-effect` |
 | 7 | `react-hooks/refs` |
 | 3 | `react-hooks/immutability` |
@@ -132,9 +170,9 @@ dann aber mit Begründung in der Config, nicht stillschweigend.
 
 ## Nächste Schritte
 
-Nichts Dringendes offen. Wenn Zeit für einen sauberen Durchgang ist: die 43
-`react-hooks/*`-Befunde hookweise angehen (Entscheidung des Nutzers am 2026-09-09:
-vorerst so lassen, Lint läuft, die Befunde sind dokumentiert).
+Nichts Dringendes offen. Der Lint-Durchgang ist erledigt (siehe oben) — als
+Nächstes sinnvoll: die E2E-Suite mit Konto-Zugangsdaten einmal komplett gegen die
+umgebauten Hooks laufen lassen.
 
 Nach dem Push gilt: **Vercel-Deploy im Blick behalten** — der Push enthält den
 Profil-Sheet-Umbau, den Kalender-Fix und den A11y-Fix.

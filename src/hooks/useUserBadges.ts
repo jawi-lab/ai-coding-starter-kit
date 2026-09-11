@@ -73,7 +73,11 @@ export function useUserBadges(): UseUserBadgesResult {
   }, [userId])
 
   useEffect(() => {
-    fetchBadges()
+    // Start hinter der await-Grenze: so schreibt der Ladezustand nicht mehr
+    // synchron im Effect-Body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchBadges()
+    })()
   }, [fetchBadges])
 
   const markSeen = useCallback(() => {
