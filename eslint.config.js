@@ -23,6 +23,9 @@ module.exports = [
       // führenden '#' des Ordnernamens formuliert: ESLint liest ein Pattern,
       // das mit '#' beginnt, wie einen .gitignore-Kommentar und verwirft es.
       '**/*Icon-Set Design/**',
+      // Marketing-Website (lokal, gitignored) und Browser-Automations-Artefakte
+      'website/**',
+      '.playwright-mcp/**',
       'next-env.d.ts',
     ],
   },

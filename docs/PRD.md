@@ -16,7 +16,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 
 > **Statusquelle:** `features/INDEX.md` ist die verbindliche Quelle für den Feature-Status. Diese Tabelle spiegelt sie — bei Abweichung gilt INDEX.md. Skills, die den Status ändern, aktualisieren beide Dateien.
 >
-> _Stand: 2026-09-09_
+> _Stand: 2026-09-25_
 
 | ID | Priority | Feature | Status |
 |----|----------|---------|--------|
@@ -28,7 +28,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 | PROJ-6 | P0 | Aktivitäts-Detail | Deployed |
 | PROJ-7 | P0 | Terminfindung & Kalender-Export | Deployed |
 | PROJ-8 | P0 | Nutzerprofil & Archiv | Deployed |
-| PROJ-9 | P1 | Capacitor Native Apps (iOS + Android) | Approved |
+| PROJ-9 | P1 | Capacitor Native Apps (iOS + Android) | Deployed |
 | PROJ-10 | P1 | Push-Benachrichtigungen (FCM/APNs) | Deployed |
 | PROJ-11 | P2 | OTA-Updates via Capgo | Deployed |
 | PROJ-12 | P1 | Benachrichtigungen & Einstellungen (In-App + E-Mail) | Deployed |
