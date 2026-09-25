@@ -28,6 +28,8 @@ supabase/
 docs/
   PRD.md            Product Requirements Document
   production/       Production guides (Sentry, security, performance)
+  architecture/     System architecture diagram
+website/            Marketing website mellon-app.de (WordPress) — local only, gitignored, not part of the app
 ```
 
 ## Development Workflow

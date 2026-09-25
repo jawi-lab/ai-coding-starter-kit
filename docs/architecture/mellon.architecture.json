@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Mellon — Systemarchitektur",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1380,
+      780
+    ],
+    "views": [
+      {
+        "id": "auslieferung",
+        "label": "Auslieferung",
+        "focus": [
+          "vercel",
+          "web",
+          "capgo",
+          "native",
+          "app"
+        ],
+        "note": "Dasselbe statische out/-Bundle erreicht Browser und native Hülle auf zwei Wegen."
+      },
+      {
+        "id": "datenpfad",
+        "label": "Datenpfad",
+        "focus": [
+          "app",
+          "auth",
+          "postgres",
+          "realtime",
+          "storage"
+        ],
+        "note": "Alle Datenoperationen laufen client-seitig gegen Supabase; RLS ist die Autorisierungsgrenze."
+      },
+      {
+        "id": "benachrichtigungen",
+        "label": "Benachrichtigungen",
+        "focus": [
+          "postgres",
+          "edge",
+          "fcm",
+          "resend",
+          "native"
+        ],
+        "note": "DB-Webhooks lösen serverseitigen Push- und E-Mail-Versand aus."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "vercel",
+      "type": "cloud",
+      "label": "Vercel",
+      "sublabel": "Static Hosting + CDN",
+      "brand": "vercel",
+      "pos": [
+        30,
+        102
+      ],
+      "size": [
+        150,
+        72
+      ]
+    },
+    {
+      "id": "capgo",
+      "type": "external",
+      "label": "Capgo",
+      "sublabel": "OTA-Web-Bundles",
+      "pos": [
+        30,
+        442
+      ],
+      "size": [
+        150,
+        72
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Browser / PWA",
+      "sublabel": "Desktop + Mobile Web",
+      "pos": [
+        225,
+        90
+      ],
+      "size": [
+        180,
+        78
+      ]
+    },
+    {
+      "id": "native",
+      "type": "frontend",
+      "label": "Capacitor Shell",
+      "sublabel": "iOS + Android · WebView",
+      "tag": "com.zusammen.app",
+      "pos": [
+        225,
+        430
+      ],
+      "size": [
+        180,
+        86
+      ]
+    },
+    {
+      "id": "fcm",
+      "type": "external",
+      "label": "Firebase Messaging",
+      "sublabel": "FCM v1 · APNs",
+      "brand": "firebase",
+      "pos": [
+        225,
+        640
+      ],
+      "size": [
+        180,
+        78
+      ]
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "Mellon App-Runtime",
+      "sublabel": "Next.js 16 · React 19",
+      "tag": "kein SSR · keine API-Routes",
+      "brand": "next-js",
+      "pos": [
+        455,
+        250
+      ],
+      "size": [
+        205,
+        120
+      ]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Supabase Auth",
+      "sublabel": "E-Mail · Google · Apple",
+      "tag": "JWT-Session",
+      "pos": [
+        880,
+        44
+      ],
+      "size": [
+        180,
+        78
+      ]
+    },
+    {
+      "id": "realtime",
+      "type": "messagebus",
+      "label": "Supabase Realtime",
+      "sublabel": "postgres_changes",
+      "pos": [
+        880,
+        166
+      ],
+      "size": [
+        180,
+        74
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "cloud",
+      "label": "Supabase Storage",
+      "sublabel": "private Bild-Buckets",
+      "pos": [
+        880,
+        284
+      ],
+      "size": [
+        180,
+        74
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Gruppen · Aktivitäten · Votes",
+      "tag": "RLS auf allen Tabellen",
+      "brand": "supabase",
+      "pos": [
+        880,
+        402
+      ],
+      "size": [
+        180,
+        88
+      ]
+    },
+    {
+      "id": "edge",
+      "type": "backend",
+      "label": "Edge Functions",
+      "sublabel": "Deno · 4 Functions",
+      "tag": "service_role + Secrets",
+      "pos": [
+        880,
+        560
+      ],
+      "size": [
+        180,
+        94
+      ]
+    },
+    {
+      "id": "gcal",
+      "type": "external",
+      "label": "Google Calendar API",
+      "sublabel": "freeBusy · OAuth-Refresh",
+      "pos": [
+        1145,
+        372
+      ],
+      "size": [
+        175,
+        78
+      ]
+    },
+    {
+      "id": "resend",
+      "type": "external",
+      "label": "Resend",
+      "sublabel": "Transaktions-E-Mail",
+      "pos": [
+        1145,
+        580
+      ],
+      "size": [
+        175,
+        78
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Supabase-Projekt",
+      "wraps": [
+        "auth",
+        "realtime",
+        "storage",
+        "postgres",
+        "edge"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "vercel-web",
+      "from": "vercel",
+      "to": "web",
+      "label": "out/ per HTTPS",
+      "labelDy": 60
+    },
+    {
+      "id": "capgo-native",
+      "from": "capgo",
+      "to": "native",
+      "label": "OTA-Bundle ersetzt out/",
+      "variant": "dashed",
+      "labelDy": 62
+    },
+    {
+      "id": "web-app",
+      "from": "web",
+      "to": "app",
+      "label": "Bundle vom CDN",
+      "variant": "emphasis"
+    },
+    {
+      "id": "native-app",
+      "from": "native",
+      "to": "app",
+      "label": "Bundle aus dem App-Paket",
+      "toSide": "left"
+    },
+    {
+      "id": "app-auth",
+      "from": "app",
+      "to": "auth",
+      "label": "Login · JWT-Session",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "left",
+      "via": [
+        [
+          557.5,
+          83
+        ]
+      ]
+    },
+    {
+      "id": "app-postgres",
+      "from": "app",
+      "to": "postgres",
+      "label": "PostgREST · RLS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "app-realtime",
+      "from": "app",
+      "to": "realtime",
+      "label": "WebSocket-Abos"
+    },
+    {
+      "id": "app-storage",
+      "from": "app",
+      "to": "storage",
+      "label": "Foto-Upload",
+      "labelDx": 46
+    },
+    {
+      "id": "app-edge",
+      "from": "app",
+      "to": "edge",
+      "label": "functions.invoke()",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          557.5,
+          607
+        ]
+      ]
+    },
+    {
+      "id": "postgres-edge",
+      "from": "postgres",
+      "to": "edge",
+      "label": "DB-Webhook auf 5 Events",
+      "labelDy": 58,
+      "variant": "dashed"
+    },
+    {
+      "id": "edge-fcm",
+      "from": "edge",
+      "to": "fcm",
+      "label": "FCM v1 HTTP API",
+      "fromSide": "bottom",
+      "toSide": "right",
+      "via": [
+        [
+          970,
+          679
+        ]
+      ]
+    },
+    {
+      "id": "fcm-native",
+      "from": "fcm",
+      "to": "native",
+      "label": "Push ans Gerät"
+    },
+    {
+      "id": "edge-resend",
+      "from": "edge",
+      "to": "resend",
+      "label": "E-Mail-Versand",
+      "labelDy": 22
+    },
+    {
+      "id": "edge-gcal",
+      "from": "edge",
+      "to": "gcal",
+      "label": "freeBusy abfragen",
+      "labelSegment": 1,
+      "labelDx": 34
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Clients & Auslieferung",
+      "items": [
+        "Next.js 16 Static Export — kein SSR, keine API-Routes",
+        "Web über Vercel-CDN, native Hülle bündelt out/ lokal",
+        "Capgo schiebt Web-Bundles OTA nach, ohne Store-Review"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Supabase als Backend",
+      "items": [
+        "Alle Datenoperationen client-seitig über supabase-js",
+        "RLS-Policies sind die einzige Autorisierungsgrenze",
+        "Realtime hält Board, Votes und Umfragen synchron"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Serverseitige Logik & Secrets",
+      "items": [
+        "Vier Deno-Functions: Invite-Code, Verfügbarkeit, Push, Unsubscribe",
+        "DB-Webhooks auf fünf Gruppen-Events starten den Versand",
+        "service_role-, FCM- und Resend-Keys nur in Function-Secrets"
+      ]
+    }
+  ]
+}

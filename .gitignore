@@ -58,6 +58,15 @@ docs/UI-INVENTORY.md
 android/app/google-services.json
 ios/App/App/GoogleService-Info.plist
 
+# Marketing-Website mellon-app.de (WordPress-Handbuch, Redesign, SEO, Medien) — nicht Teil der App
+/website/
+
+# Browser-Automations-Artefakte (Playwright-MCP-Snapshots, Logs, Screenshots)
+/.playwright-mcp/
+
+# lokale Backups von Einstellungen
+*.bak
+
 # App-Store-Screenshots aus dem Simulator (lokal generiert, nicht im Repo)
 /Screenshots/
 docs/ICON-BRIEF-momentum-emptystates.md
