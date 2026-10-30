@@ -48,10 +48,11 @@ const config: CapacitorConfig = {
     // published bundles the app simply runs its built-in `out/` bundle — never
     // an error. See src/components/native/NativeUpdater.tsx + src/lib/native/ota.ts.
     CapacitorUpdater: {
-      // Silent background check + download; the new bundle applies on the next
-      // cold start (matches the spec's non-intrusive UX). Critical bundles are
-      // marked in the Capgo dashboard to apply immediately.
-      autoUpdate: true,
+      // Bleibt aus, bis die App-ID in Capgo beansprucht ist und `publicKey` gesetzt
+      // ist (Security audit run-1, Fall 6): Ohne Schlüssel würde die App jedes
+      // Bundle installieren, das unter dieser App-ID ausgeliefert wird. Danach
+      // wieder true: stiller Download, Anwendung beim nächsten Kaltstart.
+      autoUpdate: false,
       // Auto-rollback safety net: a freshly applied bundle must call
       // notifyAppReady() (NativeUpdater) within this window, or Capgo reverts to
       // the last working version. 10 s = generous for slow/cold starts.
