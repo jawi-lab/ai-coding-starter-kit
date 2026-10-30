@@ -183,3 +183,35 @@ describe('useActivityPhotos — uploadPhoto validation', () => {
     expect(mockStorageRemove).toHaveBeenCalledOnce()
   })
 })
+
+describe('useActivityPhotos — deletePhoto', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockQueryResult.mockResolvedValue({ data: [], error: null })
+    mockDeleteEq.mockResolvedValue({ error: null })
+  })
+
+  it('removes the file of the photo author', async () => {
+    const { result } = renderHook(() => useActivityPhotos('act-1', USER_1))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    const photo = makePhoto('p1', USER_2)
+
+    await act(async () => {
+      await result.current.deletePhoto(photo)
+    })
+
+    expect(mockStorageRemove).toHaveBeenCalledWith([photo.storage_path])
+  })
+
+  it('keeps the file when a decoy row points at another member', async () => {
+    const { result } = renderHook(() => useActivityPhotos('act-1', USER_1))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    const decoy = { ...makePhoto('p1', USER_2), storage_path: `act-1/${USER_1}/victim.jpg` }
+
+    await act(async () => {
+      await result.current.deletePhoto(decoy)
+    })
+
+    expect(mockStorageRemove).not.toHaveBeenCalled()
+  })
+})

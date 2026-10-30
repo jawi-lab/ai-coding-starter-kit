@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/storage'
+import { getSignedUrl } from '@/lib/storage'
+import { COMMENT_IMAGE_BUCKET } from '@/lib/comment-images'
 import type { ActivityComment, CreateCommentInput } from '@/lib/activity-types'
 
 interface UseActivityCommentsResult {
@@ -102,7 +103,6 @@ export function useActivityComments(activityId: string | null): UseActivityComme
 }
 
 const COMMENT_IMAGE_MAX = 5 * 1024 * 1024 // 5 MB
-const COMMENT_IMAGE_BUCKET = 'activity-comment-images'
 
 export async function uploadCommentImage(
   activityId: string,
@@ -124,7 +124,11 @@ export async function uploadCommentImage(
 
   if (uploadErr) return { error: 'Upload fehlgeschlagen' }
 
-  return { url: getPublicUrl(COMMENT_IMAGE_BUCKET, storagePath), storagePath }
+  // Signierte URL nur für die Vorschau im Editor; gespeichert wird der Pfad.
+  const url = await getSignedUrl(COMMENT_IMAGE_BUCKET, storagePath)
+  if (!url) return { error: 'Upload fehlgeschlagen' }
+
+  return { url, storagePath }
 }
 
 export async function deleteCommentImages(storagePaths: string[]): Promise<void> {

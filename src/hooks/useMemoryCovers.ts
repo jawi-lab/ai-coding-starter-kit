@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/storage'
+import { getSignedUrls } from '@/lib/storage'
 
 const BUCKET = 'activity-photos'
 
@@ -34,12 +34,18 @@ export function useMemoryCovers(activityIds: string[]): Record<string, string> {
 
       if (cancelled || !data || data.length === 0) return
 
-      const next: Record<string, string> = {}
+      const coverPaths: Record<string, string> = {}
       for (const row of data as { activity_id: string; storage_path: string }[]) {
         // sortiert aufsteigend → der erste Treffer je Aktivität ist das älteste Foto
-        if (!next[row.activity_id]) {
-          next[row.activity_id] = getPublicUrl(BUCKET, row.storage_path)
-        }
+        if (!coverPaths[row.activity_id]) coverPaths[row.activity_id] = row.storage_path
+      }
+
+      const urls = await getSignedUrls(BUCKET, Object.values(coverPaths))
+      if (cancelled) return
+
+      const next: Record<string, string> = {}
+      for (const [activityId, path] of Object.entries(coverPaths)) {
+        if (urls[path]) next[activityId] = urls[path]
       }
       setCovers((prev) => ({ ...prev, ...next }))
     })()

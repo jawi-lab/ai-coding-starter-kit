@@ -31,7 +31,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/storage'
+import {
+  COMMENT_IMAGE_BUCKET, commentImagePathFromSrc, ownedCommentImagePaths, toStoredCommentContent,
+} from '@/lib/comment-images'
+import { useSignedUrls } from '@/hooks/useSignedUrls'
 import { exportToIcal } from '@/lib/ical-export'
 import { useActivityDetail } from '@/hooks/useActivityDetail'
 import { DateFinderSheet } from './DateFinderSheet'
@@ -89,28 +92,21 @@ function extractMentionIds(content: JSONContent): string[] {
   return [...new Set(ids)]
 }
 
-function extractCommentImagePaths(content: JSONContent): string[] {
-  const prefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/activity-comment-images/`
-  const paths: string[] = []
-  const walk = (node: JSONContent) => {
-    if (node.type === 'image' && typeof node.attrs?.src === 'string' && node.attrs.src.startsWith(prefix)) {
-      paths.push(node.attrs.src.slice(prefix.length))
-    }
-    node.content?.forEach(walk)
-  }
-  walk(content)
-  return paths
-}
-
-function getPhotoUrl(storagePath: string): string {
-  return getPublicUrl('activity-photos', storagePath)
-}
-
 function avatarFallback(name: string): string {
   return name.slice(0, 1).toUpperCase()
 }
 
 // ─── Tiptap JSON renderer (for read-only comment display) ───────────────────
+
+// Nur Bilder aus dem eigenen Bucket; fremde URLs werden nicht geladen.
+function CommentImage({ src, alt }: { src: string; alt: string }) {
+  const path = commentImagePathFromSrc(src)
+  const urls = useSignedUrls(COMMENT_IMAGE_BUCKET, path ? [path] : [])
+  const url = path ? urls[path] : undefined
+  if (!url) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={url} alt={alt} className="max-w-full rounded-[8px] my-2 block" />
+}
 
 function TiptapRenderer({ content }: { content: Json }) {
   if (!content || typeof content !== 'object' || Array.isArray(content)) {
@@ -157,15 +153,7 @@ function TiptapRenderer({ content }: { content: Json }) {
       )
     }
     if (n.type === 'image' && n.attrs?.src) {
-      return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={key}
-          src={n.attrs.src as string}
-          alt={(n.attrs.alt as string) ?? ''}
-          className="max-w-full rounded-[8px] my-2 block"
-        />
-      )
+      return <CommentImage key={key} src={n.attrs.src as string} alt={(n.attrs.alt as string) ?? ''} />
     }
     return null
   }
@@ -206,6 +194,7 @@ export function ActivityDetailSheet({
   const { comments, loading: commentsLoading, addComment, deleteComment } = useActivityComments(activityId)
   const { responsibilities, loading: respLoading, addResponsibility, deleteResponsibility, toggleDone } = useActivityResponsibilities(activityId)
   const { photos, loading: photosLoading, uploadPhoto, deletePhoto, userPhotoCount } = useActivityPhotos(activityId, currentUserId)
+  const photoUrls = useSignedUrls('activity-photos', photos.map(photo => photo.storage_path))
 
   // ── Members (for @-mentions + responsibility assignment) ───────────────────
   const [members, setMembers] = useState<GroupMember[]>([])
@@ -484,7 +473,7 @@ export function ActivityDetailSheet({
     setSendingComment(true)
     const ok = await addComment({
       activity_id: activityId,
-      content: content as Json,
+      content: toStoredCommentContent(content) as Json,
       mentioned_user_ids: extractMentionIds(content),
     })
     setSendingComment(false)
@@ -516,7 +505,7 @@ export function ActivityDetailSheet({
   async function handleDeleteComment() {
     if (!deleteCommentTarget) return
     const content = deleteCommentTarget.content as JSONContent
-    const imagePaths = extractCommentImagePaths(content)
+    const imagePaths = ownedCommentImagePaths(content, deleteCommentTarget.activity_id, deleteCommentTarget.user_id)
     if (imagePaths.length > 0) {
       await deleteCommentImages(imagePaths)
     }
@@ -834,12 +823,14 @@ export function ActivityDetailSheet({
         <div className="grid grid-cols-3 gap-2">
           {photos.map(photo => (
             <div key={photo.id} className="relative aspect-square rounded-sm overflow-hidden bg-surface-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getPhotoUrl(photo.storage_path)}
-                alt=""
-                className="w-full h-full object-cover"
-              />
+              {photoUrls[photo.storage_path] && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoUrls[photo.storage_path]}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              )}
               {!readOnly && (isAdmin || photo.user_id === currentUserId) && (
                 <button
                   onClick={() => setDeletePhotoTarget(photo)}

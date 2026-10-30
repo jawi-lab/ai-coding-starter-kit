@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/storage'
+import { isOwnedMediaPath } from '@/lib/storage'
 import type { ActivityPhoto } from '@/lib/activity-types'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
@@ -99,16 +99,13 @@ export function useActivityPhotos(
     if (dbErr) return false
 
     // Storage cleanup after DB record is gone — orphaned files are safer than broken references
-    await supabase.storage.from(BUCKET).remove([photo.storage_path])
+    if (isOwnedMediaPath(photo.storage_path, photo.activity_id, photo.user_id)) {
+      await supabase.storage.from(BUCKET).remove([photo.storage_path])
+    }
 
     await fetchPhotos()
     return true
   }
 
   return { photos, loading, error, uploadPhoto, deletePhoto, userPhotoCount }
-}
-
-export function useActivityPhotoUrl(storagePath: string | null): string | null {
-  if (!storagePath) return null
-  return getPublicUrl(BUCKET, storagePath)
 }

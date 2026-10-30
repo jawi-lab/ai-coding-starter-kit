@@ -3,10 +3,10 @@ import { uploadCommentImage, deleteCommentImages } from './useActivityComments'
 
 // ─── Supabase mock ─────────────────────────────────────────────────────────────
 
-const { mockUpload, mockRemove, mockGetPublicUrl, mockGetUser } = vi.hoisted(() => ({
+const { mockUpload, mockRemove, mockCreateSignedUrl, mockGetUser } = vi.hoisted(() => ({
   mockUpload: vi.fn(),
   mockRemove: vi.fn(),
-  mockGetPublicUrl: vi.fn(),
+  mockCreateSignedUrl: vi.fn(),
   mockGetUser: vi.fn(),
 }))
 
@@ -16,7 +16,7 @@ vi.mock('@/lib/supabase', () => ({
       from: () => ({
         upload: mockUpload,
         remove: mockRemove,
-        getPublicUrl: mockGetPublicUrl,
+        createSignedUrl: mockCreateSignedUrl,
       }),
     },
     auth: {
@@ -32,7 +32,7 @@ describe('uploadCommentImage', () => {
     vi.clearAllMocks()
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
     mockUpload.mockResolvedValue({ error: null })
-    mockGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/image.jpg' } })
+    mockCreateSignedUrl.mockResolvedValue({ data: { signedUrl: 'https://example.com/image.jpg' }, error: null })
   })
 
   it('rejects files over 5 MB without calling storage', async () => {
@@ -55,7 +55,7 @@ describe('uploadCommentImage', () => {
     expect(mockUpload).not.toHaveBeenCalled()
   })
 
-  it('returns public URL on successful upload', async () => {
+  it('returns a signed URL on successful upload', async () => {
     const file = new File(['x'], 'image.png', { type: 'image/png' })
 
     const result = await uploadCommentImage('act-1', file)
