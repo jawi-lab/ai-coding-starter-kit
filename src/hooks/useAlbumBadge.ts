@@ -35,14 +35,12 @@ export function useAlbumBadge(active: boolean) {
     let cancelled = false
 
     ;(async () => {
-      // Mitgliedschaften wie im Album: aktive ∪ ehemalige (PROJ-17, Baustein 3)
-      const [current, former] = await Promise.all([
-        supabase.from('group_members').select('group_id').eq('user_id', user.id),
-        supabase.from('group_members_history').select('group_id').eq('user_id', user.id),
-      ])
-      const groupIds = [...new Set(
-        [...(current.data ?? []), ...(former.data ?? [])].map((m) => m.group_id)
-      )]
+      // Mitgliedschaften wie im Album: nur aktuelle
+      const { data: memberships } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', user.id)
+      const groupIds = (memberships ?? []).map((m) => m.group_id)
       if (cancelled || groupIds.length === 0) return
 
       const { count } = await supabase

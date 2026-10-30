@@ -22,7 +22,7 @@ interface AlbumTabProps {
 
 /**
  * Album (PROJ-17) — ersetzt die Archiv-Liste im Profil-Sheet durch ein
- * 2-spaltiges Memory-Card-Grid: gruppenübergreifend (aktive + ehemalige
+ * 2-spaltiges Memory-Card-Grid: gruppenübergreifend (aktuelle
  * Mitgliedschaften), neueste zuerst, Filter-Chips ab 2 Gruppen, Pagination
  * à 20 (bestehendes Muster). Tap auf eine Karte öffnet das bestehende
  * ActivityDetailSheet im read-only-Modus.

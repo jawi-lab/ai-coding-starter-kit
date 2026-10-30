@@ -125,22 +125,13 @@ describe('useArchive', () => {
     expect(result.current.activities[0].completed_at).toBe('2026-01-02T10:00:00Z')
   })
 
-  it('includes former memberships from group_members_history (PROJ-17)', async () => {
+  it('queries only current memberships, never the history', async () => {
     mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
-    mockFormerMemberships.mockResolvedValue({ data: [{ group_id: 'group-2' }] })
     mockActivitiesResult.mockResolvedValue({ data: [makeActivity('a1')] })
     const { result } = renderHook(() => useArchive())
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(activitiesInSpy).toHaveBeenCalledWith(['group-1', 'group-2'])
-  })
-
-  it('deduplicates group ids present in both active and former memberships', async () => {
-    mockMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
-    mockFormerMemberships.mockResolvedValue({ data: [{ group_id: 'group-1' }] })
-    mockActivitiesResult.mockResolvedValue({ data: [] })
-    const { result } = renderHook(() => useArchive())
-    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(activitiesInSpy).toHaveBeenCalledWith(['group-1'])
+    expect(mockFormerMemberships).not.toHaveBeenCalled()
   })
 
   it('passes the group filter to the query instead of all memberships', async () => {

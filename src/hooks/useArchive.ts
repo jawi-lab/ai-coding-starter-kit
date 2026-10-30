@@ -30,8 +30,8 @@ export interface ArchiveGroup {
 
 // PROJ-17: Album-Query = Archiv-Query mit drei Anpassungen (Tech Design):
 // sortiert nach completed_at statt created_at, Gruppen-Filter läuft
-// serverseitig, und die Gruppenliste umfasst aktive + ehemalige
-// Mitgliedschaften (group_members_history).
+// serverseitig, und die Gruppenliste umfasst nur aktuelle Mitgliedschaften
+// (Ex-Mitglieder haben keinen Lesezugriff mehr).
 export function useArchive(groupFilter?: string | null) {
   const { user } = useAuth()
   const [activities, setActivities] = useState<ArchiveActivity[]>([])
@@ -53,14 +53,12 @@ export function useArchive(groupFilter?: string | null) {
       return
     }
 
-    const [current, former] = await Promise.all([
-      supabase.from('group_members').select('group_id').eq('user_id', user.id),
-      supabase.from('group_members_history').select('group_id').eq('user_id', user.id),
-    ])
+    const { data: memberships } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user.id)
 
-    const groupIds = [...new Set(
-      [...(current.data ?? []), ...(former.data ?? [])].map(m => m.group_id)
-    )]
+    const groupIds = (memberships ?? []).map(m => m.group_id)
     if (groupIds.length === 0) {
       setActivities([])
       setGroups([])
