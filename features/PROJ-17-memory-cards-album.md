@@ -412,3 +412,7 @@ Alle drei DB-Bausteine sind in Produktion (4 Migrationen, Spiegel in `supabase/m
 - **Symptom:** Der „Neu"-Punkt am Album-Tab verschwand nach dem Öffnen des Albums nicht zuverlässig.
 - **Ursache:** Race in `useAlbumBadge` — die beim Sheet-Öffnen gestartete Head-Count-Abfrage (mit dem alten `album_last_seen_at`) konnte NACH `markSeen()` auflösen und `hasNew` wieder auf `true` setzen.
 - **Fix:** `seenRef`-Guard: nach `markSeen()` werden verspätete Abfrage-Ergebnisse ignoriert; Reset pro Sheet-Öffnung. Verifiziert im Browser (Punkt erscheint bei neuer Karte, erlischt beim Album-Klick dauerhaft; „Neu"-Badge im Grid bleibt für den Besuch — Spec-Verhalten).
+
+## Security-Änderung (2026-10-30, Audit run-1, Fall 4)
+
+**Abweichung vom ursprünglichen Konzept, Entscheidung des Projektinhabers: Ex-Mitglieder sehen nichts mehr.** Die Regel „is or was member“ ist entfernt: `is_or_was_group_member` und `is_or_was_activity_group_member` sind gelöscht, alle 13 Policies nutzen die aktuelle Mitgliedschaft. Album und Album-Badge zeigen nur noch Gruppen, in denen man aktuell Mitglied ist. Nach einem Austritt verschwinden die Erinnerungskarten dieser Gruppe. `group_members_history` bleibt bestehen, ist für Clients aber nicht mehr lesbar. Migration `20261030100300`.

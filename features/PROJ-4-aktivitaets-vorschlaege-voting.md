@@ -468,3 +468,10 @@ No Critical or High bugs. All 25 acceptance criteria pass. Security audit clean.
 ## Post-Deployment Fixes (2026-06-25)
 
 - **Runder +-FAB:** Der „+ Vorschlag"-Pill-Button wurde durch einen runden FAB (`h-14 w-14 rounded-full`) mit reinem Plus-Icon ersetzt (mit `aria-label="Vorschlag hinzufügen"`).
+
+## Security-Fixes (2026-10-30, Audit run-1)
+
+- **Fall 2:** `reset_activity_votes` lehnt Aufrufe ohne Login ab, prüft NULL-sicher Initiator (noch Mitglied) oder Admin, verweigert `abgeschlossen`, hat festen `search_path` und ist nicht mehr für `anon` ausführbar.
+- **Fall 7 + 9:** INSERT nur mit `status='vorschlag'` und `current_votes=0`. Trigger `trg_activity_workflow_guard` macht `group_id`, `initiator_id` und `current_votes` für Client-Schreibzugriffe unveränderlich, erlaubt `required_votes` nur im Vorschlag und sperrt direkte Wechsel von und nach `vorschlag`. Vote-Trigger und Reset-RPC laufen als Owner und bleiben die einzigen Wege dafür.
+- **Bekannte Grenze:** Der Initiator darf `required_votes` im Vorschlag weiter senken (Bearbeiten-Funktion), also auch auf 1.
+- **Nachweis:** zurückgerollte Transaktionen; Voting, Kanban-Wechsel, Details bearbeiten und Reset funktionieren weiter. Migrationen `20261030100100`, `…100400`.

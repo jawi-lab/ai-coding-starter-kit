@@ -441,3 +441,11 @@ All 4 QA bugs fixed. No open bugs remain.
 ## Post-Deployment Fixes (2026-06-25)
 
 - **Senden von Text-Kommentaren repariert:** Der Senden-Button war an `editor?.isEmpty` gebunden, das nur beim Render ausgewertet wurde. Tiptap v3 rendert die Komponente nicht bei jeder Transaktion neu (`shouldRerenderOnTransaction` default `false`), daher blieb der Button beim reinen Tippen disabled — er wurde erst durch ein anderes State-Update (Bild-Upload, `@`-Mention) aktiv. Fix: Leer-Status wird jetzt reaktiv über `onCreate`/`onUpdate` in `isEditorEmpty`-State getrackt und nach `clearContent()` manuell zurückgesetzt. Kommentare lassen sich nun unabhängig von Bildern abschicken.
+
+## Security-Fixes (2026-10-30, Audit run-1)
+
+- **Fall 5:** Buckets `activity-photos` und `activity-comment-images` sind wieder privat (sie standen außerhalb der Migrationen auf public). Lesen läuft über signierte URLs mit 1 Stunde Gültigkeit (`src/lib/storage.ts`, `src/hooks/useSignedUrls.ts`). `avatars` bleibt bewusst öffentlich und ist jetzt in den Migrationen erfasst.
+- **Kommentarbilder:** Neue Kommentare speichern `storage://activity-comment-images/<pfad>`, der Editor zeigt beim Schreiben die signierte URL. Der Renderer führt auch alte öffentliche URLs auf den Pfad zurück. Fremde `src` werden nicht angezeigt (`src/lib/comment-images.ts`).
+- **Fall 10:** Beim Löschen werden nur Pfade unter `<activity_id>/<Autor-ID>/` entfernt (`isOwnedMediaPath`). Constraint `activity_photos_storage_path_owner` bindet `storage_path` an den eigenen Ordner.
+- **Bekannte Grenze:** Ein Bild, das im Editor eingefügt, aber nie abgeschickt wird, bleibt als Datei liegen (wie zuvor).
+- **Nachweis:** Live mit QA-Account: öffentliche URL 400, anon-Signieren abgelehnt, Mitglied 200; Kommentarbild und Foto im statischen Build hochgeladen, angezeigt und gelöscht. Unit-Tests in `storage.test.ts`, `comment-images.test.ts`, `useActivityPhotos.test.ts`. Migration `20261030100500`.

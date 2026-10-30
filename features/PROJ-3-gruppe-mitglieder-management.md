@@ -467,3 +467,12 @@ supabase/functions/generate-invite-code/index.ts
 - **Mitgliederzahl aktualisiert ohne Reload** (`useGroups.ts`): `group_members` ist nicht in der Realtime-Publication. Stattdessen lädt die Gruppenliste jetzt bei `focus`/`visibilitychange` neu — Beitritte von anderen Geräten erscheinen ohne manuellen Reload.
 - **Mobile Cut-off behoben** (`globals.css`): globaler `overflow-x: hidden` + `max-width: 100%` auf `html, body`. iOS Safari verschob fixe Sheets bei horizontalem Overflow aus dem sichtbaren Bereich ("Fenster abgeschnitten").
 - **Navigation auf echte Routen umgestellt:** Gruppe öffnen navigiert jetzt zu `/groups/[groupId]/vorschlaege` statt ein schmales rechtes Sheet zu öffnen. Gemeinsames Layout (`app/groups/[groupId]/layout.tsx`) trägt Header, Tab-Navigation, Settings-Sheet und Activity-Detail-Sheet. `GroupMainSheet.tsx` entfernt.
+
+## Security-Fixes (2026-10-30, Audit run-1)
+
+- **Fall 1:** Policy `users_insert_own_membership` entfernt und INSERT auf `group_members` entzogen. Gruppen anlegen und beitreten laufen nur noch über die SECURITY-DEFINER-RPCs.
+- **Fall 3:** Neue RPC `regenerate_invite_code` mit `is_group_admin`-Check. Edge Function `generate-invite-code` ist stillgelegt (Stub, antwortet immer 410, v7), Client-Fallback entfernt.
+- **Fall 4:** Ex-Mitglieder lesen die Gruppe nicht mehr und damit auch keinen Code. `group_members_history.removed_by_admin` sperrt von Admins entfernte Nutzer in `join_group_by_invite_code` (Fehler `removed`). Altbestand steht auf `false`. Wieder aufnehmen geht nur per SQL. Alle aktuellen Mitglieder sehen den Code.
+- **Fall 8:** Auf `group_members` darf `authenticated` per UPDATE nur noch `role` ändern.
+- **Fall 11:** Codes haben 10 Zeichen aus `gen_random_bytes` (`new_invite_code`). Tabelle `invite_code_attempts`: höchstens 10 Fehlversuche pro Nutzer und Stunde (Fehler `rate_limited`). Bestehende Codes wurden einmalig ersetzt.
+- **Nachweis:** Angriffe und legitime Wege als Rollen `anon`/`authenticated` in zurückgerollten Transaktionen. Migrationen `20261030100000`, `…100200`, `…100300`, `…100400`, `…100600`.

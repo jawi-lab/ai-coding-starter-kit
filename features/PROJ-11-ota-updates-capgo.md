@@ -296,3 +296,7 @@ Keine Critical / High / Medium.
 
 ### Offen (bewusster späterer manueller Go-Live-Schritt)
 Der eigentliche OTA-**Live-Betrieb** (Capgo-Account anlegen, App/API-Key registrieren, erstes Bundle-Upload/Promote, On-Device-Verifikation Beta→Promote→Rollback auf physischem iOS/Android) bleibt der dokumentierte manuelle Schritt aus den Open Questions — analog zum Apple-Push-Key in PROJ-10. Bis dahin ist die App OTA-*ready*, liefert aber keine Updates aus (= regulärer Zustand, kein Fehler).
+
+## Security-Fix (2026-10-30, Audit run-1, Fall 6)
+
+`autoUpdate` steht in `capacitor.config.ts` auf `false`. Ohne `publicKey` würde die App jedes Bundle installieren, das unter der App-ID `com.zusammen.app` ausgeliefert wird. **Vor dem OTA-Go-Live:** App-ID in Capgo beanspruchen, Schlüsselpaar erzeugen (`npx @capgo/cli key create`), `publicKey` setzen, nur verschlüsselte Bundles hochladen, dann `autoUpdate` wieder auf `true`. Wirksam erst mit dem nächsten nativen Build. Offen: Prüfung, ob die App-ID noch frei ist und welche ausgelieferten Builds das Plugin enthalten.
