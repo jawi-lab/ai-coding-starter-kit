@@ -526,16 +526,19 @@ export type Database = {
         Row: {
           group_id: string
           left_at: string
+          removed_by_admin: boolean
           user_id: string
         }
         Insert: {
           group_id: string
           left_at?: string
+          removed_by_admin?: boolean
           user_id: string
         }
         Update: {
           group_id?: string
           left_at?: string
+          removed_by_admin?: boolean
           user_id?: string
         }
         Relationships: [
@@ -627,6 +630,21 @@ export type Database = {
           id?: string
           invite_code?: string | null
           name?: string
+        }
+        Relationships: []
+      }
+      invite_code_attempts: {
+        Row: {
+          attempted_at: string
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -817,17 +835,13 @@ export type Database = {
       is_activity_polls_writable: { Args: { aid: string }; Returns: boolean }
       is_group_admin: { Args: { gid: string }; Returns: boolean }
       is_group_member: { Args: { gid: string }; Returns: boolean }
-      is_or_was_activity_group_member: {
-        Args: { aid: string }
-        Returns: boolean
-      }
-      is_or_was_group_member: { Args: { gid: string }; Returns: boolean }
       join_group_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
       }
       mark_own_badges_seen: { Args: never; Returns: undefined }
       momentum_milestone_for: { Args: { p_count: number }; Returns: number }
+      new_invite_code: { Args: never; Returns: string }
       refresh_activity_contributor_badges: {
         Args: { p_activity_id: string; p_initiator_id: string }
         Returns: undefined
@@ -840,6 +854,7 @@ export type Database = {
         Args: { p_badge: string; p_user_id: string }
         Returns: undefined
       }
+      regenerate_invite_code: { Args: { p_group_id: string }; Returns: string }
       register_device_token: {
         Args: { p_platform: string; p_token: string }
         Returns: undefined

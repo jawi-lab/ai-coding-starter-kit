@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { useGroups } from '@/hooks/useGroups'
 import { useRouter } from 'next/navigation'
+import { INVITE_CODE_LENGTH } from '@/lib/group-types'
 
 interface JoinGroupFormProps {
   onSuccess?: (groupId: string) => void
@@ -59,17 +60,17 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
         </Label>
         <Input
           id="invite-code"
-          placeholder="z. B. XJHF42"
+          placeholder="z. B. XJHF42K7QM"
           value={code}
           onChange={(e) => {
-            setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/[OI01]/g, '').slice(0, 6))
+            setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/[OI01]/g, '').slice(0, INVITE_CODE_LENGTH))
             if (error) setError(null)
           }}
-          maxLength={6}
+          maxLength={INVITE_CODE_LENGTH}
           autoFocus
           autoComplete="off"
           spellCheck={false}
-          className="h-11 text-[17px] font-bold tracking-[0.25em] text-center border-[1.5px] border-line
+          className="h-11 text-[17px] font-bold tracking-[0.15em] text-center border-[1.5px] border-line
                      bg-surface rounded-md px-[14px] uppercase
                      focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_var(--primary-soft)]"
           aria-describedby={error ? 'invite-code-error' : undefined}
@@ -81,13 +82,13 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
           </p>
         )}
         <p className="text-[12px] text-ink-3 text-center">
-          6-stelliger Code — z. B. von einem Gruppenmitglied teilen lassen
+          {INVITE_CODE_LENGTH}-stelliger Code — z. B. von einem Gruppenmitglied teilen lassen
         </p>
       </div>
 
       <Button
         type="submit"
-        disabled={submitting || code.length !== 6}
+        disabled={submitting || code.length !== INVITE_CODE_LENGTH}
         className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold text-[15px]
                    rounded-md tracking-[0.005em] disabled:opacity-40"
       >

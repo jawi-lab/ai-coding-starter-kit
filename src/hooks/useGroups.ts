@@ -133,6 +133,8 @@ export function useGroups() {
     if (result.error === 'invalid_code') return { groupId: null, error: 'Ungültiger Einladungs-Code' }
     if (result.error === 'already_member') return { groupId: null, error: 'Du bist bereits Mitglied dieser Gruppe' }
     if (result.error === 'not_active') return { groupId: null, error: 'Bitte bestätige zuerst deine E-Mail-Adresse' }
+    if (result.error === 'removed') return { groupId: null, error: 'Du wurdest aus dieser Gruppe entfernt' }
+    if (result.error === 'rate_limited') return { groupId: null, error: 'Zu viele Fehlversuche. Bitte versuche es in einer Stunde erneut.' }
     if (result.error) return { groupId: null, error: result.error }
 
     await fetchGroups()

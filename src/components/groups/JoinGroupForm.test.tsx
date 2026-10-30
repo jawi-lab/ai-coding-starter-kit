@@ -44,14 +44,14 @@ describe('JoinGroupForm — Validation', () => {
     expect(mockJoinGroup).not.toHaveBeenCalled()
   })
 
-  it('submit button is disabled until 6 characters entered', () => {
+  it('submit button is disabled until 10 characters entered', () => {
     render(<JoinGroupForm />)
     const btn = screen.getByRole('button', { name: /gruppe beitreten/i })
     const input = screen.getByRole('textbox')
     expect(btn).toBeDisabled()
-    typeInto(input, 'ABCDE')
+    typeInto(input, 'ABCDEFGHJ')
     expect(btn).toBeDisabled()
-    typeInto(input, 'ABCDEF')
+    typeInto(input, 'ABCDEFGHJK')
     expect(btn).not.toBeDisabled()
   })
 
@@ -69,21 +69,21 @@ describe('JoinGroupForm — Validation', () => {
     expect(input).toHaveValue('ABC')
   })
 
-  it('truncates input at 6 characters', () => {
+  it('truncates input at 10 characters', () => {
     render(<JoinGroupForm />)
     const input = screen.getByRole('textbox')
-    typeInto(input, 'ABCDEFGH')
-    expect(input).toHaveValue('ABCDEF')
+    typeInto(input, 'ABCDEFGHJKLM')
+    expect(input).toHaveValue('ABCDEFGHJK')
   })
 
-  it('calls joinGroup with the typed 6-char code', async () => {
+  it('calls joinGroup with the typed code', async () => {
     mockJoinGroup.mockResolvedValue({ groupId: 'grp-1', error: null })
     const onSuccess = vi.fn()
     render(<JoinGroupForm onSuccess={onSuccess} />)
-    typeInto(screen.getByRole('textbox'), 'XJHF42')
+    typeInto(screen.getByRole('textbox'), 'XJHF42K7QM')
     await act(async () => { submitForm() })
     await waitFor(() => {
-      expect(mockJoinGroup).toHaveBeenCalledWith('XJHF42')
+      expect(mockJoinGroup).toHaveBeenCalledWith('XJHF42K7QM')
     })
   })
 
@@ -91,7 +91,7 @@ describe('JoinGroupForm — Validation', () => {
     mockJoinGroup.mockResolvedValue({ groupId: 'grp-42', error: null })
     const onSuccess = vi.fn()
     render(<JoinGroupForm onSuccess={onSuccess} />)
-    typeInto(screen.getByRole('textbox'), 'ABCDEF')
+    typeInto(screen.getByRole('textbox'), 'ABCDEFGHJK')
     await act(async () => { submitForm() })
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledWith('grp-42')
@@ -111,7 +111,7 @@ describe('JoinGroupForm — Validation', () => {
   it('shows "bereits Mitglied" error for duplicate join', async () => {
     mockJoinGroup.mockResolvedValue({ groupId: null, error: 'Du bist bereits Mitglied dieser Gruppe' })
     render(<JoinGroupForm />)
-    typeInto(screen.getByRole('textbox'), 'ABCDEF')
+    typeInto(screen.getByRole('textbox'), 'ABCDEFGHJK')
     await act(async () => { submitForm() })
     await waitFor(() => {
       expect(screen.getByText('Du bist bereits Mitglied dieser Gruppe')).toBeInTheDocument()

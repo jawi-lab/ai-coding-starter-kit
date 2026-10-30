@@ -21,14 +21,8 @@ export function truncateName(name: string, max = MAX_GROUP_NAME_LENGTH): string 
   return `${name.slice(0, max).trimEnd()}…`
 }
 
-// 6-char alphanumeric, excluding O/0/I/1 to avoid visual confusion
-const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
-export function generateInviteCode(): string {
-  return Array.from({ length: 6 }, () =>
-    INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)]
-  ).join('')
-}
+// Alphanumeric, excluding O/0/I/1. Generated server-side (public.new_invite_code).
+export const INVITE_CODE_LENGTH = 10
 
 export const ROLE_LABELS: Record<GroupRole, string> = {
   admin: 'Admin',

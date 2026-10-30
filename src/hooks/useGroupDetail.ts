@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Group, GroupMember, GroupRole } from '@/lib/group-types'
-import { generateInviteCode } from '@/lib/group-types'
 
 const NO_MEMBERS: GroupMember[] = []
 
@@ -116,35 +115,11 @@ export function useGroupDetail(groupId: string | null) {
   async function regenerateInviteCode(): Promise<{ code: string | null; error: string | null }> {
     if (!groupId) return { code: null, error: 'Keine Gruppe ausgewählt' }
 
-    // Try Edge Function first
-    try {
-      const { data, error: fnErr } = await supabase.functions.invoke('generate-invite-code', {
-        body: { group_id: groupId },
-      })
-      if (!fnErr && data?.invite_code) {
-        await fetchDetail()
-        return { code: data.invite_code, error: null }
-      }
-    } catch {
-      // Fall through to client-side generation
-    }
+    const { data, error } = await supabase.rpc('regenerate_invite_code', { p_group_id: groupId })
+    if (error || !data) return { code: null, error: 'Fehler beim Generieren des Einladungs-Codes' }
 
-    // Client-side fallback
-    let code = generateInviteCode()
-    for (let i = 0; i < 5; i++) {
-      const { error } = await supabase.from('groups').update({ invite_code: code }).eq('id', groupId)
-      if (!error) {
-        await fetchDetail()
-        return { code, error: null }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((error as any)?.code === '23505') {
-        code = generateInviteCode()
-      } else {
-        return { code: null, error: error.message }
-      }
-    }
-    return { code: null, error: 'Fehler beim Generieren des Einladungs-Codes' }
+    await fetchDetail()
+    return { code: data, error: null }
   }
 
   async function changeMemberRole(userId: string, role: GroupRole): Promise<{ error: string | null }> {
