@@ -10,7 +10,7 @@ vi.mock('@/lib/supabase', () => {
     supabase: {
       from: () => ({
         select: () => ({ eq: () => ({ order: mockOrder }) }),
-        delete: () => ({ eq: mockDeleteEq }),
+        delete: () => ({ eq: () => ({ select: mockDeleteEq }) }),
       }),
       channel: () => channel,
       removeChannel: vi.fn(),
@@ -53,7 +53,7 @@ describe('useActivityComments loaded', () => {
     expect(result.current.loaded).toBe(false)
   })
   it('entfernt einen gelöschten Kommentar sofort aus der Liste', async () => {
-    mockDeleteEq.mockResolvedValue({ error: null })
+    mockDeleteEq.mockResolvedValue({ data: [{ id: 'c1' }], error: null })
     const { result } = renderHook(() => useActivityComments('act-1'))
     await waitFor(() => expect(result.current.comments).toHaveLength(1))
 
@@ -65,7 +65,7 @@ describe('useActivityComments loaded', () => {
   })
 
   it('behält den Kommentar, wenn das Löschen fehlschlägt', async () => {
-    mockDeleteEq.mockResolvedValue({ error: { message: 'x' } })
+    mockDeleteEq.mockResolvedValue({ data: null, error: { message: 'x' } })
     const { result } = renderHook(() => useActivityComments('act-1'))
     await waitFor(() => expect(result.current.comments).toHaveLength(1))
 

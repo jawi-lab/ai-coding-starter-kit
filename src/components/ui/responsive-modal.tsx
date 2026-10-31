@@ -7,6 +7,7 @@ import { X } from "lucide-react"
 
 import { useSheetDrag } from "@/hooks/useSheetDrag"
 import { cn } from "@/lib/utils"
+import { focusDialogUnlessKeyboard } from "@/lib/input-modality"
 
 /**
  * ResponsiveModal — a single Radix Dialog that renders as a bottom sheet on
@@ -96,7 +97,8 @@ const ResponsiveModalContent = React.forwardRef<
       <ResponsiveModalOverlay ref={overlayRef} />
       <DialogPrimitive.Content
         ref={contentRef}
-        className={cn(contentVariants({ size }), className)}
+        className={cn(contentVariants({ size }), "outline-none", className)}
+        onOpenAutoFocus={focusDialogUnlessKeyboard}
         {...props}
       >
         {children}

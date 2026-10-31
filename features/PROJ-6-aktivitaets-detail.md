@@ -534,3 +534,11 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 - **Außerhalb des Repos:** Die Zeile steht wörtlich im lokalen Claude-Code-Sitzungsprotokoll der Vorher-Nachher-Prüfung und lässt sich aus dem Repo nicht nachprüfen: „P2 | Mittel | Goldener Fokusring beim Öffnen von Dialogen, ohne dass jemand die Tastatur benutzt: am X der Gruppen-Einstellungen und am Desktop an ‚Abbrechen'. Auch im Vorher-Stand, durch das größere X aber auffälliger."
 - **Schwere:** Die Quellen widersprechen sich (Low und Mittel).
 - **Status:** Noch nicht behoben. Der Fokusring-Fix folgt als eigener Punkt und wird hier nachgetragen.
+
+## Bug-Fix (2026-10-31): Kommentare löschen und Fokusring
+
+- **Andere Mitglieder sehen Löschen sofort:** Laut Supabase-Doku lassen sich DELETE-Ereignisse nur mit `replica identity full` filtern; wegen RLS enthält das Ereignis trotzdem nur den Primärschlüssel. Migration `20261031212758_proj6_comments_replica_identity_full`, `useActivityComments` entfernt den Kommentar anhand von `old.id`. Die Typen ändern sich nicht.
+- **RLS verweigert ohne Fehlermeldung:** `deleteComment` fragt die gelöschten Zeilen ab und entfernt nur bei einem Treffer, sonst erscheint „Kommentar konnte nicht gelöscht werden".
+- **Bilder bleiben bei Fehlschlag erhalten:** Kommentarbilder werden erst nach dem erfolgreichen Löschen entfernt, vorher geschah das davor.
+- **Fokusring (Befund P2, `docs/qa/2026-10-30-apple-design.md` Befund 6):** Nach Zeiger oder Touch erhält ein Dialog selbst den Fokus (`lib/input-modality.ts`), sodass kein Ring erscheint. Nach Tastaturbedienung fokussiert Radix wie bisher das erste Element mit Ring. Gilt für `ResponsiveModal`, `AlertDialog` und `Dialog`. Das X in `Dialog` nutzt jetzt `focus-visible` statt `focus`.
+- **Tests:** `src/hooks/useActivityComments.realtime.test.ts`, `src/lib/input-modality.test.ts`, `tests/PROJ-6-kommentare-realtime.spec.ts` (zwei Konten), `tests/design-fixes-2026-10.spec.ts`.

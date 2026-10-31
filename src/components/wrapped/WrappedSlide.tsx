@@ -46,6 +46,12 @@ const THEME_BY_TYPE: Record<Slide['type'], Theme> = {
   outro: GREEN,
 }
 
+/** Textfarbe der Statusleiste: passend zur Slide-Fläche, wie `fg` der Slide. */
+export function slideStatusBarText(type: Slide['type']): 'light' | 'dark' {
+  const theme = THEME_BY_TYPE[type]
+  return theme === GREEN || theme === GOLD ? 'light' : 'dark'
+}
+
 export function slideChromeColor(type: Slide['type']): string {
   return THEME_BY_TYPE[type].chrome
 }

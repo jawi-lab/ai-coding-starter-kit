@@ -524,12 +524,16 @@ export function ActivityDetailSheet({
     if (!deleteCommentTarget) return
     const content = deleteCommentTarget.content as JSONContent
     const imagePaths = ownedCommentImagePaths(content, deleteCommentTarget.activity_id, deleteCommentTarget.user_id)
+    const ok = await deleteComment(deleteCommentTarget.id)
+    setDeleteCommentTarget(null)
+    if (!ok) {
+      toast.error('Kommentar konnte nicht gelöscht werden')
+      return
+    }
+    // Erst nach dem Löschen: Scheitert es, müssen die Bilder erhalten bleiben.
     if (imagePaths.length > 0) {
       await deleteCommentImages(imagePaths)
     }
-    const ok = await deleteComment(deleteCommentTarget.id)
-    setDeleteCommentTarget(null)
-    if (!ok) toast.error('Kommentar konnte nicht gelöscht werden')
   }
 
   // ── Section blocks (shared by mobile & desktop layouts) ─────────────────────

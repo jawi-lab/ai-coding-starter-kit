@@ -402,3 +402,7 @@ Vorher gemessen: Der weiße Balken erreichte 1,06:1 auf Cream und 2,29:1 auf Blu
 - **Geprüft:** Im Simulator auf Grün, Cream, Gold und Blush. Nur Augenschein und Messung in Light Mode; die Slides sind vom App-Theme unabhängig.
 - **Offener Befund, nicht behoben:** Die Statusleiste bleibt auf der grünen Slide dunkel auf Dunkelgrün.
 - **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.
+
+## Bug-Fix (2026-10-31): Statusleiste folgt der Slide
+
+Der offene Befund aus dem Polish oben: Der Story-Viewer setzt die Statusleiste nativ je Slide (`slideStatusBarText`, `lib/native/status-bar.ts`): heller Text auf Grün und Gold, dunkler auf Cream und Blush. Beim Schließen gilt wieder das App-Theme.

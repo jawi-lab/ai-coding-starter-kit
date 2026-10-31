@@ -489,3 +489,7 @@ Befund P3 aus der Vorher-Nachher-Prüfung des Design-Polish in PROJ-6.
 ## Bug-Fix (2026-10-31): Aktionsmenü öffnet das Detail mit
 
 Ein Klick auf „Bearbeiten", „Erneut zur Abstimmung" oder „Löschen" lief durchs React-Portal bis zum `onClick` der Karte. Dadurch öffnete sich das Detail-Sheet hinter dem Dialog, und der Dialog war für Hilfstechnologien verdeckt. `DropdownMenuContent` stoppt den Klick jetzt. Aufgedeckt durch die reparierten E2E-Tests AC-ACTIONS-2 und AC-ACTIONS-3, die vor dem Fix fehlschlugen und danach bestehen.
+
+## Design-Polish (2026-10-31): Plus-Button neben den Filtern
+
+Die „Grenze" aus dem Polish oben ist aufgehoben: Das mobile Plus steht als 44-px-Button rechts neben den Filter-Chips, oberhalb der Liste, und verdeckt deshalb an keiner Scroll-Position eine Karte. Der schwebende Button und `useHideOnScrollDown` samt Unit-Test sind entfallen, weil sie nichts mehr zu tun haben. Desktop bleibt unverändert. Test: `tests/design-fixes-2026-10.spec.ts` (P3), schlug auf dem alten Stand fehl.

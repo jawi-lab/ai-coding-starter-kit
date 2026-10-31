@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { WrappedSlide, slideChromeColor } from './WrappedSlide'
+import { WrappedSlide, slideChromeColor, slideStatusBarText } from './WrappedSlide'
 import type { WrappedSlide as Slide } from '@/lib/wrapped'
 
 const people = [{ id: 'p1', name: 'Lina' }]
@@ -35,5 +35,14 @@ describe('slideChromeColor', () => {
 
   it('nutzt auf grünen Slides eine helle Balkenfarbe', () => {
     expect(slideChromeColor('intro')).toBe('#FBF8F3')
+  })
+})
+
+describe('slideStatusBarText', () => {
+  it('nutzt auf dunklen Flächen hellen und auf hellen Flächen dunklen Text', () => {
+    expect(slideStatusBarText('intro')).toBe('light')
+    expect(slideStatusBarText('top-month')).toBe('light')
+    expect(slideStatusBarText('count')).toBe('dark')
+    expect(slideStatusBarText('top-activity')).toBe('dark')
   })
 })

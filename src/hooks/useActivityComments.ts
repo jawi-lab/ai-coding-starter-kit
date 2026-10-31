@@ -72,7 +72,13 @@ export function useActivityComments(activityId: string | null): UseActivityComme
           table: 'activity_comments',
           filter: `activity_id=eq.${activityId}`,
         },
-        () => {
+        (payload) => {
+          // DELETE enthält wegen RLS nur den Primärschlüssel, das reicht zum Entfernen.
+          if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id?: string }).id
+            setComments(prev => prev.filter(c => c.id !== deletedId))
+            return
+          }
           fetchComments()
         }
       )
@@ -103,13 +109,14 @@ export function useActivityComments(activityId: string | null): UseActivityComme
   }
 
   async function deleteComment(commentId: string): Promise<boolean> {
-    const { error: err } = await supabase
+    const { data, error: err } = await supabase
       .from('activity_comments')
       .delete()
       .eq('id', commentId)
+      .select('id')
 
-    if (err) return false
-    // Das Realtime-Abo liefert DELETE wegen des Filters ohne `replica identity full` nicht.
+    // Verweigert RLS das Löschen, kommt kein Fehler, sondern 0 Zeilen.
+    if (err || !data || data.length === 0) return false
     setComments(prev => prev.filter(c => c.id !== commentId))
     return true
   }

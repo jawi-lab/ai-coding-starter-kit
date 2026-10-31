@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { X, Share2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useGroupWrapped } from '@/hooks/useGroupWrapped'
-import { WrappedSlide, slideChromeColor } from './WrappedSlide'
+import { WrappedSlide, slideChromeColor, slideStatusBarText } from './WrappedSlide'
+import { setStatusBarText } from '@/lib/native/status-bar'
 import {
   nodeToPng,
   shareWrappedImage,
@@ -45,6 +46,18 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
   const total = slides?.length ?? 0
   const current = slides?.[index] ?? null
   const chromeColor = current ? slideChromeColor(current.type) : '#FBF8F3'
+
+  const statusBarText = current ? slideStatusBarText(current.type) : null
+
+  useEffect(() => {
+    if (open && statusBarText) void setStatusBarText(statusBarText)
+  }, [open, statusBarText])
+
+  // Beim Schließen wieder die Statusleiste des App-Themes.
+  useEffect(() => {
+    if (!open) return
+    return () => void setStatusBarText()
+  }, [open])
 
   const goNext = useCallback(() => {
     setIndex((i) => {

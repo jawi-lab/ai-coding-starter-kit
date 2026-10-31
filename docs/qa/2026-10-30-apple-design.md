@@ -13,7 +13,7 @@ Getestet wurde der nicht committete Stand auf Basis von `8b1be88`. Es gibt keine
 | 3 | Medium | Im Build fehlte das unprefixte `backdrop-filter` bei `.glass`, Chrome zeigte keine Unschärfe. | behoben durch geänderte Reihenfolge, Unschärfe in Chrome bestätigt |
 | 4 | Low | `tailwindcss-animate` stand in `dependencies`. | behoben: jetzt `devDependencies`, Audit wieder auf altem Stand |
 | 5 | Low | Das Zurückfedern glitt auch bei „Bewegung reduzieren“. | behoben: springt direkt zurück |
-| 6 | Low | Beim Öffnen zeigen der Schließen-Button im Aktivitäts-Sheet und „Weiter bearbeiten“ in der Rückfrage sofort den Fokusring. Herkunft nicht mit dem alten Stand verglichen. | offen |
+| 6 | Low | Beim Öffnen zeigen der Schließen-Button im Aktivitäts-Sheet und „Weiter bearbeiten“ in der Rückfrage sofort den Fokusring. Herkunft nicht mit dem alten Stand verglichen. | behoben 2026-10-31, siehe PROJ-6 |
 | 7 | Critical | Mit dem iOS-27-SDK gebaut, startete die App auf iOS 27 nicht: „UIScene life cycle is required for apps built with this SDK“. Nicht durch die Design-Änderungen verursacht. | behoben: Capacitor 8.6.0 und `SceneDelegate`, auf iOS 27 und 26.5 bestätigt |
 | 8 | High | Die Tastatur verdeckte in der iOS-App Formularfelder und den Absende-Button, weil das Keyboard-Plugin `visualViewport` außer Kraft setzt (`Keyboard.m:196-197`). Auch auf iOS 26.5, nicht durch die Design-Änderungen verursacht. | behoben in `useKeyboardInset` für alle drei Nutzer; im Vorschlags-Formular auf iOS 27 bestätigt |
 | 9 | Medium | Vier Bestätigungsdialoge saßen wegen `mx-4` zu weit rechts und wurden am Rand abgeschnitten. Drei davon bestanden schon vorher. | behoben; nur die Rückfrage im Simulator bestätigt |
