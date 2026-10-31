@@ -48,11 +48,12 @@ const config: CapacitorConfig = {
     // published bundles the app simply runs its built-in `out/` bundle — never
     // an error. See src/components/native/NativeUpdater.tsx + src/lib/native/ota.ts.
     CapacitorUpdater: {
-      // Bleibt aus, bis die App-ID in Capgo beansprucht ist und `publicKey` gesetzt
-      // ist (Security audit run-1, Fall 6): Ohne Schlüssel würde die App jedes
-      // Bundle installieren, das unter dieser App-ID ausgeliefert wird. Danach
-      // wieder true: stiller Download, Anwendung beim nächsten Kaltstart.
+      // Bleibt aus, bis die App-ID sicher zu unserem Capgo-Konto gehört (Security
+      // audit run-1, Fall 6). `publicKey` allein reicht nicht: Erst beide zusammen
+      // verhindern fremde Bundles. Danach true: stiller Download, Anwendung beim
+      // nächsten Kaltstart. Der private Schlüssel liegt nur lokal, nie in Git.
       autoUpdate: false,
+      publicKey: "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAzcoq4ZPFM9xONZ63UAOnWn+dS+Fsu40WOSaeNtpmCL5cYZSR3qYb\nScS62pQ2tgWkHCutgBq4B0degHEX2iDqAcmNxiDKtppwQoLFxeJnylA7Lawd6O0z\nHxAWesHDmNacZ41JopBGJHgTq4X9y4sMz0gkKC6TKroc7XNCQyAXr/XGRbQoyf+C\nVigEdl22AZHKxdUg/frWQ+aBL1mkJ7B1/Vu1WkMbXUle4VxXxdkREcKMCu87M2sh\n7evLaMqZrjzhOCeY1u8eHMk4oI8qPEoITl6OJnqD6wyfoonVLr/5nAlTIlMZVrgk\n60yHKLhWw3sVyQKNSjHQ4hZyOMPauTyaDQIDAQAB\n-----END RSA PUBLIC KEY-----",
       // Auto-rollback safety net: a freshly applied bundle must call
       // notifyAppReady() (NativeUpdater) within this window, or Capgo reverts to
       // the last working version. 10 s = generous for slow/cold starts.

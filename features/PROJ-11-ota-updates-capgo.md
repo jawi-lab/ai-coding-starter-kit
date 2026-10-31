@@ -300,3 +300,10 @@ Der eigentliche OTA-**Live-Betrieb** (Capgo-Account anlegen, App/API-Key registr
 ## Security-Fix (2026-10-30, Audit run-1, Fall 6)
 
 `autoUpdate` steht in `capacitor.config.ts` auf `false`. Ohne `publicKey` würde die App jedes Bundle installieren, das unter der App-ID `com.zusammen.app` ausgeliefert wird. **Vor dem OTA-Go-Live:** App-ID in Capgo beanspruchen, Schlüsselpaar erzeugen (`npx @capgo/cli key create`), `publicKey` setzen, nur verschlüsselte Bundles hochladen, dann `autoUpdate` wieder auf `true`. Wirksam erst mit dem nächsten nativen Build. Offen: Prüfung, ob die App-ID noch frei ist und welche ausgelieferten Builds das Plugin enthalten.
+
+## Go-Live-Vorbereitung (2026-10-31)
+
+- **Schlüsselpaar:** Mit `@capgo/cli key create` erzeugt, `publicKey` steht in `capacitor.config.ts` und ist in den Release-Builds enthalten. Der private Schlüssel liegt nur lokal unter `_local/capgo/` (gitignored). `.capgo_key_v2*` ist zusätzlich im Projektordner ignoriert, weil die CLI ihn standardmäßig dort anlegt.
+- **`autoUpdate` bleibt `false`:** Auf diesem Rechner gibt es keinen Capgo-Login (Konsole leitet auf `/login` um, keine CLI-Zugangsdaten). Die App-ID konnte deshalb weder geprüft noch beansprucht werden.
+- **Bundle:** Keines hochgeladen.
+- **Nächster Schritt:** Bei Capgo einloggen, `npx @capgo/cli@latest login <API-Key>`, dann `npx @capgo/cli@latest app add com.zusammen.app`. Ist die ID vergeben, zuerst den Inhaber klären. Danach `autoUpdate: true` setzen und nativ neu bauen. Bundles nur mit dem Schlüssel aus `_local/capgo/` verschlüsseln.

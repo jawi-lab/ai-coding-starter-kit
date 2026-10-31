@@ -83,3 +83,6 @@ docs/ICON-SPEC.md
 /.impeccable/
 /brag-output*/
 /skills-lock.json
+
+# Capgo: privater OTA-Schlüssel, liegt unter _local/capgo/
+.capgo_key_v2*

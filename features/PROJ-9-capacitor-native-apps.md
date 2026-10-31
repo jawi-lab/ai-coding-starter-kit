@@ -836,3 +836,10 @@ Status von „Approved" auf **Deployed** gesetzt. PROJ-9 war das einzige Feature
 nicht auf „Deployed" stand, obwohl die native Hülle gebaut ist und die darauf
 aufsetzenden Features PROJ-10 (Push) und PROJ-11 (OTA) längst deployed sind — es fehlte
 lediglich die Statuspflege, kein ausstehender Arbeitsschritt.
+
+## Release-Builds (2026-10-31)
+
+Lokal gebaut aus `main`, nichts hochgeladen und nichts eingereicht. Beide liegen in `_local/builds/` (gitignored).
+
+- **Android:** `Mellon-release-signed.aab`, signiert mit einem neu erzeugten Upload-Schlüssel (`_local/android-upload/`, gitignored). Im Repo ist keine Signatur hinterlegt; die Werte werden per `-Pandroid.injected.signing.*` übergeben. Upload blockiert: kein Play-Zugang auf diesem Rechner. Der Upload-Schlüssel muss bei der ersten Play-Einrichtung registriert werden. Ist bereits einer registriert, gilt der und das AAB muss damit neu signiert werden.
+- **iOS:** `Mellon-unsigned.xcarchive`, Release-Archiv ohne Signatur. Auf dem Rechner gibt es keine Signing-Identität, kein Provisioning-Profil und kein `DEVELOPMENT_TEAM`, daher kein TestFlight-Upload. Nächster Schritt: In Xcode mit dem Apple-Konto anmelden, Team setzen, Archiv neu erstellen und per Organizer hochladen.
