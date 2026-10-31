@@ -493,3 +493,7 @@ Ein Klick auf „Bearbeiten", „Erneut zur Abstimmung" oder „Löschen" lief d
 ## Design-Polish (2026-10-31): Plus-Button neben den Filtern
 
 Die „Grenze" aus dem Polish oben ist aufgehoben: Das mobile Plus steht als 44-px-Button rechts neben den Filter-Chips, oberhalb der Liste, und verdeckt deshalb an keiner Scroll-Position eine Karte. Der schwebende Button und `useHideOnScrollDown` samt Unit-Test sind entfallen, weil sie nichts mehr zu tun haben. Desktop bleibt unverändert. Test: `tests/design-fixes-2026-10.spec.ts` (P3), schlug auf dem alten Stand fehl.
+
+## Design-Polish (2026-11-01): Plus-Button wieder schwebend
+
+Der Plus-Button neben den Filtern (siehe oben) schnitt den Filter „Längerer Zeitraum“ ab. Auf Wunsch des Product Owners schwebt er mobil wieder unten rechts und weicht beim Runterscrollen aus; `useHideOnScrollDown` ist zurück. Die im ersten Polish genannte Grenze gilt damit wieder und ist akzeptiert: Am Listenanfang und nach dem Hochscrollen kann der Button eine Karte überlappen.

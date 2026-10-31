@@ -39,7 +39,7 @@ Alle fehlgeschlagenen E2E-Tests scheitern im Login, in jedem Lauf andere. In den
 |---|---|---|
 | B1 Löschen per Realtime | Behoben, bestätigt | Migration `20261031212758`, E2E mit zwei Konten. Typen unverändert |
 | B2 RLS-Absage | Behoben, bestätigt | Editor löscht fremden Kommentar: 0 Zeilen, Kommentar bleibt, Fehlermeldung. Bilder werden erst nach erfolgreichem Löschen entfernt |
-| B3 Plus-Button | Behoben, bestätigt | Mobil neben den Filtern, keine Überlappung an allen geprüften Scroll-Positionen. Schwebender Button und `useHideOnScrollDown` samt Unit-Test entfallen |
+| B3 Plus-Button | Zurückgenommen (2026-11-01) | Die Lösung neben den Filtern war bestätigt, schnitt aber einen Filter ab. Auf Wunsch wieder schwebend unten rechts; die mögliche Überlappung am Listenanfang ist akzeptiert, siehe PROJ-4 |
 | B4 Statusleiste | Behoben, bestätigt | Simulator: hell auf Grün und Gold, dunkel auf Cream und Blush, danach App-Theme. Nur im Light-Modus geprüft |
 | B5 Fokusring | Behoben, bestätigt, mit Lücke | Chromium mit Touch-Emulation: kein Ring nach Tippen, Ring und Bedienung per Tab bleiben. WebKit im Simulator: am Sheet-X kein Ring. „Weiter bearbeiten" in echtem WebKit nicht geprüft |
 | Sicherheit | Bestanden | RLS unverändert. Hinweis unten |
@@ -55,7 +55,7 @@ Alle fehlgeschlagenen E2E-Tests scheitern im Login, in jedem Lauf andere. In den
 | Listen mit Einträgen | Bestätigt, ein Fehler behoben | Teilen-Button verdeckte den Wrapped-Fuß |
 | Firefox | Blockiert | Start scheitert an der Sandbox der Arbeitsumgebung (`Operation not permitted`). Sandbox bewusst nicht abgeschaltet |
 | Safari | Teilweise | App-WebKit im Simulator wie bei B4, B5. Safari.app nur Login-Seite, kein eingeloggter Lauf |
-| Live-Seite | Bestätigt | Login, Plus, Wrapped-Fuß, lokale Schriften |
+| Live-Seite | Bestätigt | Login, Plus (Stand 2026-10-31, seitdem zurückgenommen), Wrapped-Fuß, lokale Schriften |
 
 **Dabei aufgedeckt und behoben:** Das Tippen auf „Kommentar löschen" ging verloren, wenn das Kommentarfeld den Fokus hatte.
 

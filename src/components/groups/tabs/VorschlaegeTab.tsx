@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { EmptyIdeaIcon, EmptySearchIcon } from '@/components/icons/mellon-icons'
@@ -15,6 +15,7 @@ import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { DeleteProposalDialog } from '@/components/groups/DeleteProposalDialog'
 import { ResetVotesDialog } from '@/components/groups/ResetVotesDialog'
 import { useActivityProposals } from '@/hooks/useActivityProposals'
+import { useHideOnScrollDown } from '@/hooks/useHideOnScrollDown'
 import { useVote } from '@/hooks/useVote'
 import { useDeleteProposal } from '@/hooks/useDeleteProposal'
 import { useResetVotes } from '@/hooks/useResetVotes'
@@ -46,6 +47,8 @@ export function VorschlaegeTab() {
   const [deleteTarget, setDeleteTarget] = useState<ActivityWithInitiator | null>(null)
   const [resetTarget, setResetTarget] = useState<ActivityWithInitiator | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+  const fabHidden = useHideOnScrollDown(listRef)
 
   const { proposals, myVotedIds, loading, error, filterByCategory, refetch } =
     useActivityProposals(groupId)
@@ -101,8 +104,7 @@ export function VorschlaegeTab() {
 
       {/* Filter chips */}
       <div className="flex-shrink-0 border-b border-line">
-        <div className="max-w-5xl mx-auto w-full flex items-center">
-        <div className="flex-1 min-w-0 px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="max-w-5xl mx-auto w-full px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
           {FILTER_CHIPS.map((chip) => {
             const active = activeFilter === chip.value
             return (
@@ -120,23 +122,11 @@ export function VorschlaegeTab() {
             )
           })}
         </div>
-        {/* Mobil oberhalb der Liste, damit das Plus nie eine Karte verdeckt. */}
-        {canCreate && (
-          <Button
-            onClick={openCreateProposal}
-            aria-label="Vorschlag hinzufügen"
-            className="md:hidden flex-shrink-0 mr-4 h-11 w-11 p-0 bg-primary hover:bg-primary/90 text-white
-                       rounded-full flex items-center justify-center active:scale-95 transition-transform"
-          >
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-          </Button>
-        )}
-        </div>
       </div>
 
       {/* Proposal list — scrollt mobil unter der fixierten Glas-Bottom-Nav durch
-          (Liquid-Glass wie auf Home); genug Bodenabstand für die Nav. */}
-      <div className="flex-1 overflow-y-auto">
+          (Liquid-Glass wie auf Home); genug Bodenabstand für Nav + FAB. */}
+      <div ref={listRef} className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto w-full px-4 pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-28 pt-3">
           {error && <p className="mt-6 text-center text-[13px] text-error">{error}</p>}
 
@@ -173,6 +163,28 @@ export function VorschlaegeTab() {
       {/* Desktop-FAB (neuer Vorschlag) — unten rechts. */}
       {canCreate && (
         <div className="hidden md:block absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-10">
+          <Button
+            onClick={openCreateProposal}
+            aria-label="Vorschlag hinzufügen"
+            className="h-14 w-14 p-0 bg-primary hover:bg-primary/90 text-white
+                       rounded-full shadow-float
+                       flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile-FAB (neuer Vorschlag) — schwebt unten rechts über der Liste,
+          direkt über der fixierten Bottom-Nav. Weicht beim Runterscrollen aus,
+          damit es keine Herzen verdeckt. */}
+      {canCreate && (
+        <div
+          inert={fabHidden}
+          className={`md:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-10 transition-[transform,opacity] duration-200 motion-reduce:transition-none ${
+            fabHidden ? 'pointer-events-none translate-y-6 opacity-0' : ''
+          }`}
+        >
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"

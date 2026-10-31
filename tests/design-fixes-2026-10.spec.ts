@@ -116,30 +116,26 @@ test.describe('Design-Fixes 2026-10', () => {
     await expect(comment).toHaveCount(0, { timeout: 5000 })
   })
 
-  test('P3: Plus-Button überlappt auf Mobil an keiner Scroll-Position eine Karte', async ({ page }) => {
+  test('P3: Plus-Button weicht beim Runterscrollen aus und kommt zurück', async ({ page }) => {
     await page.setViewportSize({ width: 402, height: 600 })
     await openGroup(page)
-    const button = page.getByRole('button', { name: 'Vorschlag hinzufügen' }).locator('visible=true')
-    await expect(button).toBeVisible({ timeout: 10000 })
-    const cards = page.locator('div.rounded-lg.cursor-pointer').locator('visible=true')
-    await expect(cards.first()).toBeVisible({ timeout: 10000 })
-    const list = page.locator('div.flex-1.overflow-y-auto').filter({ hasText: 'QA-Demo Bouldern am Freitag' }).first()
 
-    for (const top of [0, 60, 150, 300, 0]) {
-      await list.evaluate((el, value) => el.scrollTo(0, value), top)
-      await page.waitForTimeout(250)
-      // elementFromPoint berücksichtigt, dass gescrollte Karten abgeschnitten sind.
-      const coveredCards = await page.evaluate(() => {
-        const fab = [...document.querySelectorAll('button[aria-label="Vorschlag hinzufügen"]')]
-          .map((el) => el.getBoundingClientRect()).find((r) => r.width > 0)!
-        const points = [[0.5, 0.5], [0.1, 0.5], [0.9, 0.5], [0.5, 0.1], [0.5, 0.9]]
-        return points.filter(([x, y]) => {
-          const stack = document.elementsFromPoint(fab.left + fab.width * x, fab.top + fab.height * y)
-          return stack.some((el) => el.matches('div.rounded-lg.cursor-pointer'))
-        }).length
-      })
-      expect(coveredCards, `Scroll-Position ${top}`).toBe(0)
-    }
+    const button = page.getByRole('button', { name: 'Vorschlag hinzufügen' }).last()
+    await expect(button).toBeVisible({ timeout: 10000 })
+    const wrapper = button.locator('xpath=..')
+    const list = page.locator('div.flex-1.overflow-y-auto').filter({ hasText: 'QA-Demo Bouldern am Freitag' }).first()
+    const scrollTo = (top: number) => list.evaluate((el, value) => el.scrollTo(0, value), top)
+
+    await scrollTo(300)
+    await expect(wrapper).toHaveAttribute('inert')
+    await scrollTo(150)
+    await expect(wrapper).not.toHaveAttribute('inert')
+
+    // Filter verkürzt die Liste: Der Button darf nicht versteckt bleiben.
+    await scrollTo(300)
+    await expect(wrapper).toHaveAttribute('inert')
+    await page.getByRole('button', { name: 'Längerer Zeitraum', exact: true }).click()
+    await expect(wrapper).not.toHaveAttribute('inert')
   })
 
   test('Fokusring: Nach Mausbedienung zeigt kein Element im Dialog den Ring', async ({ page }) => {
