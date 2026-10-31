@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Locator, type Page } from '@playwright/test'
 
 // To run authenticated tests: set TEST_USER_EMAIL and TEST_USER_PASSWORD env vars
 const TEST_EMAIL = process.env.TEST_USER_EMAIL ?? ''
@@ -184,6 +184,15 @@ test.describe('Gruppen-Übersicht', () => {
 // ─── Group Detail Sheet ───────────────────────────────────────────────────────
 
 test.describe('Gruppen-Detail-Sheet', () => {
+  // Die Karte öffnet die Gruppenansicht, die Einstellungen liegen dort im Kopf.
+  async function openSettings(page: Page, cards: Locator) {
+    await cards.first().click()
+    await page.waitForURL(/\/groups\/view\/?\?id=/, { timeout: 10000 })
+    const settings = page.getByRole('button', { name: 'Gruppen-Einstellungen öffnen' })
+    await expect(settings).toBeEnabled({ timeout: 10000 })
+    await settings.click()
+  }
+
   test.skip(!hasCredentials, 'Requires TEST_USER_EMAIL + TEST_USER_PASSWORD env vars')
 
   test.beforeEach(async ({ page }) => {
@@ -191,7 +200,7 @@ test.describe('Gruppen-Detail-Sheet', () => {
     // Navigate to /groups and open the first group card
     if (page.url().includes('onboarding')) return
     await page.goto('/groups')
-    await page.waitForSelector('button.rounded-\\[18px\\]', { timeout: 5000 }).catch(() => {})
+    await page.getByRole('button', { name: /Mitglied(er)? · / }).first().waitFor({ timeout: 10000 })
   })
 
   test('AC-DETAIL-1: Clicking a group card opens the detail sheet', async ({ page }) => {
@@ -205,7 +214,7 @@ test.describe('Gruppen-Detail-Sheet', () => {
       test.skip(true, 'No group cards found')
       return
     }
-    await cards.first().click()
+    await openSettings(page, cards)
     await expect(page.getByText('Einladungs-Code')).toBeVisible({ timeout: 3000 })
   })
 
@@ -219,7 +228,7 @@ test.describe('Gruppen-Detail-Sheet', () => {
       test.skip(true, 'No group cards found')
       return
     }
-    await cards.first().click()
+    await openSettings(page, cards)
     await expect(page.getByText('Einladungs-Code')).toBeVisible({ timeout: 3000 })
     await expect(page.getByLabel('Code kopieren')).toBeVisible()
   })
@@ -234,7 +243,7 @@ test.describe('Gruppen-Detail-Sheet', () => {
       test.skip(true, 'No group cards found')
       return
     }
-    await cards.first().click()
+    await openSettings(page, cards)
     await expect(page.getByText(/Mitglieder \(\d+\)/)).toBeVisible({ timeout: 3000 })
   })
 })
