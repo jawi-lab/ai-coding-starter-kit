@@ -406,3 +406,9 @@ Vorher gemessen: Der weiße Balken erreichte 1,06:1 auf Cream und 2,29:1 auf Blu
 ## Bug-Fix (2026-10-31): Statusleiste folgt der Slide
 
 Der offene Befund aus dem Polish oben: Der Story-Viewer setzt die Statusleiste nativ je Slide (`slideStatusBarText`, `lib/native/status-bar.ts`): heller Text auf Grün und Gold, dunkler auf Cream und Blush. Beim Schließen gilt wieder das App-Theme.
+
+## Bug-Fix (2026-10-31): Teilen-Button verdeckte den Fuß
+
+Der Teilen-Button lag auf „MELLON RÜCKBLICK · {Jahr}". Der Fuß hat in der Anzeige jetzt unten Platz für den Button (29 px Überlappung vorher, keine nachher, E2E P4 + P5). Das geteilte Bild bleibt unverändert.
+
+**Statusleiste nativ geprüft:** iPhone-17-Pro-Simulator: hell auf Grün, dunkel auf Cream, nach dem Schließen wieder das App-Theme.

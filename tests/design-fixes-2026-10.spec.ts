@@ -74,6 +74,48 @@ test.describe('Design-Fixes 2026-10', () => {
     await expect(comment).toHaveCount(0, { timeout: 5000 })
   })
 
+  test('Kommentar mit neuem Bild: Scrollen endet unterhalb des Kommentars', async ({ page }) => {
+    test.setTimeout(45000)
+    await page.setViewportSize(MOBILE)
+    await openGroup(page)
+    await openActivity(page, MOBILE.width)
+
+    const text = `QA-Demo Bild ${Date.now()}`
+    const png = await page.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 800
+      canvas.height = 1000
+      const context = canvas.getContext('2d')!
+      context.fillStyle = '#1E4634'
+      context.fillRect(0, 0, 800, 1000)
+      return canvas.toDataURL('image/png').split(',')[1]
+    })
+    await page.locator('[role="dialog"] .ProseMirror').first().click()
+    await page.keyboard.type(text)
+    await page.locator('[role="dialog"] input[type="file"][accept="image/*"]').last().setInputFiles({
+      name: 'qa-demo.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from(png, 'base64'),
+    })
+    await expect(page.locator('[role="dialog"] .ProseMirror img')).toBeVisible({ timeout: 10000 })
+    await page.keyboard.press('ControlOrMeta+Enter')
+
+    const comment = page.locator('div.group').filter({ hasText: text })
+    const image = comment.locator('img').last()
+    await expect(image).toBeVisible({ timeout: 10000 })
+    await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), { timeout: 10000 }).toBe(true)
+    await page.waitForTimeout(1500)
+
+    // Das Bildende muss oberhalb des Kommentarfelds liegen, nicht dahinter.
+    const composerTop = await page.locator('[role="dialog"] .ProseMirror').first().evaluate((el) => el.getBoundingClientRect().top)
+    const imageBottom = await image.evaluate((el) => el.getBoundingClientRect().bottom)
+    expect(imageBottom).toBeLessThanOrEqual(composerTop)
+
+    await comment.getByRole('button', { name: 'Kommentar löschen' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Löschen' }).click()
+    await expect(comment).toHaveCount(0, { timeout: 5000 })
+  })
+
   test('P3: Plus-Button überlappt auf Mobil an keiner Scroll-Position eine Karte', async ({ page }) => {
     await page.setViewportSize({ width: 402, height: 600 })
     await openGroup(page)
@@ -146,6 +188,10 @@ test.describe('Design-Fixes 2026-10', () => {
     const viewer = page.getByRole('dialog', { name: 'Mellon Rückblick 2025' })
     const footer = viewer.getByText('MELLON RÜCKBLICK · 2025', { exact: true })
     await expect(footer.first()).toBeVisible({ timeout: 10000 })
+    // Der Teilen-Button darf den Fuß nicht verdecken.
+    const footerBox = (await footer.first().boundingBox())!
+    const shareBox = (await viewer.getByRole('button', { name: 'Teilen' }).boundingBox())!
+    expect(footerBox.y + footerBox.height).toBeLessThanOrEqual(shareBox.y)
 
     await viewer.getByRole('button', { name: 'Nächste Slide' }).click()
     await expect(footer.first()).toBeVisible()

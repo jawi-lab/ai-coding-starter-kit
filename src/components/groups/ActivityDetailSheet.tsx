@@ -947,6 +947,8 @@ export function ActivityDetailSheet({
               </div>
               {!readOnly && (isAdmin || comment.user_id === currentUserId) && (
                 <button
+                  // Fokus im Kommentarfeld lassen: Klappt dessen Leiste ein, springt die Zeile und der Klick geht verloren.
+                  onMouseDown={e => e.preventDefault()}
                   onClick={() => setDeleteCommentTarget(comment)}
                   className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-[opacity,color,background-color]"
                   aria-label="Kommentar löschen"

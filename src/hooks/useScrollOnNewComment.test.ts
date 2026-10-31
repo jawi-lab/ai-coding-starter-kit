@@ -46,3 +46,48 @@ describe('useScrollOnNewComment', () => {
     expect(scrollIntoView).not.toHaveBeenCalled()
   })
 })
+
+describe('useScrollOnNewComment: nachladende Bilder', () => {
+  function setup() {
+    const list = document.createElement('div')
+    const end = document.createElement('div')
+    list.appendChild(end)
+    document.body.appendChild(list)
+    const scroll = vi.fn()
+    end.scrollIntoView = scroll
+    const ref = { current: end }
+    const view = renderHook(({ count }) => useScrollOnNewComment(true, count, ref), { initialProps: { count: 1 } })
+    view.rerender({ count: 2 })
+    expect(scroll).toHaveBeenCalledTimes(1)
+    const image = document.createElement('img')
+    list.appendChild(image)
+    return { view, scroll, image }
+  }
+
+  it('scrollt erneut, wenn ein Bild fertig geladen ist', () => {
+    const { scroll, image } = setup()
+    image.dispatchEvent(new Event('load'))
+    expect(scroll).toHaveBeenCalledTimes(2)
+  })
+
+  it('folgt nicht mehr, sobald die Person selbst scrollt', () => {
+    const { scroll, image } = setup()
+    window.dispatchEvent(new Event('touchmove'))
+    image.dispatchEvent(new Event('load'))
+    expect(scroll).toHaveBeenCalledTimes(1)
+  })
+
+  it('folgt nicht mehr, sobald die Person etwas antippt', () => {
+    const { scroll, image } = setup()
+    window.dispatchEvent(new Event('pointerdown'))
+    image.dispatchEvent(new Event('load'))
+    expect(scroll).toHaveBeenCalledTimes(1)
+  })
+
+  it('folgt nach dem Abbau nicht mehr', () => {
+    const { view, scroll, image } = setup()
+    view.unmount()
+    image.dispatchEvent(new Event('load'))
+    expect(scroll).toHaveBeenCalledTimes(1)
+  })
+})

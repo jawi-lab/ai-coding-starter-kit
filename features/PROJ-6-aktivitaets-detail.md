@@ -542,3 +542,20 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 - **Bilder bleiben bei Fehlschlag erhalten:** Kommentarbilder werden erst nach dem erfolgreichen Löschen entfernt, vorher geschah das davor.
 - **Fokusring (Befund P2, `docs/qa/2026-10-30-apple-design.md` Befund 6):** Nach Zeiger oder Touch erhält ein Dialog selbst den Fokus (`lib/input-modality.ts`), sodass kein Ring erscheint. Nach Tastaturbedienung fokussiert Radix wie bisher das erste Element mit Ring. Gilt für `ResponsiveModal`, `AlertDialog` und `Dialog`. Das X in `Dialog` nutzt jetzt `focus-visible` statt `focus`.
 - **Tests:** `src/hooks/useActivityComments.realtime.test.ts`, `src/lib/input-modality.test.ts`, `tests/PROJ-6-kommentare-realtime.spec.ts` (zwei Konten), `tests/design-fixes-2026-10.spec.ts`.
+
+## QA (2026-10-31): Prüflücken geschlossen
+
+| Prüfung | Ergebnis |
+|---|---|
+| Dark Mode der Fixes | In Ordnung bei 402 und 1440 px |
+| Desktop-Layout Detail und Board | In Ordnung bei 1440 px |
+| Kommentar mit neuem Bild | Fehler gefunden und behoben, siehe unten |
+| Zwei Mitglieder, Realtime für neue und gelöschte Kommentare | In Ordnung, `tests/PROJ-6-kommentare-realtime.spec.ts` |
+| Vorschlagskarten, Umfragen, Kommentare, Wrapped, Termine mit Einträgen | In Ordnung, hell und dunkel |
+| Safari-Engine | iPhone-17-Pro-Simulator (WebKit der App): kein Fokusring an Aktivitäts-Sheet und Gruppen-Einstellungen, Statusleiste korrekt. Safari.app selbst nicht geprüft |
+| Firefox | Blockiert: Playwright-Firefox und Firefox.app starten in der Sandbox der Arbeitsumgebung nicht (`Operation not permitted`) |
+
+**Gefundene Fehler, behoben:**
+
+- **Bild hinter dem Kommentarfeld:** Das Scrollen endete, bevor das Bild geladen war; das Bildende lag 168 px hinter dem Feld. `useScrollOnNewComment` folgt jetzt bis zu 8 Sekunden nachladenden Bildern, endet aber sofort, wenn die Person scrollt oder tippt.
+- **Löschen-Tippen ging verloren:** Das Tippen nahm dem Kommentarfeld den Fokus, die Werkzeugleiste klappte ein und die Zeile sprang zwischen Drücken und Loslassen weg. Der Button behält den Fokus jetzt im Feld.

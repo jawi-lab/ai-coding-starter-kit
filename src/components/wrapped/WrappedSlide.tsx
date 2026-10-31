@@ -85,7 +85,8 @@ export function WrappedSlide({ slide, year, variant = 'view' }: WrappedSlideProp
 
       {/* Branding-Fuß — auf dem geteilten Bild verpflichtend (dezent). */}
       <div
-        className="relative flex-shrink-0 pb-9 pt-2 text-center"
+        // Platz für den Teilen-Button, der in der Anzeige darunter schwebt.
+        className="relative flex-shrink-0 pb-[calc(env(safe-area-inset-bottom)+5rem)] pt-2 text-center"
         style={{ paddingBottom: variant === 'share' ? '2.75rem' : undefined }}
       >
         <p className="text-[11px] font-[700] tracking-[0.14em]" style={{ color: theme.fgMuted }}>
