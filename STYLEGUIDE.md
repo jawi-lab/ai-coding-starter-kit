@@ -161,7 +161,7 @@ Tailwind: `font-sans` (Default) / `font-serif`.
   im Dark Mode invertiert), Gruppen-Kontext, Nav (aktiv `primary-soft`/`primary`),
   User-Card unten (öffnet Profil-Sheet). Ersetzt die früheren Desktop-Top-Tabs.
 
-### FAB — 56px rund, `primary`, `shadow-float`, unten rechts (mobil über der Tab-Bar).
+### FAB — 56px rund, `primary`, `shadow-float`, unten rechts (mobil über der Tab-Bar). In der Vorschlagsliste weicht er mobil beim Runterscrollen aus (`useHideOnScrollDown`).
 
 ---
 

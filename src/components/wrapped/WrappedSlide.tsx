@@ -25,12 +25,14 @@ interface Theme {
   accent: string
   /** Textfarbe auf dem Akzent-Medaillon. */
   onAccent: string
+  /** Fortschrittsbalken im Viewer: mindestens 3:1 zu `bg`, auch über dem Deko-Kreis. */
+  chrome: string
 }
 
-const CREAM: Theme = { bg: '#FBF8F3', fg: '#221E19', fgMuted: 'rgba(34,30,25,0.62)', accent: '#1E4634', onAccent: '#FBF8F3' }
-const GREEN: Theme = { bg: '#173829', fg: '#FBF8F3', fgMuted: 'rgba(251,248,243,0.72)', accent: '#D9A24B', onAccent: '#173829' }
-const GOLD: Theme = { bg: '#B77F27', fg: '#FBF8F3', fgMuted: 'rgba(251,248,243,0.82)', accent: '#FBF8F3', onAccent: '#B77F27' }
-const BLUSH: Theme = { bg: '#DC9C88', fg: '#3A2118', fgMuted: 'rgba(58,33,24,0.66)', accent: '#3A2118', onAccent: '#F7E7DF' }
+const CREAM: Theme = { bg: '#FBF8F3', fg: '#221E19', fgMuted: 'rgba(34,30,25,0.62)', accent: '#1E4634', onAccent: '#FBF8F3', chrome: '#221E19' }
+const GREEN: Theme = { bg: '#173829', fg: '#FBF8F3', fgMuted: 'rgba(251,248,243,0.72)', accent: '#D9A24B', onAccent: '#173829', chrome: '#FBF8F3' }
+const GOLD: Theme = { bg: '#B77F27', fg: '#FBF8F3', fgMuted: 'rgba(251,248,243,0.82)', accent: '#FBF8F3', onAccent: '#B77F27', chrome: '#221E19' }
+const BLUSH: Theme = { bg: '#DC9C88', fg: '#3A2118', fgMuted: 'rgba(58,33,24,0.66)', accent: '#3A2118', onAccent: '#F7E7DF', chrome: '#3A2118' }
 
 const THEME_BY_TYPE: Record<Slide['type'], Theme> = {
   intro: GREEN,
@@ -44,13 +46,19 @@ const THEME_BY_TYPE: Record<Slide['type'], Theme> = {
   outro: GREEN,
 }
 
+export function slideChromeColor(type: Slide['type']): string {
+  return THEME_BY_TYPE[type].chrome
+}
+
 interface WrappedSlideProps {
   slide: Slide
+  /** Rückblick-Jahr für den Branding-Fuß; die mittleren Slides tragen es nicht selbst. */
+  year: number
   /** 'share' erzwingt die volle Bühne fürs PNG; 'view' füllt den Viewer. */
   variant?: 'view' | 'share'
 }
 
-export function WrappedSlide({ slide, variant = 'view' }: WrappedSlideProps) {
+export function WrappedSlide({ slide, year, variant = 'view' }: WrappedSlideProps) {
   const theme = THEME_BY_TYPE[slide.type]
 
   return (
@@ -75,16 +83,11 @@ export function WrappedSlide({ slide, variant = 'view' }: WrappedSlideProps) {
         style={{ paddingBottom: variant === 'share' ? '2.75rem' : undefined }}
       >
         <p className="text-[11px] font-[700] tracking-[0.14em]" style={{ color: theme.fgMuted }}>
-          MELLON RÜCKBLICK · {slideYear(slide)}
+          MELLON RÜCKBLICK · {year}
         </p>
       </div>
     </div>
   )
-}
-
-function slideYear(slide: Slide): number | string {
-  if (slide.type === 'intro' || slide.type === 'outro') return slide.year
-  return ''
 }
 
 function SlideBody({ slide, theme }: { slide: Slide; theme: Theme }) {

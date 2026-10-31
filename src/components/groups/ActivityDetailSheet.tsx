@@ -43,6 +43,7 @@ import { PollSection } from './PollSection'
 import {
   useActivityComments, uploadCommentImage, deleteCommentImages,
 } from '@/hooks/useActivityComments'
+import { useScrollOnNewComment } from '@/hooks/useScrollOnNewComment'
 import { useActivityResponsibilities } from '@/hooks/useActivityResponsibilities'
 import { useActivityPhotos } from '@/hooks/useActivityPhotos'
 import type {
@@ -194,7 +195,7 @@ export function ActivityDetailSheet({
 
   // ── Data hooks ─────────────────────────────────────────────────────────────
   const { activity, loading: activityLoading, updateActivity, reload } = useActivityDetail(activityId)
-  const { comments, loading: commentsLoading, addComment, deleteComment } = useActivityComments(activityId)
+  const { comments, loading: commentsLoading, loaded: commentsLoaded, addComment, deleteComment } = useActivityComments(activityId)
   const { responsibilities, loading: respLoading, addResponsibility, deleteResponsibility, toggleDone } = useActivityResponsibilities(activityId)
   const { photos, loading: photosLoading, uploadPhoto, deletePhoto, userPhotoCount } = useActivityPhotos(activityId, currentUserId)
   const photoUrls = useSignedUrls('activity-photos', photos.map(photo => photo.storage_path))
@@ -392,9 +393,7 @@ export function ActivityDetailSheet({
   }, [activityId, editor])
 
   // ── Auto-scroll comments to bottom when new arrive ─────────────────────────
-  useEffect(() => {
-    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [comments.length])
+  useScrollOnNewComment(commentsLoaded, comments.length, commentsEndRef)
 
   // ── Edit form handlers ─────────────────────────────────────────────────────
   function enterEditMode() {
@@ -899,7 +898,8 @@ export function ActivityDetailSheet({
         Kommentare
       </h3>
 
-      {commentsLoading ? (
+      {/* Nur beim ersten Laden: Beim Nachladen muss die Liste stehen bleiben, sonst laden Bilder neu und das Scrollen zum neuen Kommentar endet zu früh. */}
+      {commentsLoading && !commentsLoaded ? (
         <div className="space-y-3">
           {[1, 2].map(i => (
             <div key={i} className="flex gap-3">

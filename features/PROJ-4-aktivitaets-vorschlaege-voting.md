@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-06-25
+**Last Updated:** 2026-10-31
 **Deployed:** 2026-06-22
 
 ## QA Live-Review Fixes (2026-06-25)
@@ -475,3 +475,13 @@ No Critical or High bugs. All 25 acceptance criteria pass. Security audit clean.
 - **Fall 7 + 9:** INSERT nur mit `status='vorschlag'` und `current_votes=0`. Trigger `trg_activity_workflow_guard` macht `group_id`, `initiator_id` und `current_votes` für Client-Schreibzugriffe unveränderlich, erlaubt `required_votes` nur im Vorschlag und sperrt direkte Wechsel von und nach `vorschlag`. Vote-Trigger und Reset-RPC laufen als Owner und bleiben die einzigen Wege dafür.
 - **Bekannte Grenze:** Der Initiator darf `required_votes` im Vorschlag weiter senken (Bearbeiten-Funktion), also auch auf 1.
 - **Nachweis:** zurückgerollte Transaktionen; Voting, Kanban-Wechsel, Details bearbeiten und Reset funktionieren weiter. Migrationen `20261030100100`, `…100400`.
+
+## Design-Polish (2026-10-31)
+
+Befund P3 aus der Vorher-Nachher-Prüfung des Design-Polish in PROJ-6.
+
+- **Problem:** Der mobile Plus-Button verdeckte in der Vorschlagsliste teilweise das Herz einer Karte.
+- **Lösung:** `useHideOnScrollDown` blendet den Button beim Runterscrollen aus und beim Hochscrollen sowie am Listenanfang wieder ein. Position und Größe bleiben wie im Styleguide. Ausgeblendet ist er per `inert` auch nicht fokussierbar. Desktop bleibt unverändert.
+- **Geprüft:** iPhone-17-Pro-Simulator in beiden Scrollrichtungen, Unit-Tests für den Hook.
+- **Grenze:** Am Listenanfang und nach dem Hochscrollen kann der Button weiterhin eine Karte überlappen. Ein schwebender Button lässt sich an fester Position nicht überall freihalten. Ganz vermeiden ließe sich das nur, wenn die Aktion aus der schwebenden Position in die Kopfzeile wandert; das wäre eine Styleguide-Änderung.
+- **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.

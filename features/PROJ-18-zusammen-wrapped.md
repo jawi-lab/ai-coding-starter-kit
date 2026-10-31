@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-07-13
-**Last Updated:** 2026-07-17
+**Last Updated:** 2026-10-31
 
 ## Dependencies
 - Requires: PROJ-4 (Aktivitäts-Vorschläge & Voting) — `activities` + `votes` als Datenquelle (Vorschläge, Votes, Initiator:innen)
@@ -382,3 +382,23 @@ Das Auslösen des **Teilen-Flows aus dem laufenden Viewer mit Live-Daten** (html
 
 ### Restrisiko (aus /qa, unverändert)
 Der Teilen-Flow (html-to-image-Export → natives Share-Sheet / Web-Share / Download) wurde nicht end-to-end mit Live-Daten gefahren (setzt eine Gruppe mit ≥ 3 Abschlüssen voraus, Seeden bewusst geblockt). Slide-Rendering und beide Fallback-Pfade sind über Render-Bühne/Code-Review abgedeckt; der native Pfad ist 1:1 das in Produktion bewährte PROJ-7/9-Muster. **Beim ersten echten Dezember-Wrapped einmal auf Gerät bestätigen.**
+
+## Design-Polish (2026-10-31)
+
+Befund P4 aus der Vorher-Nachher-Prüfung des Design-Polish in PROJ-6.
+
+- **Problem:** Der Branding-Fuß zeigte auf den mittleren Slides „MELLON RÜCKBLICK ·" ohne Jahr, in der Anzeige und im geteilten Bild.
+- **Lösung:** `WrappedSlide` erhält das Jahr als Prop vom Story-Viewer. Alle Slides zeigen wie vorgesehen „MELLON RÜCKBLICK · {Jahr}".
+- **Geprüft:** iPhone-17-Pro-Simulator mit „Rückblick 2025" und das exportierte PNG der Zahl-Slide aus dem nativen Teilen-Pfad (1080×1920, Fuß vollständig). Das Share-Sheet öffnete sich, geteilt wurde nichts. Unit-Test für alle neun Slide-Typen in beiden Varianten.
+- **Nicht geprüft:** Teilen auf einem echten Gerät und an eine Ziel-App.
+- **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.
+
+### Fortschrittsbalken und Schließen-X (Befund P5)
+
+Vorher gemessen: Der weiße Balken erreichte 1,06:1 auf Cream und 2,29:1 auf Blush. Das X nutzte `bg-black/25` mit `backdrop-blur`; im Simulator zeigte der Blur noch die vorige Slide, das Icon lag auf Gold bei 1,99:1.
+
+- **Balken:** Farbe je Slide-Thema (`chrome` in `WrappedSlide.tsx`), mindestens 3:1 zum Hintergrund und zum Deko-Kreis. Auf Gold dunkel statt hell, weil Hell über dem Deko-Kreis nur 2,78:1 erreicht. Die Spur nutzt dieselbe Farbe mit 25 % Deckkraft.
+- **X:** `bg-black/55` ohne Blur, Icon laut Screenshot-Messung mindestens 4,37:1 auf allen vier Themen.
+- **Geprüft:** Im Simulator auf Grün, Cream, Gold und Blush. Nur Augenschein und Messung in Light Mode; die Slides sind vom App-Theme unabhängig.
+- **Offener Befund, nicht behoben:** Die Statusleiste bleibt auf der grünen Slide dunkel auf Dunkelgrün.
+- **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.

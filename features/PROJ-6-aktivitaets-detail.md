@@ -472,3 +472,49 @@ Analyse der App-Screenshots nach den Apple-Designprinzipien, umgesetzt und im iP
 - **Tests:** E2E mit Login (Chromium) angepasst, wo sie veraltet waren: ausgeblendete OAuth-Buttons (PROJ-2), 10-stelliger Einladungscode (PROJ-3), Badges als Unterseite und Stufen-Chip ohne Emoji (PROJ-16).
 - **Offen:** Goldener Fokusring um das Sheet-X trat im Simulator sporadisch auf, Prüfung auf echtem iPhone steht aus. Vorschlagskarten, Umfragen, Kommentare, Wrapped und Termine mit Einträgen wurden mangels Testdaten nicht im Simulator gesehen, Desktop-Board nicht visuell geprüft.
 - **Deployment:** 2026-10-31 per Push auf `main`.
+
+## Bug-Fix (2026-10-31): Detail springt beim Öffnen nach unten
+
+Befund P1 aus der Vorher-Nachher-Prüfung des Design-Polish.
+
+- **Problem:** Das Auto-Scrollen lief auch beim ersten Laden der Kommentare. Titelfoto, Termin und Aufgaben waren beim Öffnen nicht sichtbar.
+- **Lösung:** `useScrollOnNewComment` scrollt nur, wenn die Zahl der Kommentare steigt, nachdem die aktuelle Aktivität geladen ist. Dafür meldet `useActivityComments` jetzt `loaded`. Der Wert wird beim Schließen und Wechseln zurückgesetzt, weil der Hook die alten Kommentare behält. Beim Löschen wird nicht mehr gescrollt.
+- **Skeleton nur beim ersten Laden:** Beim Nachladen hing es die Liste aus, Kommentarbilder luden neu, und das Scrollen endete oberhalb des neuen Kommentars.
+- **Geprüft:** iPhone-17-Pro-Simulator mit „QA-Demo Hüttenwochenende": Öffnen und Wiederöffnen bleiben oben, ein neuer Kommentar ist nach dem Senden ganz sichtbar. Testkommentare wieder gelöscht. Unit-Tests für beide Hooks.
+- **Nicht geprüft:** Neuer Kommentar mit Bild. Das Bild lädt erst nach dem Scrollen, deshalb kann die Bewegung dort zu früh enden. Dark Mode und Desktop-Layout dieses Fixes wurden nicht im Gerät angesehen.
+- **Kommentar löschen:** Nach dem Bestätigen blieb der Kommentar sichtbar, bis das Detail neu geöffnet wurde. `deleteComment` entfernt ihn jetzt nach erfolgreichem Löschen selbst aus der Liste; im Simulator geprüft, Unit-Tests für Erfolg und Fehler.
+- **Offen:** Andere Mitglieder sehen ein Löschen erst beim nächsten Laden. Laut Supabase-Doku lassen sich DELETE-Ereignisse nur mit `replica identity full` filtern, `activity_comments` steht auf Standard. Das wäre eine Schemaänderung und ist nicht umgesetzt.
+- **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.
+
+## QA (2026-10-31): Design-Fixes P1, P3, P4, P5 und Kommentar löschen
+
+Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features bleiben auf „Deployed", weil nur Fehler in Live-Funktionen behoben wurden.
+
+**Ergebnis:** Freigegeben, keine kritischen oder hohen Fehler.
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm run lint` | 0 Fehler, 106 Warnungen |
+| `npm test` | 480 von 480 bestanden |
+| `npm run build` | Erfolgreich |
+| `tests/design-fixes-2026-10.spec.ts` (neu), gegen den Static Export | 6 von 6 bestanden |
+| PROJ-14 und PROJ-15 E2E als Regression, gegen den Static Export | 7 bestanden, 4 übersprungen |
+| PROJ-4 und PROJ-6 E2E | 4 bestanden, 43 übersprungen, also fast ohne Aussagekraft |
+| iPhone-17-Pro-Simulator | Alle Fixes von Hand geprüft |
+
+**Responsive:** P1 bei 402, 768 und 1440 px geprüft. P3 betrifft nur Mobil.
+
+**Sicherheit:** Keine neuen Datenzugriffe, Rechte oder Abfragen. Im Diff stehen keine Zugangsdaten, Konto-IDs oder Einladungscodes. Kommentare werden weiter über RLS gelöscht. Einen eigenen Angriffstest gab es nicht, weil keine sicherheitsrelevante Logik geändert wurde.
+
+**Befunde:**
+
+| Schwere | Befund |
+|---|---|
+| Mittel | Die E2E-Specs von PROJ-4 und PROJ-6 überspringen sich fast vollständig selbst: Ihr Selektor `button.rounded-lg` findet die Gruppenkarte nicht mehr. Ein grüner Lauf sagt deshalb wenig aus. |
+| Mittel | `npm run dev` hing im E2E-Lauf beim Laden der Schrift (`next/font`, „queries have exactly one entry"), nachdem er kurz zuvor funktioniert hatte. Der Build ist nicht betroffen. Ursache nicht geklärt. |
+| Niedrig | Verweigert RLS das Löschen eines Kommentars ohne Fehlermeldung (0 Zeilen, zum Beispiel nach Rechteverlust in der laufenden Sitzung), verschwindet er bis zum nächsten Laden aus der Liste. Nur aus dem Code abgeleitet. |
+| Niedrig | Andere Mitglieder sehen ein Löschen erst beim nächsten Laden (siehe Bug-Fix oben). |
+| Niedrig | Der Plus-Button kann am Listenanfang weiter eine Karte überlappen (PROJ-4). |
+| Niedrig | Die Statusleiste bleibt auf der grünen Rückblick-Slide dunkel (PROJ-18). |
+
+**Nicht geprüft:** Echtes iPhone, Firefox und Safari (nur WebKit im Simulator), Dark Mode für diese Fixes, mehrere Mitglieder, Kommentar mit neuem Bild, E2E mit Dev-Server. Ob die neue Spec auf dem Stand vor den Fixes fehlschlägt, wurde nicht ausprobiert. Offen bleibt außerdem P2.

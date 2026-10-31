@@ -9,6 +9,8 @@ import type { ActivityComment, CreateCommentInput } from '@/lib/activity-types'
 interface UseActivityCommentsResult {
   comments: ActivityComment[]
   loading: boolean
+  /** Die Kommentare gehören zur aktuellen Aktivität; `comments` kann sonst noch die der vorigen enthalten. */
+  loaded: boolean
   error: string | null
   addComment: (input: CreateCommentInput) => Promise<boolean>
   deleteComment: (commentId: string) => Promise<boolean>
@@ -17,8 +19,17 @@ interface UseActivityCommentsResult {
 export function useActivityComments(activityId: string | null): UseActivityCommentsResult {
   const [comments, setComments] = useState<ActivityComment[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  // Beim Schließen und Wechseln zurücksetzen, damit auch das Wiederöffnen
+  // derselben Aktivität erst nach dem neuen Laden als geladen gilt.
+  const [prevActivityId, setPrevActivityId] = useState(activityId)
+  if (prevActivityId !== activityId) {
+    setPrevActivityId(activityId)
+    setLoadedFor(null)
+  }
 
   const fetchComments = useCallback(async () => {
     if (!activityId) return
@@ -37,6 +48,7 @@ export function useActivityComments(activityId: string | null): UseActivityComme
       setError('Kommentare konnten nicht geladen werden.')
     } else {
       setComments((data ?? []) as ActivityComment[])
+      setLoadedFor(activityId)
     }
     setLoading(false)
   }, [activityId])
@@ -96,10 +108,15 @@ export function useActivityComments(activityId: string | null): UseActivityComme
       .delete()
       .eq('id', commentId)
 
-    return !err
+    if (err) return false
+    // Das Realtime-Abo liefert DELETE wegen des Filters ohne `replica identity full` nicht.
+    setComments(prev => prev.filter(c => c.id !== commentId))
+    return true
   }
 
-  return { comments, loading, error, addComment, deleteComment }
+  const loaded = activityId !== null && loadedFor === activityId
+
+  return { comments, loading, loaded, error, addComment, deleteComment }
 }
 
 const COMMENT_IMAGE_MAX = 5 * 1024 * 1024 // 5 MB

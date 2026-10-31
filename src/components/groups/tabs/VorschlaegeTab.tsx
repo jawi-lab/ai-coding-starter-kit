@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { EmptyIdeaIcon, EmptySearchIcon } from '@/components/icons/mellon-icons'
@@ -15,6 +15,7 @@ import { ProposalFormSheet } from '@/components/groups/ProposalFormSheet'
 import { DeleteProposalDialog } from '@/components/groups/DeleteProposalDialog'
 import { ResetVotesDialog } from '@/components/groups/ResetVotesDialog'
 import { useActivityProposals } from '@/hooks/useActivityProposals'
+import { useHideOnScrollDown } from '@/hooks/useHideOnScrollDown'
 import { useVote } from '@/hooks/useVote'
 import { useDeleteProposal } from '@/hooks/useDeleteProposal'
 import { useResetVotes } from '@/hooks/useResetVotes'
@@ -46,6 +47,8 @@ export function VorschlaegeTab() {
   const [deleteTarget, setDeleteTarget] = useState<ActivityWithInitiator | null>(null)
   const [resetTarget, setResetTarget] = useState<ActivityWithInitiator | null>(null)
   const [ladderOpen, setLadderOpen] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+  const fabHidden = useHideOnScrollDown(listRef)
 
   const { proposals, myVotedIds, loading, error, filterByCategory, refetch } =
     useActivityProposals(groupId)
@@ -123,7 +126,7 @@ export function VorschlaegeTab() {
 
       {/* Proposal list — scrollt mobil unter der fixierten Glas-Bottom-Nav durch
           (Liquid-Glass wie auf Home); genug Bodenabstand für Nav + FAB. */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={listRef} className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto w-full px-4 pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-28 pt-3">
           {error && <p className="mt-6 text-center text-[13px] text-error">{error}</p>}
 
@@ -173,9 +176,15 @@ export function VorschlaegeTab() {
       )}
 
       {/* Mobile-FAB (neuer Vorschlag) — schwebt unten rechts über der Liste,
-          direkt über der fixierten Bottom-Nav. */}
+          direkt über der fixierten Bottom-Nav. Weicht beim Runterscrollen aus,
+          damit es keine Herzen verdeckt. */}
       {canCreate && (
-        <div className="md:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-10">
+        <div
+          inert={fabHidden}
+          className={`md:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-10 transition-[transform,opacity] duration-200 motion-reduce:transition-none ${
+            fabHidden ? 'pointer-events-none translate-y-6 opacity-0' : ''
+          }`}
+        >
           <Button
             onClick={openCreateProposal}
             aria-label="Vorschlag hinzufügen"

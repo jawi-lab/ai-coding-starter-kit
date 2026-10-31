@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { X, Share2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useGroupWrapped } from '@/hooks/useGroupWrapped'
-import { WrappedSlide } from './WrappedSlide'
+import { WrappedSlide, slideChromeColor } from './WrappedSlide'
 import {
   nodeToPng,
   shareWrappedImage,
@@ -44,6 +44,7 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
 
   const total = slides?.length ?? 0
   const current = slides?.[index] ?? null
+  const chromeColor = current ? slideChromeColor(current.type) : '#FBF8F3'
 
   const goNext = useCallback(() => {
     setIndex((i) => {
@@ -99,7 +100,7 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
       {/* Slide-Bühne */}
       <div className="absolute inset-0">
         {current ? (
-          <WrappedSlide slide={current} />
+          <WrappedSlide slide={current} year={year} />
         ) : error ? (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-8 text-center">
             <p className="text-[15px] font-[700] text-[#FBF8F3]">Rückblick konnte nicht geladen werden</p>
@@ -134,10 +135,14 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
         <div className="flex items-center gap-1.5">
           {Array.from({ length: total }).map((_, i) => (
-            <div key={i} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
+            <div
+              key={i}
+              className="h-[3px] flex-1 overflow-hidden rounded-full"
+              style={{ backgroundColor: `${chromeColor}40` }}
+            >
               <div
-                className="h-full rounded-full bg-white transition-[width] duration-200"
-                style={{ width: i <= index ? '100%' : '0%' }}
+                className="h-full rounded-full transition-[width] duration-200"
+                style={{ width: i <= index ? '100%' : '0%', backgroundColor: chromeColor }}
               />
             </div>
           ))}
@@ -147,7 +152,7 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
             type="button"
             onClick={onClose}
             aria-label="Rückblick schließen"
-            className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur active:scale-95"
+            className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white active:scale-95"
           >
             <X className="h-5 w-5" strokeWidth={2.2} />
           </button>
@@ -178,7 +183,7 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
           style={{ width: SHARE_DESIGN_WIDTH, height: SHARE_DESIGN_HEIGHT }}
         >
           <div ref={shareStageRef} style={{ width: SHARE_DESIGN_WIDTH, height: SHARE_DESIGN_HEIGHT }}>
-            <WrappedSlide slide={current} variant="share" />
+            <WrappedSlide slide={current} year={year} variant="share" />
           </div>
         </div>
       )}
