@@ -123,7 +123,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
               <div className="flex items-center gap-1.5 -ml-2">
                 <button
                   onClick={() => setView('root')}
-                  className="h-8 w-8 flex items-center justify-center rounded-[8px] text-ink-2 hover:text-ink hover:bg-surface-2 transition-colors"
+                  className="h-10 w-10 -my-2 flex items-center justify-center rounded-pill text-ink-2 hover:text-ink hover:bg-surface-2 transition-[background-color,color,transform] active:scale-90"
                   aria-label="Zurück"
                 >
                   <ChevronLeft className="h-5 w-5" />
@@ -152,13 +152,13 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
               <TabsList className="flex-shrink-0 mx-5 bg-surface-2 rounded-pill p-0.5 h-9">
                 <TabsTrigger
                   value="profil"
-                  className="flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
+                  className="flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-segment data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
                 >
                   Profil
                 </TabsTrigger>
                 <TabsTrigger
                   value="album"
-                  className="relative flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-surface data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
+                  className="relative flex-1 text-[13px] font-[700] rounded-[8px] data-[state=active]:bg-segment data-[state=active]:text-ink data-[state=active]:shadow-sm text-ink-3"
                 >
                   Album
                   {/* Punkt-Indikator (PROJ-17): ungesehene Karten warten im Album */}
@@ -257,7 +257,7 @@ export function ProfileSheet({ open, onOpenChange, scrollToNotifications }: Prof
 function SettingsGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="px-1 text-[12px] font-[600] tracking-[0.06em] text-ink-3">{label}</p>
+      <p className="px-4 text-[12px] font-[600] tracking-[0.02em] text-ink-3">{label}</p>
       <div className="rounded-[16px] border border-line bg-surface overflow-hidden divide-y divide-line">
         {children}
       </div>

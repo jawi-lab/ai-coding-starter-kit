@@ -49,7 +49,7 @@ export function MemoryCardReveal({ activity, groupName, onDismiss }: MemoryCardR
       className="fixed inset-0 z-[55] flex flex-col items-center justify-center gap-7
                  bg-surface-ink cursor-pointer animate-mellon-fade-in"
     >
-      <p className="text-[13px] font-[700] tracking-[0.06em] text-[#D9A24B]">
+      <p className="text-[13px] font-[700] tracking-[0.02em] text-[#D9A24B]">
         Neue Erinnerung!
       </p>
 

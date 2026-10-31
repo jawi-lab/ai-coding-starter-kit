@@ -35,7 +35,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
           </span>
           <span className="text-ink-3">·</span>
           <span
-            className={`text-[11px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill
+            className={`text-[11px] font-semibold tracking-[0.02em] px-2 py-0.5 rounded-pill
               ${group.my_role === 'admin' ? 'bg-primary-soft text-primary' : ''}
               ${group.my_role === 'editor' ? 'bg-secondary-soft text-secondary' : ''}
               ${group.my_role === 'observer' ? 'bg-blush-soft text-blush' : ''}

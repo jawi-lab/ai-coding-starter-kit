@@ -56,10 +56,10 @@ export function MemberList({
 
   return (
     <div>
-      <span className="text-[11px] font-semibold tracking-[0.06em] text-ink-3 block mb-1 px-1">
+      <span className="text-[12px] font-[600] tracking-[0.02em] text-ink-3 block mb-1">
         Mitglieder ({members.length})
       </span>
-      <div>
+      <div className="-mx-1">
         {sorted.map((member, i) => (
           <div key={member.user_id}>
             <MemberRow

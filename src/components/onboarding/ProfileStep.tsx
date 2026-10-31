@@ -128,7 +128,7 @@ export function ProfileStep({ onNext, onSkip }: ProfileStepProps) {
         <div className="mt-8 space-y-2">
           <label
             htmlFor="onboarding-name"
-            className="text-[12px] font-semibold tracking-[0.06em] text-ink-3"
+            className="text-[12px] font-semibold tracking-[0.02em] text-ink-3"
           >
             Name / Nickname
           </label>

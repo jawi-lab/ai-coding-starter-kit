@@ -108,16 +108,16 @@ function BadgeCard({ badge, isNew }: { badge: UserBadgeState; isNew: boolean }) 
             {info.name}
           </span>
           {tier ? (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill bg-secondary-soft text-secondary flex-shrink-0">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-[0.02em] px-2 py-0.5 rounded-pill bg-secondary-soft text-secondary flex-shrink-0">
               <MedalIcon rank={tier.rank} className="h-3.5 w-3.5" /> {tier.name}
             </span>
           ) : (
-            <span className="text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill bg-surface-2 text-ink-3 flex-shrink-0">
+            <span className="text-[11px] font-semibold tracking-[0.02em] px-2 py-0.5 rounded-pill bg-surface-2 text-ink-3 flex-shrink-0">
               Noch nicht erreicht
             </span>
           )}
           {isNew && (
-            <span className="text-[10px] font-[800] tracking-[0.06em] px-1.5 py-0.5 rounded-pill bg-secondary text-white flex-shrink-0">
+            <span className="text-[10px] font-[800] tracking-[0.02em] px-1.5 py-0.5 rounded-pill bg-secondary text-white flex-shrink-0">
               Neu
             </span>
           )}

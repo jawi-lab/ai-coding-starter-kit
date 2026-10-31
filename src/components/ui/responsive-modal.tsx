@@ -42,7 +42,9 @@ const contentVariants = cva(
   cn(
     // shared — overflow-hidden clips child backgrounds (e.g. a bg-bg footer)
     // to the rounded corners; without it square child rects paint over them.
-    "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-lg [animation-timing-function:var(--ease-sheet)]",
+    // Dark Mode: Sheets liegen sichtbar über der Seite. Der Scope hebt auch
+    // Kopf- und Fußzeilen mit bg-bg an.
+    "fixed z-50 flex flex-col overflow-hidden bg-bg dark:[--bg:#1D1915] shadow-lg [animation-timing-function:var(--ease-sheet)]",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=closed]:duration-[260ms] data-[state=open]:duration-[380ms]",
     // mobile: bottom sheet (Mellon: 30px top radius)
@@ -99,8 +101,8 @@ const ResponsiveModalContent = React.forwardRef<
       >
         {children}
         {!hideClose && (
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-            <X className="h-4 w-4" />
+          <DialogPrimitive.Close className="absolute right-2.5 top-2.5 z-10 flex h-11 w-11 items-center justify-center rounded-pill text-ink-2 ring-offset-background transition-[background-color,color,transform] duration-100 hover:bg-surface-2 hover:text-ink active:scale-90 active:bg-surface-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-[18px] w-[18px]" />
             <span className="sr-only">Schließen</span>
           </DialogPrimitive.Close>
         )}

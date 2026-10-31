@@ -40,7 +40,7 @@ export function MomentumBanner({ momentum, onOpenLadder }: MomentumBannerProps) 
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-[600] tracking-[0.06em] text-ink-3">
+          <p className="text-[12px] font-[600] tracking-[0.02em] text-ink-3">
             Gruppen-Momentum
           </p>
           <p className="text-[16px] font-[800] text-ink leading-snug truncate">

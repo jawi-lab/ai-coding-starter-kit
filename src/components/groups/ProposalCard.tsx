@@ -157,7 +157,7 @@ export function ProposalCard({
           </span>
           <span className="text-ink-3 text-[11px]">·</span>
           <span
-            className="text-[10.5px] font-semibold tracking-[0.06em] px-2 py-0.5 rounded-pill
+            className="text-[11px] font-semibold tracking-[0.02em] px-2 py-0.5 rounded-pill
                        bg-accent-soft text-secondary"
           >
             {DURATION_CATEGORY_LABELS[proposal.duration_category]}

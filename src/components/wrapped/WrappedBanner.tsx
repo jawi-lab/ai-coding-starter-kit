@@ -38,7 +38,7 @@ export function WrappedBanner({ year, onOpen }: WrappedBannerProps) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-[700] tracking-[0.08em]" style={{ color: '#D9A24B' }}>
+          <p className="text-[12px] font-[700] tracking-[0.02em]" style={{ color: '#D9A24B' }}>
             NEU · MELLON RÜCKBLICK
           </p>
           <p className="truncate text-[16px] font-[800] leading-snug" style={{ color: '#FBF8F3' }}>

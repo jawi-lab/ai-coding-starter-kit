@@ -116,10 +116,10 @@ test.describe('Gruppe beitreten — Validation', () => {
     await expect(page.getByRole('button', { name: 'Gruppe beitreten' })).toBeDisabled()
   })
 
-  test('AC-JOIN-VAL-2: Button remains disabled until 6 chars entered', async ({ page }) => {
-    await page.getByLabel('Einladungs-Code').fill('ABCDE')
+  test('AC-JOIN-VAL-2: Button remains disabled until 10 chars entered', async ({ page }) => {
+    await page.getByLabel('Einladungs-Code').fill('ABCDEFGHJ')
     await expect(page.getByRole('button', { name: 'Gruppe beitreten' })).toBeDisabled()
-    await page.getByLabel('Einladungs-Code').fill('ABCDEF')
+    await page.getByLabel('Einladungs-Code').fill('ABCDEFGHJK')
     await expect(page.getByRole('button', { name: 'Gruppe beitreten' })).not.toBeDisabled()
   })
 
@@ -132,7 +132,7 @@ test.describe('Gruppe beitreten — Validation', () => {
   })
 
   test('AC-JOIN-VAL-4: Invalid code shows "Ungültiger Einladungs-Code"', async ({ page }) => {
-    await page.getByLabel('Einladungs-Code').fill('XXXXXX')
+    await page.getByLabel('Einladungs-Code').fill('XXXXXXXXXX')
     await page.getByRole('button', { name: 'Gruppe beitreten' }).click()
     await expect(page.getByText('Ungültiger Einladungs-Code')).toBeVisible({ timeout: 5000 })
   })

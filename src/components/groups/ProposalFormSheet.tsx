@@ -214,7 +214,7 @@ export function ProposalFormSheet({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Name <span className="text-error">*</span>
             </Label>
             <Input
@@ -232,7 +232,7 @@ export function ProposalFormSheet({
 
           {/* Dauer-Kategorie */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Dauer-Kategorie <span className="text-error">*</span>
             </Label>
             <Select
@@ -263,7 +263,7 @@ export function ProposalFormSheet({
 
           {/* Benötigte Upvotes – Stepper */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Benötigte Upvotes <span className="text-error">*</span>
             </Label>
             <div className="flex items-center gap-0 border-[1.5px] border-line bg-surface rounded-md h-11 overflow-hidden w-fit">
@@ -295,7 +295,7 @@ export function ProposalFormSheet({
 
           {/* URL (optional) */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Link <span className="text-[11px] font-[500] normal-case tracking-normal text-ink-3">(optional)</span>
             </Label>
             <Input
@@ -340,7 +340,7 @@ export function ProposalFormSheet({
 
           {/* Beschreibung (optional) */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Beschreibung <span className="text-[11px] font-[500] normal-case tracking-normal text-ink-3">(optional)</span>
             </Label>
             <Textarea

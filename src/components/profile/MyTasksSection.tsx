@@ -30,7 +30,7 @@ export function MyTasksSection({ userId }: { userId: string | null }) {
 
   return (
     <section className="mb-6">
-      <h2 className="text-[13px] font-[800] text-ink-2 tracking-[0.06em] mb-2.5">
+      <h2 className="text-[13px] font-[800] text-ink-2 tracking-[0.02em] mb-2.5">
         Meine Aufgaben
       </h2>
 

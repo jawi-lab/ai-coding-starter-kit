@@ -147,7 +147,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Frage */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Frage <span className="text-error">*</span>
             </Label>
             <Input
@@ -169,7 +169,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
 
           {/* Optionen */}
           <div className="space-y-2">
-            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.06em]">
+            <Label className="text-[13px] font-[700] text-ink-2 tracking-[0.02em]">
               Antwortoptionen <span className="text-error">*</span>
             </Label>
             {options.map((value, index) => (

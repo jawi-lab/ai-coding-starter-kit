@@ -41,7 +41,7 @@ function FriendsIllustration() {
       <span className="absolute -bottom-4 -left-3 flex h-11 w-11 rotate-[-6deg] items-center justify-center rounded-pill bg-[#DC973A] text-white shadow-md">
         <CalendarHeart className="h-5 w-5" />
       </span>
-      <span className="absolute -bottom-2 right-6 inline-flex rotate-[-4deg] items-center rounded-pill border border-line bg-surface px-3 py-1 text-[11px] font-[800] tracking-[0.06em] text-ink-2 shadow-sm">
+      <span className="absolute -bottom-2 right-6 inline-flex rotate-[-4deg] items-center rounded-pill border border-line bg-surface px-3 py-1 text-[11px] font-[800] tracking-[0.02em] text-ink-2 shadow-sm">
         Gemeinsam
       </span>
     </div>

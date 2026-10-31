@@ -119,7 +119,7 @@ export function GroupDetailSheet({
         className="h-[90dvh] md:h-auto bg-bg border-line p-0"
       >
         <ResponsiveModalHeader className="px-5 pt-5 pb-4 border-b border-line flex-shrink-0">
-          <div className="flex items-center gap-3 pr-8">
+          <div className="flex items-center gap-3 pr-10">
             {loading && !group ? (
               <Skeleton className="h-7 w-48 bg-surface-2" />
             ) : editingName && isAdmin ? (
@@ -169,7 +169,7 @@ export function GroupDetailSheet({
                 {isAdmin && (
                   <button
                     onClick={startEditName}
-                    className="flex-shrink-0 h-7 w-7 rounded-md flex items-center justify-center
+                    className="flex-shrink-0 h-10 w-10 -my-2 rounded-pill flex items-center justify-center
                                text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
                     aria-label="Gruppenname bearbeiten"
                   >

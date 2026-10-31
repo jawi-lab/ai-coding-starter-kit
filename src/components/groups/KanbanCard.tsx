@@ -44,6 +44,7 @@ export function KanbanCard({
   const canManage = activity.status !== 'abgeschlossen' && (isAdmin || activity.initiator_id === currentUserId)
   const coverSrc = activity.og_image_url || PLACEHOLDER_IMAGE
   const dateRange = formatGermanDateRange(activity.start_date, activity.end_date, {
+    collapseEqual: true,
     dateOnly: true,
     openEndedPrefix: 'Ab ',
   })

@@ -20,6 +20,9 @@ import {
 } from '@/components/ui/form'
 import { OAuthButton } from './OAuthButton'
 
+// Anbieter erscheinen erst, wenn sie funktionieren; bis dahin keine toten Buttons.
+const OAUTH_ENABLED = false as boolean
+
 const loginSchema = z.object({
   email: z.string().email('Bitte gib eine gültige E-Mail-Adresse ein'),
   password: z.string().min(1, 'Passwort ist erforderlich'),
@@ -155,20 +158,24 @@ export function LoginForm() {
           {isLoading ? 'Einloggen…' : 'Einloggen'}
         </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-card px-2 text-muted-foreground">oder</span>
-          </div>
-        </div>
+        {OAUTH_ENABLED && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-2 text-muted-foreground">oder</span>
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          <OAuthButton provider="google" label="Mit Google einloggen" />
-          <OAuthButton provider="apple" label="Mit Apple einloggen" />
-          <OAuthButton provider="facebook" label="Mit Facebook einloggen" />
-        </div>
+            <div className="space-y-2">
+              <OAuthButton provider="google" label="Mit Google einloggen" />
+              <OAuthButton provider="apple" label="Mit Apple einloggen" />
+              <OAuthButton provider="facebook" label="Mit Facebook einloggen" />
+            </div>
+          </>
+        )}
       </form>
     </Form>
   )

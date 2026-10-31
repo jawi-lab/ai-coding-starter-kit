@@ -40,7 +40,7 @@ export function DeleteGroupDialog({ onDelete, onSuccess }: DeleteGroupDialogProp
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
-          className="flex-1 h-10 text-[14px] font-semibold text-error border border-error/30 rounded-md
+          className="flex-1 min-w-0 px-3 h-11 text-[14px] font-semibold text-error border border-error/30 rounded-md
                      hover:bg-error/5 hover:border-error gap-2"
         >
           <Trash2 className="h-4 w-4" />

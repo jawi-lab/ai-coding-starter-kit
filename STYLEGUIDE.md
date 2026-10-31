@@ -19,7 +19,7 @@ Das v1-Design („ZUSAMMEN", Archivo/Terracotta/Navy) ist vollständig abgelöst
   Erinnerungs-Zitate, große Statements.
 - **Grün ist die einzige Aktionsfarbe.** Gold = Akzent/Hinweis/Fokusring, Blush = Wärme
   (Erinnerungen, Archiv, „Zu Planen"). Farbe sparsam — der Look lebt von Creme, Weiß und Fotos.
-- **Satzcase überall.** Keine SHOUTY-Caps; Overlines dezent (12px/600, Tracking 0.06em).
+- **Satzcase überall.** Keine SHOUTY-Caps; Overlines dezent (12px/600, Tracking 0.02em).
   Ausnahme: Einladungscodes (funktional uppercase).
 - Großzügige Radien (10/16/22/30/pill), weiche warme Schatten, nie harte Kanten.
 - Schwebendes Chrome (Tab-Bar, FAB) als **Liquid Glass** (`.glass`-Utility).
@@ -89,7 +89,8 @@ Tailwind: `font-sans` (Default) / `font-serif`.
 | Body | Sans 400 | 15.5px / 1.55 | Standard |
 | Label/Button | Sans 600 | 15.5px, Tracking 0.005em | Interaktiv |
 | Caption | Sans 500 | 13px | Meta |
-| Overline | Sans 600 | 12px, Tracking 0.06em, Satzcase | Sektions-Labels |
+| Abschnitt im Sheet | Sans 700 | 15px | „Umfragen", „Kommentare" |
+| Overline | Sans 600 | 12px, Tracking 0.02em, Satzcase | Sektions-Labels |
 
 **Regel:** Serif = Inhalt der Nutzer:innen, Sans = Interface.
 
@@ -109,6 +110,11 @@ Tailwind: `font-sans` (Default) / `font-serif`.
   Keine Endlos-Loops. Transitions nennen ihre Eigenschaften, kein `transition-all`.
 - **Sheets:** `ResponsiveModalContent` bringt mobil einen Griff mit (`useSheetDrag`):
   Ziehen folgt 1:1 dem Finger, Schwung entscheidet über Schließen oder Zurückfedern.
+  Schließen-X immer oben rechts (44px-Ziel, eingebaut, nicht nachbauen). Fläche `bg-bg`,
+  im Dark Mode automatisch angehoben (`#1D1915`), damit das Sheet über der Seite liegt.
+- **Segmente:** aktives Segment `bg-segment` (hell Weiß, dunkel `#443D34`), immer heller als die Spur.
+- **Touch:** Bedienelemente sind nicht markierbar, Nutzerinhalte tragen `select-text`.
+  Hover-Stile greifen nur auf Geräten mit echtem Hover (`hoverOnlyWhenSupported`).
 - **Bedienungshilfen:** `prefers-reduced-motion`, `prefers-reduced-transparency` und
   `prefers-contrast` sind zentral in `globals.css` geregelt.
 - **Fotos:** randlos in 30px-Containern, `--photo-protect`-Verlauf, kein Border;

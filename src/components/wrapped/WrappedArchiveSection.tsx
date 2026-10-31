@@ -21,7 +21,7 @@ export function WrappedArchiveSection({ groupId, onOpenYear }: WrappedArchiveSec
 
   return (
     <section className="space-y-3">
-      <p className="text-[12px] font-[600] tracking-[0.06em] text-ink-3">Rückblicke</p>
+      <p className="text-[12px] font-[600] tracking-[0.02em] text-ink-3">Rückblicke</p>
 
       {loading ? (
         <div className="space-y-2">

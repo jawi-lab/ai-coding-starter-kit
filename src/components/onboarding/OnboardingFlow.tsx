@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
@@ -56,9 +57,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ArrowLeft className="h-5 w-5" />
             </button>
           ) : (
-            <span className="text-[13px] font-[800] tracking-[0.06em] text-primary">
-              Mellon
-            </span>
+            <Image
+              src="/logo-wordmark.png"
+              alt="Mellon"
+              width={1558}
+              height={421}
+              className="h-6 w-auto dark:invert"
+              priority
+            />
           )}
 
           {steps.length > 1 && (

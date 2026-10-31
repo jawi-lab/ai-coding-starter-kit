@@ -10,20 +10,25 @@ type Panel = 'choose' | 'create' | 'join'
 
 interface OnboardingScreenProps {
   onSuccess?: (groupId: string) => void
+  /** Im Sheet „Gruppe hinzufügen“: ohne Vollbild-Layout, Begrüßung und Ausloggen. */
+  embedded?: boolean
 }
 
-export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
+export function OnboardingScreen({ onSuccess, embedded = false }: OnboardingScreenProps) {
   const [panel, setPanel] = useState<Panel>('choose')
   const { signOut } = useAuth()
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-10">
-      <div className="w-full max-w-sm space-y-8">
+    <div className={embedded ? 'px-5 py-5' : 'min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-10'}>
+      <div className={`w-full max-w-sm mx-auto ${embedded ? 'space-y-5' : 'space-y-8'}`}>
         {/* Header */}
+        {!(embedded && panel === 'choose') && (
         <div className="text-center space-y-2">
-          <span className="text-[12px] font-bold tracking-[0.06em] text-ink-3">
-            Willkommen
-          </span>
+          {!embedded && (
+            <span className="text-[12px] font-bold tracking-[0.02em] text-ink-3">
+              Willkommen
+            </span>
+          )}
           <h1 className="text-[28px] font-black text-ink leading-tight">
             {panel === 'choose'
               ? 'Starte jetzt'
@@ -39,6 +44,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
               : 'Gib den Code ein, den du von der Gruppe erhalten hast.'}
           </p>
         </div>
+        )}
 
         {/* Content */}
         {panel === 'choose' && (
@@ -102,12 +108,14 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
         )}
 
         {/* Logout */}
-        <button
-          onClick={signOut}
-          className="w-full text-center text-[12px] text-ink-3 hover:text-ink-2 transition-colors py-1"
-        >
-          Ausloggen
-        </button>
+        {!embedded && (
+          <button
+            onClick={signOut}
+            className="w-full text-center text-[12px] text-ink-3 hover:text-ink-2 transition-colors py-1"
+          >
+            Ausloggen
+          </button>
+        )}
       </div>
     </div>
   )

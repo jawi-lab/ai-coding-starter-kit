@@ -3,6 +3,7 @@ import animate from "tailwindcss-animate";
 
 const config: Config = {
     darkMode: ["class"],
+    future: { hoverOnlyWhenSupported: true },
     content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -33,6 +34,7 @@ const config: Config = {
   			surface: 'var(--surface)',
   			'surface-2': 'var(--surface-2)',
   			'surface-ink': 'var(--surface-ink)',
+  			segment: 'var(--segment-active)',
   			ink: 'var(--ink)',
   			'ink-2': 'var(--ink-2)',
   			'ink-3': 'var(--ink-3)',

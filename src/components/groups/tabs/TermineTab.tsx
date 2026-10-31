@@ -39,7 +39,7 @@ function TermineCard({
     >
       {/* Datums-Block */}
       <div className="flex-shrink-0 w-14 h-14 rounded-md bg-primary-soft flex flex-col items-center justify-center">
-        <span className="text-[10px] font-[800] tracking-[0.06em] text-primary leading-none">
+        <span className="text-[10px] font-[800] tracking-[0.02em] text-primary leading-none">
           {activity.start_date ? weekday(activity.start_date) : '—'}
         </span>
         <CalendarDays className="h-5 w-5 text-primary mt-1" strokeWidth={2.2} />
@@ -61,7 +61,7 @@ function TermineCard({
             </span>
           )}
           {label && (
-            <span className="text-[10.5px] font-[700] tracking-[0.06em] text-ink-3 px-2 py-0.5 rounded-pill bg-surface-2 flex-shrink-0">
+            <span className="text-[10.5px] font-[700] tracking-[0.02em] text-ink-3 px-2 py-0.5 rounded-pill bg-surface-2 flex-shrink-0">
               {label}
             </span>
           )}

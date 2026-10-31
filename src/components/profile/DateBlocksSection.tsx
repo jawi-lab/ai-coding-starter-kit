@@ -106,7 +106,7 @@ export function DateBlocksSection() {
       {showForm ? (
         <div className="bg-surface border border-line rounded-md p-3.5 space-y-2.5">
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-[700] text-ink-2 tracking-[0.06em]">
+            <label className="text-[11.5px] font-[700] text-ink-2 tracking-[0.02em]">
               Von *
             </label>
             <Input
@@ -118,7 +118,7 @@ export function DateBlocksSection() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11.5px] font-[700] text-ink-2 tracking-[0.06em]">
+            <label className="text-[11.5px] font-[700] text-ink-2 tracking-[0.02em]">
               Bis <span className="text-ink-3 font-[500] normal-case">(optional – leer = nur dieser Tag)</span>
             </label>
             <Input

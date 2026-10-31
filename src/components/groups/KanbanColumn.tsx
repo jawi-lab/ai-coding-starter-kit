@@ -73,7 +73,7 @@ export function KanbanColumn({
           className="h-[7px] w-[7px] rounded-pill flex-shrink-0"
           style={{ background: `var(--status-${status.replace(/_/g, '-').replace('planung-abgeschlossen', 'abgestimmt')})` }}
         />
-        <h3 className="text-[13px] font-bold text-ink tracking-[0.06em]">
+        <h3 className="text-[13px] font-bold text-ink tracking-[0.02em]">
           {KANBAN_COLUMN_LABELS[status]}
         </h3>
         <span className="text-[12px] font-[700] text-ink-3 tabular-nums">
@@ -83,7 +83,7 @@ export function KanbanColumn({
 
       {/* Cards or empty state */}
       {activities.length === 0 ? (
-        <div className="flex-1 rounded-md border border-dashed border-line bg-surface-2 flex items-center justify-center py-8 px-4">
+        <div className="rounded-md border border-dashed border-line bg-surface-2 flex items-center justify-center py-8 px-4">
           <p className="text-[13px] text-ink-3 text-center leading-snug">
             {canDrop ? 'Hier ablegen' : 'Noch keine Aktivitäten hier'}
           </p>

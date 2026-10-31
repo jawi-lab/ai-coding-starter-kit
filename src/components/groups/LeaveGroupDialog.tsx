@@ -100,7 +100,7 @@ export function LeaveGroupDialog({
         onClick={handleLeaveClick}
         disabled={isLastMember}
         title={isLastMember ? 'Du bist das einzige Mitglied – lösche die Gruppe stattdessen.' : undefined}
-        className="flex-1 h-10 text-[14px] font-semibold text-ink-2 border border-line rounded-md
+        className="flex-1 min-w-0 px-3 h-11 text-[14px] font-semibold text-ink-2 border border-line rounded-md
                    hover:border-ink hover:text-ink gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <LogOut className="h-4 w-4" />

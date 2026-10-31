@@ -8,8 +8,9 @@ import ImageExt from '@tiptap/extension-image'
 import PlaceholderExt from '@tiptap/extension-placeholder'
 import type { JSONContent } from '@tiptap/core'
 import {
-  X, Pencil, Trash2, Plus, ImageIcon, Send,
+  Pencil, Trash2, Plus, ImageIcon, Send,
   MapPin, ExternalLink, Check, CalendarClock, CalendarPlus,
+  Bold, Italic, List, ListOrdered,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -81,7 +82,7 @@ const STATUS_BADGE: Record<ActivityStatus, string> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDateRange(start: string | null, end: string | null): string | null {
-  return formatGermanDateRange(start, end, { dateOnly: true, openEndedPrefix: 'Ab ' })
+  return formatGermanDateRange(start, end, { dateOnly: true, openEndedPrefix: 'Ab ', collapseEqual: true })
 }
 
 function extractMentionIds(content: JSONContent): string[] {
@@ -229,6 +230,19 @@ export function ActivityDetailSheet({
   // ── DateFinder state ───────────────────────────────────────────────────────
   const [dateFinderOpen, setDateFinderOpen] = useState(false)
 
+  // ── Kopfzeilen-Titel erscheint erst, wenn der Titel im Hero weggescrollt ist ─
+  const [heroTitleEl, setHeroTitleEl] = useState<HTMLParagraphElement | null>(null)
+  const [heroTitleVisible, setHeroTitleVisible] = useState(true)
+
+  useEffect(() => {
+    if (!heroTitleEl || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setHeroTitleVisible(entry.isIntersecting))
+    observer.observe(heroTitleEl)
+    return () => observer.disconnect()
+  }, [heroTitleEl])
+
+  const headerTitleVisible = !heroTitleEl || !heroTitleVisible
+
   // ── Edit form state ────────────────────────────────────────────────────────
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
@@ -256,6 +270,7 @@ export function ActivityDetailSheet({
   // re-render the component on every transaction, so editor.isEmpty would
   // otherwise be stale and keep the Send button disabled while typing text.
   const [isEditorEmpty, setIsEditorEmpty] = useState(true)
+  const [composerFocused, setComposerFocused] = useState(false)
   const [deleteCommentTarget, setDeleteCommentTarget] = useState<ActivityComment | null>(null)
   const commentImageInputRef = useRef<HTMLInputElement>(null)
   const commentsEndRef = useRef<HTMLDivElement>(null)
@@ -280,6 +295,8 @@ export function ActivityDetailSheet({
   const editor = useEditor({
     onCreate: ({ editor }) => setIsEditorEmpty(editor.isEmpty),
     onUpdate: ({ editor }) => setIsEditorEmpty(editor.isEmpty),
+    onFocus: () => setComposerFocused(true),
+    onBlur: () => setComposerFocused(false),
     extensions: [
       StarterKit,
       PlaceholderExt.configure({ placeholder: 'Kommentar schreiben…' }),
@@ -526,22 +543,22 @@ export function ActivityDetailSheet({
         aria-hidden
         className="w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 flex flex-col gap-1.5">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex flex-col gap-1.5">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[10.5px] font-semibold tracking-[0.06em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
+          <span className={`text-[11px] font-semibold tracking-[0.02em] px-2.5 py-0.5 rounded-pill ${STATUS_BADGE[activity.status]}`}>
             {STATUS_LABELS[activity.status]}
           </span>
           {formatDateRange(activity.start_date, activity.end_date) && (
-            <span className="text-[11px] font-[600] text-white/80">
+            <span className="text-[12px] font-[600] text-white">
               {formatDateRange(activity.start_date, activity.end_date)}
             </span>
           )}
         </div>
-        <p className="font-serif font-medium text-[22px] tracking-[-0.015em] text-white leading-tight">
+        <p ref={setHeroTitleEl} className="font-serif font-medium text-[22px] tracking-[-0.015em] text-white leading-tight">
           {activity.name}
         </p>
-        <p className="text-[12px] text-white/70">
+        <p className="text-[12px] text-white/90">
           von {activity.initiator.display_name}
         </p>
       </div>
@@ -551,7 +568,7 @@ export function ActivityDetailSheet({
   const editFormSection = (
     <div className="space-y-3 bg-surface border border-line rounded-md p-4">
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.02em]">
           Name *
         </label>
         <Input
@@ -565,7 +582,7 @@ export function ActivityDetailSheet({
         )}
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.02em]">
           Beschreibung
         </label>
         <Textarea
@@ -576,7 +593,7 @@ export function ActivityDetailSheet({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.02em]">
           Ort
         </label>
         <Input
@@ -587,7 +604,7 @@ export function ActivityDetailSheet({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.06em]">
+        <label className="text-[12px] font-[700] text-ink-2 tracking-[0.02em]">
           Link / URL
         </label>
         <Input
@@ -623,7 +640,7 @@ export function ActivityDetailSheet({
   const infoSection = activity ? (
     <div className="space-y-3">
       {activity.description && (
-        <p className="text-[14px] text-ink-2 leading-relaxed">
+        <p className="select-text text-[14px] text-ink-2 leading-relaxed">
           {activity.description}
         </p>
       )}
@@ -687,7 +704,7 @@ export function ActivityDetailSheet({
 
   const responsibilitiesSection = showResponsibilities ? (
     <div className="space-y-3">
-      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
+      <h3 className="text-[15px] font-[700] text-ink">
         Verantwortlichkeiten
       </h3>
 
@@ -726,7 +743,7 @@ export function ActivityDetailSheet({
           {!responsibilitiesReadOnly && (isAdmin || resp.created_by === currentUserId) && (
             <button
               onClick={() => setDeleteRespTarget(resp)}
-              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-[8px] text-ink-3 hover:text-error hover:bg-error-soft transition-colors"
+              className="flex-shrink-0 h-10 w-10 -my-1 -mr-1 flex items-center justify-center rounded-pill text-ink-3 hover:text-error hover:bg-error-soft transition-[background-color,color,transform] active:scale-90"
               aria-label="Löschen"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -780,7 +797,7 @@ export function ActivityDetailSheet({
       {!responsibilitiesReadOnly && !addingResp && (
         <button
           onClick={() => setAddingResp(true)}
-          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary/80 transition-colors"
+          className="flex items-center gap-2 min-h-10 text-[13px] font-[700] text-primary hover:text-primary/80 transition-[color,transform] active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Verantwortlichkeit hinzufügen
@@ -805,7 +822,7 @@ export function ActivityDetailSheet({
 
   const photosSection = showPhotos ? (
     <div className="space-y-3">
-      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
+      <h3 className="text-[15px] font-[700] text-ink">
         Erinnerungsfotos
       </h3>
 
@@ -867,7 +884,7 @@ export function ActivityDetailSheet({
         <button
           onClick={() => photoInputRef.current?.click()}
           disabled={uploadingPhoto}
-          className="flex items-center gap-2 text-[13px] font-[700] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 min-h-10 text-[13px] font-[700] text-primary hover:text-primary/80 transition-[color,transform] active:scale-[0.97] disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           {uploadingPhoto ? 'Wird hochgeladen…' : 'Foto hinzufügen'}
@@ -878,7 +895,7 @@ export function ActivityDetailSheet({
 
   const commentsSection = (
     <div className="space-y-4">
-      <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
+      <h3 className="text-[15px] font-[700] text-ink">
         Kommentare
       </h3>
 
@@ -920,7 +937,7 @@ export function ActivityDetailSheet({
                     })}
                   </span>
                 </div>
-                <div className="bg-surface border border-line rounded-sm px-3 py-2.5">
+                <div className="select-text bg-surface border border-line rounded-sm px-3 py-2.5">
                   <TiptapRenderer content={comment.content} />
                 </div>
               </div>
@@ -990,38 +1007,38 @@ export function ActivityDetailSheet({
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1 mb-2">
+      <div className={`${isMobile && !composerFocused && isEditorEmpty ? 'hidden' : 'flex'} items-center gap-1 mb-2`}>
         <button
           onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBold().run() }}
-          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] font-extrabold transition-colors
+          className={`h-9 w-9 flex items-center justify-center rounded-pill transition-colors
             ${editor?.isActive('bold') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
           aria-label="Fett"
         >
-          B
+          <Bold className="h-4 w-4" />
         </button>
         <button
           onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleItalic().run() }}
-          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[13px] italic font-[800] transition-colors
+          className={`h-9 w-9 flex items-center justify-center rounded-pill transition-colors
             ${editor?.isActive('italic') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
           aria-label="Kursiv"
         >
-          I
+          <Italic className="h-4 w-4" />
         </button>
         <button
           onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleBulletList().run() }}
-          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
+          className={`h-9 w-9 flex items-center justify-center rounded-pill transition-colors
             ${editor?.isActive('bulletList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
           aria-label="Aufzählung"
         >
-          •—
+          <List className="h-4 w-4" />
         </button>
         <button
           onMouseDown={e => { e.preventDefault(); editor?.chain().focus().toggleOrderedList().run() }}
-          className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-[11px] font-[800] transition-colors
+          className={`h-9 w-9 flex items-center justify-center rounded-pill transition-colors
             ${editor?.isActive('orderedList') ? 'bg-primary-soft text-primary' : 'text-ink-3 hover:text-ink hover:bg-surface-2'}`}
           aria-label="Nummerierte Liste"
         >
-          1.
+          <ListOrdered className="h-4 w-4" />
         </button>
 
         {/* Image upload button */}
@@ -1041,10 +1058,10 @@ export function ActivityDetailSheet({
         />
         <button
           onMouseDown={e => { e.preventDefault(); commentImageInputRef.current?.click() }}
-          className="h-7 w-7 flex items-center justify-center rounded-[6px] text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-pill text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
           aria-label="Bild einfügen"
         >
-          <ImageIcon className="h-3.5 w-3.5" />
+          <ImageIcon className="h-4 w-4" />
         </button>
       </div>
 
@@ -1059,7 +1076,7 @@ export function ActivityDetailSheet({
         <button
           onClick={handleSendComment}
           disabled={isEditorEmpty || sendingComment}
-          className={`flex-shrink-0 h-9 w-9 rounded-sm flex items-center justify-center transition-[background-color,color,transform]
+          className={`flex-shrink-0 h-10 w-10 rounded-pill flex items-center justify-center transition-[background-color,color,transform]
             ${isEditorEmpty || sendingComment
               ? 'bg-surface-2 text-ink-3 cursor-not-allowed'
               : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
@@ -1078,7 +1095,6 @@ export function ActivityDetailSheet({
       <ResponsiveModal open={!!activityId} onOpenChange={(open) => !open && onClose()}>
         <ResponsiveModalContent
           size="lg"
-          hideClose
           className="h-[92dvh] md:h-auto bg-bg border-line p-0"
           style={
             keyboard.inset > 0
@@ -1095,21 +1111,14 @@ export function ActivityDetailSheet({
           </ResponsiveModalDescription>
 
           {/* ── Header ── */}
-          <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
-            <button
-              onClick={onClose}
-              className="h-8 w-8 rounded-[8px] flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
-              aria-label="Schließen"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <ResponsiveModalTitle className="flex-1 font-serif font-medium text-[18px] tracking-[-0.015em] text-ink truncate">
+          <div className={`flex-shrink-0 pl-5 pr-14 pt-3 pb-2 min-h-[56px] border-b flex items-center gap-2 transition-colors duration-200 ${headerTitleVisible ? 'border-line' : 'border-transparent'}`}>
+            <ResponsiveModalTitle className={`flex-1 min-w-0 font-serif font-medium text-[18px] tracking-[-0.015em] text-ink truncate transition-opacity duration-200 ${headerTitleVisible ? 'opacity-100' : 'opacity-0'}`}>
               {activity?.name ?? ''}
             </ResponsiveModalTitle>
             {canEdit && (
               <button
                 onClick={editing ? () => setEditing(false) : enterEditMode}
-                className={`h-8 w-8 rounded-[8px] flex items-center justify-center transition-colors
+                className={`h-10 w-10 rounded-pill flex items-center justify-center transition-[background-color,color,transform] active:scale-90
                   ${editing
                     ? 'bg-primary-soft text-primary'
                     : 'text-ink-3 hover:text-ink hover:bg-surface-2'

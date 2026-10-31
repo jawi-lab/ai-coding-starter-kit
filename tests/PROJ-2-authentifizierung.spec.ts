@@ -20,23 +20,15 @@ test.describe('Login Page', () => {
     await page.waitForSelector('form', { timeout: 5000 })
   })
 
-  test('AC-LOGIN-1: Shows email, password fields and disabled OAuth placeholder buttons', async ({ page }) => {
+  test('AC-LOGIN-1: Shows email and password fields, OAuth buttons stay hidden', async ({ page }) => {
     await expect(page.getByLabel('E-Mail')).toBeVisible()
     await expect(page.getByLabel('Passwort')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Einloggen', exact: true })).toBeVisible()
 
-    // OAuth placeholder buttons are visible but disabled
-    const googleBtn = page.getByRole('button', { name: /Google/i })
-    const appleBtn = page.getByRole('button', { name: /Apple/i })
-    const facebookBtn = page.getByRole('button', { name: /Facebook/i })
-
-    await expect(googleBtn).toBeVisible()
-    await expect(appleBtn).toBeVisible()
-    await expect(facebookBtn).toBeVisible()
-
-    await expect(googleBtn).toBeDisabled()
-    await expect(appleBtn).toBeDisabled()
-    await expect(facebookBtn).toBeDisabled()
+    // OAuth buttons are hidden until OAUTH_ENABLED is turned on in LoginForm
+    await expect(page.getByRole('button', { name: /Google/i })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Apple/i })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Facebook/i })).toHaveCount(0)
   })
 
   test('AC-LOGIN-2: Wrong credentials show generic error (no field disambiguation)', async ({ page }) => {

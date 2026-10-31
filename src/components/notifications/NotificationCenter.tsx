@@ -49,9 +49,8 @@ export function NotificationCenter({
       <ResponsiveModalContent
         size="md"
         className="h-[85dvh] md:h-[70vh] bg-bg border-line p-0 rounded-t-[30px]"
-        hideClose
       >
-        <ResponsiveModalHeader className="px-5 pt-5 pb-3 border-b border-line flex-shrink-0 flex-row items-center justify-between space-y-0">
+        <ResponsiveModalHeader className="pl-5 pr-14 pt-5 pb-3 border-b border-line flex-shrink-0 flex-row items-center justify-between space-y-0">
           <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">
             Benachrichtigungen
           </ResponsiveModalTitle>

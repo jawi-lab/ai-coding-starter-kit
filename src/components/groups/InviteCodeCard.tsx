@@ -44,7 +44,7 @@ export function InviteCodeCard({ code, isAdmin, onRegenerate }: InviteCodeCardPr
   return (
     <div className="bg-surface-2 border border-line rounded-md p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold tracking-[0.06em] text-ink-3">
+        <span className="text-[12px] font-[600] tracking-[0.02em] text-ink-3">
           Einladungs-Code
         </span>
         {isAdmin && (

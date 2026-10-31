@@ -27,7 +27,7 @@ export function PushNotificationSection({ hideHeading = false }: { hideHeading?:
   return (
     <div className="space-y-3">
       {!hideHeading && (
-        <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.06em]">
+        <h3 className="text-[12px] font-[800] text-ink-2 tracking-[0.02em]">
           Benachrichtigungen
         </h3>
       )}

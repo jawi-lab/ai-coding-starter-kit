@@ -88,7 +88,7 @@ export function MemberRow({
             <MemberBadgeIcons badges={badges} />
           </div>
           <span
-            className={`inline-flex items-center gap-1 text-[10.5px] font-semibold tracking-[0.06em]
+            className={`inline-flex items-center gap-1 text-[11px] font-semibold tracking-[0.02em]
               px-2 py-0.5 rounded-pill mt-0.5
               ${member.role === 'admin' ? 'bg-primary-soft text-primary' : ''}
               ${member.role === 'editor' ? 'bg-secondary-soft text-secondary' : ''}
@@ -113,7 +113,7 @@ export function MemberRow({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-md bg-surface border-line">
-              <DropdownMenuLabel className="text-[11px] text-ink-3 font-semibold tracking-[0.06em]">
+              <DropdownMenuLabel className="text-[11px] text-ink-3 font-semibold tracking-[0.02em]">
                 Rolle ändern
               </DropdownMenuLabel>
               {(['admin', 'editor', 'observer'] as GroupRole[])

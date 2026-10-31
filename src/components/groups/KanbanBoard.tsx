@@ -161,8 +161,9 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail, onC
                   <TabsTrigger
                     key={s}
                     value={s}
+                    onClick={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })}
                     className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
-                               border-[1.5px] border-line bg-surface text-ink-2 transition-colors
+                               border-[1.5px] border-line bg-surface text-ink-2 transition-[background-color,border-color,color,transform]
                                hover:border-primary/40
                                data-[state=active]:bg-primary data-[state=active]:text-white
                                data-[state=active]:border-primary data-[state=active]:shadow-none"

@@ -217,7 +217,7 @@ function SlideIcon({ theme, children }: { theme: Theme; children: React.ReactNod
 
 function Overline({ theme, children }: { theme: Theme; children: React.ReactNode }) {
   return (
-    <p className="text-[13px] font-[700] tracking-[0.08em]" style={{ color: theme.accent }}>
+    <p className="text-[13px] font-[700] tracking-[0.02em]" style={{ color: theme.accent }}>
       {children}
     </p>
   )

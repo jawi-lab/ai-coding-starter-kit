@@ -54,7 +54,7 @@ export function JoinGroupForm({ onSuccess }: JoinGroupFormProps) {
       <div className="space-y-1.5">
         <Label
           htmlFor="invite-code"
-          className="text-[13px] font-semibold text-ink-2 tracking-[0.06em]"
+          className="text-[13px] font-semibold text-ink-2 tracking-[0.02em]"
         >
           Einladungs-Code
         </Label>

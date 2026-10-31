@@ -172,18 +172,10 @@ export function DateFinderSheet({
     <ResponsiveModal open={open} onOpenChange={(o) => { if (!o) onClose() }}>
       <ResponsiveModalContent
         size="md"
-        hideClose
         className="h-[96dvh] md:h-auto bg-bg border-line p-0"
       >
         {/* ── Header ── */}
-        <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-line flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="h-8 w-8 rounded-[8px] flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors"
-            aria-label="Schließen"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        <div className="flex-shrink-0 pl-5 pr-14 pt-5 pb-3 border-b border-line flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <ResponsiveModalTitle className="text-[17px] font-[800] text-ink">
               {mode === 'schedule' ? 'Termin finden' : 'Termin anpassen'}

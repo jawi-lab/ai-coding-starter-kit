@@ -177,7 +177,7 @@ function GroupsContent() {
             <ResponsiveModalTitle className="text-[18px] font-[800] text-ink">Gruppe hinzufügen</ResponsiveModalTitle>
           </ResponsiveModalHeader>
           <div className="overflow-y-auto">
-            <OnboardingScreen onSuccess={handleAddGroupSuccess} />
+            <OnboardingScreen embedded onSuccess={handleAddGroupSuccess} />
           </div>
         </ResponsiveModalContent>
       </ResponsiveModal>

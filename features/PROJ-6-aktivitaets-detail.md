@@ -455,3 +455,20 @@ All 4 QA bugs fixed. No open bugs remain.
 - **Status-Badge auf dem Titelbild:** Feste, deckende Statusfarben in Light und Dark Mode statt der `*-soft`-Tokens. Kontrast rechnerisch: Gold 6,19:1, Blush 5,82:1, Grün 6,71:1 (vorher im Light Mode Gold 2,48:1, Grün 4,15:1).
 - **Leertexte im nur lesbaren Detail (Album):** „Keine Erinnerungsfotos“ und „Keine Kommentare“ statt der Aufforderungen „lad das erste hoch!“ und „schreib den ersten!“. Die Aufforderungen aus den Akzeptanzkriterien gelten nur noch, wenn die Aktion möglich ist.
 - **Deployment:** 2026-10-31 per Push auf `main` (Vercel Auto-Deploy, https://qt-voting-app.vercel.app). Live-Sicht und `/qa` stehen noch aus.
+
+## Design-Polish (2026-10-31)
+
+Analyse der App-Screenshots nach den Apple-Designprinzipien, umgesetzt und im iPhone-Simulator geprüft. Betrifft auch andere Screens, weil die Ursachen meist in gemeinsamen Komponenten lagen.
+
+- **Aktivitäts-Detail:** Der Titel steht zuerst nur im Foto und erscheint in der Kopfzeile, sobald er weggescrollt ist. Stärkerer Schutzverlauf, Texte auf dem Foto am Seitenraster ausgerichtet. Eintägige Termine zeigen ein Datum statt „12.07.26 – 12.07.26" (auch Board und Termine).
+- **Kommentarfeld:** Die Werkzeugleiste erscheint mobil erst bei Fokus oder Inhalt und nutzt lucide-Icons. Senden-Button rund.
+- **Sheets:** Schließen-X überall oben rechts mit 44px-Ziel (auch Detail, Terminfindung, Benachrichtigungen), einheitliche Fläche, im Dark Mode angehoben.
+- **Gruppen-Einstellungen:** „Gruppe löschen" ragte aus dem Bildschirm und passt jetzt in die Fußzeile.
+- **Sheet „Gruppe hinzufügen":** ohne Vollbild-Layout, Begrüßung und Ausloggen.
+- **Board:** Der gewählte Chip scrollt in die Mitte. Leere Desktop-Spalten sind keine bildschirmhohen Flächen mehr.
+- **Login:** Die drei funktionslosen „Demnächst"-Buttons sind ausgeblendet (`OAUTH_ENABLED` in `LoginForm.tsx`).
+- **Typografie:** Tracking für Satzcase-Labels von 0.06em auf 0.02em, Abschnittstitel im Sheet 15px/700, Abschnittslabels ausgerichtet.
+- **Touch:** Bedienelemente nicht markierbar, kein hängender Hover, sichtbares Drücken auf Chips und Segmenten. Dialoge halten mobil Abstand zum Rand. Onboarding nutzt das Logo statt Text.
+- **Tests:** E2E mit Login (Chromium) angepasst, wo sie veraltet waren: ausgeblendete OAuth-Buttons (PROJ-2), 10-stelliger Einladungscode (PROJ-3), Badges als Unterseite und Stufen-Chip ohne Emoji (PROJ-16).
+- **Offen:** Goldener Fokusring um das Sheet-X trat im Simulator sporadisch auf, Prüfung auf echtem iPhone steht aus. Vorschlagskarten, Umfragen, Kommentare, Wrapped und Termine mit Einträgen wurden mangels Testdaten nicht im Simulator gesehen, Desktop-Board nicht visuell geprüft.
+- **Deployment:** 2026-10-31 per Push auf `main`.

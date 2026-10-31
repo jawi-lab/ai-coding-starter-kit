@@ -39,7 +39,14 @@ async function openProfile(page: Page) {
     .getByRole('button', { name: /Profil( & Archiv)?$/ })
     .first()
     .click()
-  await expect(page.getByRole('heading', { name: 'Meine Badges' })).toBeVisible({ timeout: 8000 })
+  await expect(page.getByRole('dialog', { name: 'Mein Konto' })).toBeVisible({ timeout: 8000 })
+}
+
+/** Öffnet im Profil-Sheet die Unterseite „Meine Badges". */
+async function openBadges(page: Page) {
+  await openProfile(page)
+  await page.getByRole('button', { name: 'Meine Badges', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Meine Badges' })).toBeVisible({ timeout: 8000 })
 }
 
 /** Öffnet die Gruppen-Einstellungen (Mitgliederliste) der ersten Gruppe des Accounts. */
@@ -80,19 +87,19 @@ test.describe('PROJ-16 — Badge-Sektion im Profil', () => {
   test('AC-PROFIL-1: das Profil zeigt alle vier Badges mit Stufe oder „Noch nicht erreicht"', async ({
     page,
   }) => {
-    await openProfile(page)
-    const dialog = page.getByRole('dialog', { name: 'Mein Konto' })
+    await openBadges(page)
+    const dialog = page.getByRole('dialog', { name: 'Meine Badges' })
 
     for (const name of BADGE_NAMES) {
       const title = dialog.getByText(name, { exact: true })
       await expect(title).toBeVisible()
-      // Jede Karte trägt entweder einen Stufen-Chip („🥉 Bronze" etc.)
+      // Jede Karte trägt entweder einen Stufen-Chip („Bronze" etc.)
       // oder den ausgegrauten Zustand „Noch nicht erreicht".
       const card = title.locator(
         'xpath=ancestor::div[contains(@class, "rounded-md") and contains(@class, "border")][1]',
       )
       await expect(
-        card.getByText(/^(🥉 Bronze|🥈 Silber|🥇 Gold|Noch nicht erreicht)$/),
+        card.getByText(/^\s*(Bronze|Silber|Gold|Noch nicht erreicht)$/),
       ).toBeVisible()
     }
   })
@@ -100,15 +107,15 @@ test.describe('PROJ-16 — Badge-Sektion im Profil', () => {
   test('AC-PROFIL-2: unterhalb von Gold zeigt jede Badge-Karte Fortschrittsbalken + „Noch X bis …", ab Gold die Rohzahl', async ({
     page,
   }) => {
-    await openProfile(page)
-    const dialog = page.getByRole('dialog', { name: 'Mein Konto' })
+    await openBadges(page)
+    const dialog = page.getByRole('dialog', { name: 'Meine Badges' })
 
     for (const name of BADGE_NAMES) {
       const card = dialog
         .getByText(name, { exact: true })
         .locator('xpath=ancestor::div[contains(@class, "rounded-md") and contains(@class, "border")][1]')
 
-      const isGold = (await card.getByText(/^🥇 Gold$/).count()) > 0
+      const isGold = (await card.getByText(/^\s*Gold$/).count()) > 0
       if (isGold) {
         // Gold: Rohzahl statt Balken (Spec).
         await expect(card.getByText(/^\d+ Aktion(en)?$/)).toBeVisible()

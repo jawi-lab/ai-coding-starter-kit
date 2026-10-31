@@ -38,11 +38,11 @@ export function NotificationPreferencesSection() {
         <div className="flex items-center gap-3 pb-1.5">
           <div className="flex-1" />
           {showPush && (
-            <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.06em]">
+            <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.02em]">
               Push
             </span>
           )}
-          <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.06em]">
+          <span className="w-11 text-center text-[10px] font-[800] text-ink-3 tracking-[0.02em]">
             E-Mail
           </span>
         </div>

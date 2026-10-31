@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, BarChart3 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useActivityPolls } from '@/hooks/useActivityPolls'
@@ -71,7 +71,7 @@ export function PollSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-[800] text-ink tracking-[0.06em]">
+        <h3 className="text-[15px] font-[700] text-ink">
           Umfragen
         </h3>
         {canInteract && polls.length > 0 && (
@@ -92,15 +92,14 @@ export function PollSection({
           ))}
         </div>
       ) : polls.length === 0 ? (
-        <div className="rounded-[16px] border border-dashed border-line bg-surface px-4 py-8 flex flex-col items-center text-center gap-3">
-          <BarChart3 className="h-7 w-7 text-ink-3" />
-          <p className="text-[13.5px] text-ink-2">
+        <div className="space-y-1">
+          <p className="text-[13px] text-ink-3">
             {canInteract ? 'Noch keine Umfragen – starte die erste!' : 'Keine Umfragen'}
           </p>
           {canInteract && (
             <button
               onClick={() => setCreateOpen(true)}
-              className="flex items-center gap-1.5 text-[13.5px] font-[700] text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center gap-2 min-h-10 text-[13px] font-[700] text-primary hover:text-primary/80 transition-[color,transform] active:scale-[0.97]"
             >
               <Plus className="h-4 w-4" />
               Umfrage starten

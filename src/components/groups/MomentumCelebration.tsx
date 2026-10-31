@@ -80,7 +80,7 @@ export function MomentumCelebration({ milestone, count, onDismiss }: MomentumCel
           level={level.level}
           className="h-12 w-12 text-[#D9A24B]"
         />
-        <p className="text-[13px] font-[700] tracking-[0.06em] text-[#D9A24B]">
+        <p className="text-[13px] font-[700] tracking-[0.02em] text-[#D9A24B]">
           Level up!
         </p>
         <h2 className="font-serif font-medium text-[38px] leading-[1.15] tracking-[-0.015em] text-[#FBF8F3]">
