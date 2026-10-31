@@ -827,7 +827,8 @@ JDK 21; ProGuard-Fix `proguard-android-optimize.txt`). Verifiziert (mit Screensh
 5. ~~**OBS-9-3** (Low)~~ → **✅ angeglichen** (2026-06-28).
 
 ## Deployment
-_To be added by /deploy_
+
+**2026-10-31, Commit `0b2d46b` auf `main`:** Sheets im Apple-Stil, iOS-27-Start (Capacitor 8.6.0, `SceneDelegate`) und Tastatur-Fix für die iOS-App. Das Web-Deployment läuft automatisch über den Push. Ein neuer nativer Build für die Stores gehört nicht dazu. Tests und offene Punkte stehen in [docs/qa/2026-10-30-apple-design.md](../docs/qa/2026-10-30-apple-design.md).
 
 ## Statuspflege (2026-09-09)
 

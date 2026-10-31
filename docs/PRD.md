@@ -16,7 +16,7 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 
 > **Statusquelle:** `features/INDEX.md` ist die verbindliche Quelle für den Feature-Status. Diese Tabelle spiegelt sie — bei Abweichung gilt INDEX.md. Skills, die den Status ändern, aktualisieren beide Dateien.
 >
-> _Stand: 2026-09-25_
+> _Stand: 2026-10-31_
 
 | ID | Priority | Feature | Status |
 |----|----------|---------|--------|
