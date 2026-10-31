@@ -559,3 +559,5 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 
 - **Bild hinter dem Kommentarfeld:** Das Scrollen endete, bevor das Bild geladen war; das Bildende lag 168 px hinter dem Feld. `useScrollOnNewComment` folgt jetzt bis zu 8 Sekunden nachladenden Bildern, endet aber sofort, wenn die Person scrollt oder tippt.
 - **Löschen-Tippen ging verloren:** Das Tippen nahm dem Kommentarfeld den Fokus, die Werkzeugleiste klappte ein und die Zeile sprang zwischen Drücken und Loslassen weg. Der Button behält den Fokus jetzt im Feld.
+
+**Gesamtbericht:** `docs/qa/2026-10-31-abarbeitung.md`. Der Status bleibt „Deployed", weil nur Fehler in Live-Funktionen behoben wurden.
