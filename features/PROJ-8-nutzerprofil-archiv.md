@@ -485,3 +485,4 @@ fehlenden Description.
 - **Symptom:** Die Sidebar zeigte nach einer Namensänderung weiter den alten Namen, Profil und Mitgliederliste den neuen.
 - **Ursache:** `DesktopSidebar` las `user_metadata.display_name`, das nur bei der Registrierung gesetzt wird.
 - **Fix:** Die Sidebar liest `profile.display_name` aus `useAuth()`. Ohne geladenes Profil steht dort „Du“, die E-Mail ist als Fallback entfallen. Tests in `DesktopSidebar.test.tsx`.
+- **Deployment:** 2026-10-31 per Push auf `main` (Vercel Auto-Deploy, https://qt-voting-app.vercel.app). Live-Sicht und `/qa` stehen noch aus.

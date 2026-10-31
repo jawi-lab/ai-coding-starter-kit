@@ -401,3 +401,4 @@ Alle 3 Low-Punkte auf Nutzerwunsch direkt behoben:
 
 - **Symptom:** Bei abgeschlossenen Aktivitäten und im Album stand „Noch keine Umfragen – starte die erste!“, obwohl dort keine Umfrage gestartet werden kann.
 - **Fix:** Ohne `canInteract` steht „Keine Umfragen“. Die Aufforderung und der Erstell-Button gelten nur noch für aktive Aktivitäten. Tests in `PollSection.test.tsx`.
+- **Deployment:** 2026-10-31 per Push auf `main` (Vercel Auto-Deploy, https://qt-voting-app.vercel.app). Live-Sicht und `/qa` stehen noch aus.

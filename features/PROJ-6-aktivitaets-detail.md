@@ -454,3 +454,4 @@ All 4 QA bugs fixed. No open bugs remain.
 
 - **Status-Badge auf dem Titelbild:** Feste, deckende Statusfarben in Light und Dark Mode statt der `*-soft`-Tokens. Kontrast rechnerisch: Gold 6,19:1, Blush 5,82:1, Grün 6,71:1 (vorher im Light Mode Gold 2,48:1, Grün 4,15:1).
 - **Leertexte im nur lesbaren Detail (Album):** „Keine Erinnerungsfotos“ und „Keine Kommentare“ statt der Aufforderungen „lad das erste hoch!“ und „schreib den ersten!“. Die Aufforderungen aus den Akzeptanzkriterien gelten nur noch, wenn die Aktion möglich ist.
+- **Deployment:** 2026-10-31 per Push auf `main` (Vercel Auto-Deploy, https://qt-voting-app.vercel.app). Live-Sicht und `/qa` stehen noch aus.
