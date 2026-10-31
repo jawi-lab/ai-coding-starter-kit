@@ -436,6 +436,8 @@ test.describe('Proposal Actions Menu (Initiator / Admin)', () => {
     await page.getByText('Löschen').click()
 
     await expect(page.getByText('Vorschlag löschen?')).toBeVisible({ timeout: 2000 })
+    // Der Menü-Klick darf das Detail-Sheet nicht mit öffnen.
+    await expect(page.getByRole('dialog').filter({ hasText: /Kommentare/ })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Abbrechen' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Löschen' })).toBeVisible()
 
@@ -464,6 +466,8 @@ test.describe('Proposal Actions Menu (Initiator / Admin)', () => {
     await page.getByText('Erneut zur Abstimmung').click()
 
     await expect(page.getByText('Erneut zur Abstimmung?')).toBeVisible({ timeout: 2000 })
+    // Der Menü-Klick darf das Detail-Sheet nicht mit öffnen.
+    await expect(page.getByRole('dialog').filter({ hasText: /Kommentare/ })).toHaveCount(0)
     await expect(page.getByText(/Votes.*zurückgesetzt/i)).toBeVisible()
 
     await page.getByRole('button', { name: 'Abbrechen' }).click()

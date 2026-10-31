@@ -499,7 +499,7 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 | `npm run build` | Erfolgreich |
 | `tests/design-fixes-2026-10.spec.ts` (neu), gegen den Static Export | 6 von 6 bestanden |
 | PROJ-14 und PROJ-15 E2E als Regression, gegen den Static Export | 7 bestanden, 4 übersprungen |
-| PROJ-4 und PROJ-6 E2E | 4 bestanden, 43 übersprungen, also fast ohne Aussagekraft |
+| PROJ-4 und PROJ-6 E2E | 4 bestanden, 43 übersprungen, also fast ohne Aussagekraft (behoben, siehe Nachtrag unten) |
 | iPhone-17-Pro-Simulator | Alle Fixes von Hand geprüft |
 
 **Responsive:** P1 bei 402, 768 und 1440 px geprüft. P3 betrifft nur Mobil.
@@ -511,7 +511,7 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 | Schwere | Befund |
 |---|---|
 | Mittel | Die E2E-Specs von PROJ-4 und PROJ-6 überspringen sich fast vollständig selbst: Ihr Selektor `button.rounded-lg` findet die Gruppenkarte nicht mehr. Ein grüner Lauf sagt deshalb wenig aus. |
-| Mittel | `npm run dev` hing im E2E-Lauf beim Laden der Schrift (`next/font`, „queries have exactly one entry"), nachdem er kurz zuvor funktioniert hatte. Der Build ist nicht betroffen. Ursache nicht geklärt. |
+| Mittel | `npm run dev` hing im E2E-Lauf beim Laden der Schrift (`next/font`, „queries have exactly one entry"), nachdem er kurz zuvor funktioniert hatte. Der Build ist nicht betroffen. Ursache nicht geklärt. (Überholt: Ursache geklärt, auch der Build war betroffen, siehe Nachtrag unten.) |
 | Niedrig | Verweigert RLS das Löschen eines Kommentars ohne Fehlermeldung (0 Zeilen, zum Beispiel nach Rechteverlust in der laufenden Sitzung), verschwindet er bis zum nächsten Laden aus der Liste. Nur aus dem Code abgeleitet. |
 | Niedrig | Andere Mitglieder sehen ein Löschen erst beim nächsten Laden (siehe Bug-Fix oben). |
 | Niedrig | Der Plus-Button kann am Listenanfang weiter eine Karte überlappen (PROJ-4). |
@@ -525,8 +525,12 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 
 **Dabei aufgedeckter Fehler (PROJ-4):** Ein Klick im Aktionsmenü einer Vorschlagskarte öffnete zusätzlich das Detail-Sheet. Details stehen im Spec von PROJ-4.
 
-**Schrift-Fehler `next/font` („queries have exactly one entry"):** Ursache geklärt. Google liefert zeitweise Font-URLs der Form `fonts.gstatic.com/l/font?kit=…&skey=…&v=…`. Das `&` zerlegt die interne Turbopack-Query. Betroffen war auch `npm run build` (1 von 4 Läufen), die frühere Aussage „Der Build ist nicht betroffen" stimmt also nicht. iCloud-Duplikate scheiden aus: Beim Fehler lagen in `.next` 0 Duplikate. Beide Schriften liegen jetzt in `src/fonts/` und werden über `next/font/local` geladen. Danach 8 von 8 Builds fehlerfrei, und `npm run dev` lieferte `/login/` und `/groups/` aus.
+**Schrift-Fehler `next/font` („queries have exactly one entry"):** Ursache geklärt. Google liefert zeitweise Font-URLs der Form `fonts.gstatic.com/l/font?kit=…&skey=…&v=…`. Das `&` zerlegt die interne Turbopack-Query. Betroffen war auch `npm run build` (1 von 4 Läufen), die frühere Aussage „Der Build ist nicht betroffen" stimmt also nicht. Beleg ist das Build-Log des Fehlschlags, das diese URLs enthält. iCloud-Duplikate scheiden als Ursache aus: Beim Fehlschlag lagen in `.next` 0 Duplikate. Zu anderen Zeitpunkten entstehen dort welche, Build und Dev laufen damit aber fehlerfrei. Beide Schriften liegen jetzt in `src/fonts/` und werden über `next/font/local` geladen. Danach 8 von 8 Builds fehlerfrei, und `npm run dev` lieferte `/login/` und `/groups/` aus.
 
 **Testserver:** `scripts/serve-out.mjs` liefert den Static Export für E2E aus. Mit `python3 -m http.server` blieb `/login` in 2 von 40 Aufrufen leer (`ERR_CONNECTION_RESET`, fehlende Chunks). Das war kein App-Fehler.
 
-**Befund P2:** Weder `git log -S`/`-G` noch die Specs noch `docs/qa/` erklären ihn. Die Beschreibung stammt aus dem Protokoll der Sitzung, in der die Prüfung lief: „Goldener Fokusring beim Öffnen von Dialogen, ohne dass jemand die Tastatur benutzt: am X der Gruppen-Einstellungen und am Desktop an ‚Abbrechen'." Schwere: Mittel. Er wird zusammen mit dem Fokusring-Fehler im Aktivitäts-Sheet behoben.
+**Befund P2:**
+- **Im Repo:** Das Etikett „P2" wird nirgends erklärt (`git log -S`/`-G`, Specs, `docs/qa/`). Inhaltlich verwandt sind `docs/qa/2026-10-30-apple-design.md`, Befund 6 (Schwere Low, Fokusring am Schließen-Button des Aktivitäts-Sheets und an „Weiter bearbeiten") und der Punkt „Offen" im Design-Polish oben.
+- **Außerhalb des Repos:** Die Zeile steht wörtlich im lokalen Claude-Code-Sitzungsprotokoll der Vorher-Nachher-Prüfung und lässt sich aus dem Repo nicht nachprüfen: „P2 | Mittel | Goldener Fokusring beim Öffnen von Dialogen, ohne dass jemand die Tastatur benutzt: am X der Gruppen-Einstellungen und am Desktop an ‚Abbrechen'. Auch im Vorher-Stand, durch das größere X aber auffälliger."
+- **Schwere:** Die Quellen widersprechen sich (Low und Mittel).
+- **Status:** Noch nicht behoben. Der Fokusring-Fix folgt als eigener Punkt und wird hier nachgetragen.
