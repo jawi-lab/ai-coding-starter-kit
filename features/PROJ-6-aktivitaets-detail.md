@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-07-11
+**Last Updated:** 2026-10-31
 
 ## Änderung (2026-07-11) – UI-Feinschliff & abhakbare Verantwortlichkeiten
 - **"Zum Kalender hinzufügen" bei abgeschlossenen Aktivitäten ausgeblendet.**
@@ -449,3 +449,8 @@ All 4 QA bugs fixed. No open bugs remain.
 - **Fall 10:** Beim Löschen werden nur Pfade unter `<activity_id>/<Autor-ID>/` entfernt (`isOwnedMediaPath`). Constraint `activity_photos_storage_path_owner` bindet `storage_path` an den eigenen Ordner.
 - **Bekannte Grenze:** Ein Bild, das im Editor eingefügt, aber nie abgeschickt wird, bleibt als Datei liegen (wie zuvor).
 - **Nachweis:** Live mit QA-Account: öffentliche URL 400, anon-Signieren abgelehnt, Mitglied 200; Kommentarbild und Foto im statischen Build hochgeladen, angezeigt und gelöscht. Unit-Tests in `storage.test.ts`, `comment-images.test.ts`, `useActivityPhotos.test.ts`. Migration `20261030100500`.
+
+## Bug-Fix (2026-10-31): Status-Badge und Leertexte
+
+- **Status-Badge auf dem Titelbild:** Feste, deckende Statusfarben in Light und Dark Mode statt der `*-soft`-Tokens. Kontrast rechnerisch: Gold 6,19:1, Blush 5,82:1, Grün 6,71:1 (vorher im Light Mode Gold 2,48:1, Grün 4,15:1).
+- **Leertexte im nur lesbaren Detail (Album):** „Keine Erinnerungsfotos“ und „Keine Kommentare“ statt der Aufforderungen „lad das erste hoch!“ und „schreib den ersten!“. Die Aufforderungen aus den Akzeptanzkriterien gelten nur noch, wenn die Aktion möglich ist.

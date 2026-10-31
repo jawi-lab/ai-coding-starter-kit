@@ -66,14 +66,16 @@ const STATUS_LABELS: Record<ActivityStatus, string> = {
   abgeschlossen: 'Abgeschlossen',
 }
 
-/* Mellon-Status-Farben: Zu Planen = Blush, In Planung = Gold, fertig = Gruen. */
+/* Mellon-Status-Farben: Zu Planen = Blush, In Planung = Gold, fertig = Gruen.
+   Das Badge liegt auf dem Titelbild, daher in beiden Modi feste, deckende Farben
+   statt der im Dark Mode halbtransparenten *-soft-Tokens (WCAG AA). */
 const STATUS_BADGE: Record<ActivityStatus, string> = {
-  vorschlag: 'bg-accent-soft text-secondary border border-secondary/20',
-  zu_planen: 'bg-blush-soft text-blush border border-blush/20',
-  geplant: 'bg-blush-soft text-blush border border-blush/20',
-  in_planung: 'bg-accent-soft text-secondary border border-secondary/20',
-  planung_abgeschlossen: 'bg-success-soft text-success border border-success/20',
-  abgeschlossen: 'bg-success-soft text-success border border-success/20',
+  vorschlag: 'bg-[#F5E7CB] text-[#6F4E12]',
+  zu_planen: 'bg-[#F7E7DF] text-[#8A4630]',
+  geplant: 'bg-[#F7E7DF] text-[#8A4630]',
+  in_planung: 'bg-[#F5E7CB] text-[#6F4E12]',
+  planung_abgeschlossen: 'bg-[#DEEDE2] text-[#1F5A39]',
+  abgeschlossen: 'bg-[#DEEDE2] text-[#1F5A39]',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -815,7 +817,7 @@ export function ActivityDetailSheet({
         </div>
       ) : photos.length === 0 && (
         <p className="text-[13px] text-ink-3">
-          Noch keine Erinnerungsfotos – lad das erste hoch!
+          {readOnly ? 'Keine Erinnerungsfotos' : 'Noch keine Erinnerungsfotos – lad das erste hoch!'}
         </p>
       )}
 
@@ -894,7 +896,7 @@ export function ActivityDetailSheet({
         </div>
       ) : comments.length === 0 ? (
         <p className="text-[13px] text-ink-3">
-          Noch keine Kommentare – schreib den ersten!
+          {readOnly ? 'Keine Kommentare' : 'Noch keine Kommentare – schreib den ersten!'}
         </p>
       ) : (
         <div className="space-y-4">
