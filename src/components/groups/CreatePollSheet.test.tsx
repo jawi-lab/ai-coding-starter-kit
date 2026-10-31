@@ -105,3 +105,35 @@ describe('CreatePollSheet — Validation (PROJ-14)', () => {
     expect((optionField(1) as HTMLInputElement).value).toBe('Pizza')
   })
 })
+
+describe('CreatePollSheet — Rückfrage vor dem Verwerfen', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const pressEscape = () => fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+
+  it('closes an empty form without asking', () => {
+    const { onClose } = setup()
+    pressEscape()
+    expect(onClose).toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+
+  it('asks first when text was entered and keeps it on "Weiter bearbeiten"', async () => {
+    const { onClose } = setup()
+    type(question(), 'Welches Restaurant?')
+    pressEscape()
+    expect(onClose).not.toHaveBeenCalled()
+    fireEvent.click(await screen.findByRole('button', { name: 'Weiter bearbeiten' }))
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+    expect((question() as HTMLInputElement).value).toBe('Welches Restaurant?')
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('closes after "Verwerfen"', async () => {
+    const { onClose } = setup()
+    type(question(), 'Welches Restaurant?')
+    pressEscape()
+    fireEvent.click(await screen.findByRole('button', { name: 'Verwerfen' }))
+    expect(onClose).toHaveBeenCalled()
+  })
+})

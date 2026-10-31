@@ -925,7 +925,7 @@ export function ActivityDetailSheet({
               {!readOnly && (isAdmin || comment.user_id === currentUserId) && (
                 <button
                   onClick={() => setDeleteCommentTarget(comment)}
-                  className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-all"
+                  className="flex-shrink-0 h-7 w-7 mt-0.5 flex items-center justify-center rounded-[8px] text-ink-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-error hover:bg-error-soft transition-[opacity,color,background-color]"
                   aria-label="Kommentar löschen"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -1057,7 +1057,7 @@ export function ActivityDetailSheet({
         <button
           onClick={handleSendComment}
           disabled={isEditorEmpty || sendingComment}
-          className={`flex-shrink-0 h-9 w-9 rounded-sm flex items-center justify-center transition-all
+          className={`flex-shrink-0 h-9 w-9 rounded-sm flex items-center justify-center transition-[background-color,color,transform]
             ${isEditorEmpty || sendingComment
               ? 'bg-surface-2 text-ink-3 cursor-not-allowed'
               : 'bg-primary text-white hover:bg-primary/90 active:scale-95'

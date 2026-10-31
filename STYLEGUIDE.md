@@ -104,8 +104,13 @@ Tailwind: `font-sans` (Default) / `font-serif`.
   für schwebende runde Buttons (FAB, Herz-Vote).
 - **Liquid Glass:** `.glass` / `.glass-strong` / `.glass-dark` Utilities
   (`--glass-fill`, `--glass-blur`, `--glass-stroke`, `--glass-shadow`). Tab-Bar, FAB, Über-Foto-Chrome.
-- **Motion:** `--ease-out` 140–240ms (Hover/Fades), `--ease-spring` 420ms (Sheets, Votes).
-  Press: `scale(0.97)` (im Button eingebaut). Keine Endlos-Loops.
+- **Motion:** `--ease-out` 140–240ms (Hover/Fades), `--ease-spring` 420ms (Votes),
+  `--ease-sheet` 380ms rein / 260ms raus (Sheets). Press: `scale(0.97)` (im Button eingebaut).
+  Keine Endlos-Loops. Transitions nennen ihre Eigenschaften, kein `transition-all`.
+- **Sheets:** `ResponsiveModalContent` bringt mobil einen Griff mit (`useSheetDrag`):
+  Ziehen folgt 1:1 dem Finger, Schwung entscheidet über Schließen oder Zurückfedern.
+- **Bedienungshilfen:** `prefers-reduced-motion`, `prefers-reduced-transparency` und
+  `prefers-contrast` sind zentral in `globals.css` geregelt.
 - **Fotos:** randlos in 30px-Containern, `--photo-protect`-Verlauf, kein Border;
   Fallback = Cover-Gradients.
 

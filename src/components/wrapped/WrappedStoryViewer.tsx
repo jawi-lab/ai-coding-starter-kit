@@ -136,7 +136,7 @@ export function WrappedStoryViewer({ groupId, year, onClose }: WrappedStoryViewe
           {Array.from({ length: total }).map((_, i) => (
             <div key={i} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
               <div
-                className="h-full rounded-full bg-white transition-all duration-200"
+                className="h-full rounded-full bg-white transition-[width] duration-200"
                 style={{ width: i <= index ? '100%' : '0%' }}
               />
             </div>

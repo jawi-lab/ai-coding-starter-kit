@@ -5,7 +5,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: 'html',
+  // open: 'never': Sonst startet der Report nach Fehlschlägen einen Server und
+  // der Lauf endet nie, samt laufendem Dev-Server.
+  reporter: [['html', { open: 'never' }], ['line']],
+  globalTimeout: 45 * 60 * 1000,
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',

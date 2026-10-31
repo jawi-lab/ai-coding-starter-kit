@@ -36,7 +36,7 @@ export function ResetVotesDialog({
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent className="bg-surface border-line rounded-lg max-w-sm mx-4">
+      <AlertDialogContent className="bg-surface border-line rounded-lg w-[calc(100%-2rem)] max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[18px] font-[800] text-ink">
             Erneut zur Abstimmung?

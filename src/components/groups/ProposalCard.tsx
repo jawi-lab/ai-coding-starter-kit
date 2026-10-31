@@ -168,7 +168,7 @@ export function ProposalCard({
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1.5 bg-surface-2 rounded-pill overflow-hidden">
             <div
-              className="h-full bg-primary rounded-pill transition-all duration-300"
+              className="h-full bg-primary rounded-pill transition-[width] duration-300"
               style={{ width: `${progress * 100}%` }}
             />
           </div>
@@ -181,7 +181,7 @@ export function ProposalCard({
             onClick={e => { e.stopPropagation(); handleVote() }}
             disabled={isPending}
             aria-label={displayVoted ? 'Vote entfernen' : 'Upvoten'}
-            className={`flex-shrink-0 h-9 w-9 rounded-pill flex items-center justify-center shadow-float transition-all
+            className={`flex-shrink-0 h-9 w-9 rounded-pill flex items-center justify-center shadow-float transition-[background-color,color,transform] duration-150
               ${displayVoted
                 ? 'bg-primary text-white'
                 : 'bg-surface text-blush hover:text-primary'
@@ -189,7 +189,7 @@ export function ProposalCard({
               ${isPending ? 'opacity-50 cursor-not-allowed' : 'active:scale-90'}`}
           >
             <Heart
-              className="h-4 w-4 transition-all"
+              className="h-4 w-4 transition-colors"
               fill={displayVoted ? 'currentColor' : 'none'}
             />
           </button>

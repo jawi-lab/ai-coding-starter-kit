@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 
+import { useSheetDrag } from "@/hooks/useSheetDrag"
 import { cn } from "@/lib/utils"
 
 /**
@@ -41,16 +42,20 @@ const contentVariants = cva(
   cn(
     // shared — overflow-hidden clips child backgrounds (e.g. a bg-bg footer)
     // to the rounded corners; without it square child rects paint over them.
-    "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-lg transition ease-in-out",
+    "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-lg [animation-timing-function:var(--ease-sheet)]",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
-    "data-[state=closed]:duration-300 data-[state=open]:duration-500",
+    "data-[state=closed]:duration-[260ms] data-[state=open]:duration-[380ms]",
     // mobile: bottom sheet (Mellon: 30px top radius)
     "inset-x-0 bottom-0 max-h-[92dvh] rounded-t-[30px]",
     "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
     // desktop: centered modal
     "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
     "md:w-[calc(100%-2rem)] md:h-auto md:max-h-[88vh] md:rounded-[30px] md:border md:border-line",
-    "md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0",
+    // Die Keyframes ersetzen das Zentrier-Transform, deshalb startet und endet
+    // die Bewegung selbst bei -50 %. Sonst springt der Dialog nach rechts unten.
+    "md:data-[state=closed]:slide-out-to-left-1/2 md:data-[state=open]:slide-in-from-left-1/2",
+    "md:data-[state=closed]:slide-out-to-top-1/2 md:data-[state=open]:slide-in-from-top-1/2",
+    "md:data-[state=closed]:fade-out-0 md:data-[state=open]:fade-in-0",
     "md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95",
     "md:data-[state=closed]:duration-200 md:data-[state=open]:duration-200"
   ),
@@ -77,24 +82,43 @@ interface ResponsiveModalContentProps
 const ResponsiveModalContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   ResponsiveModalContentProps
->(({ className, children, size, hideClose, ...props }, ref) => (
-  <ResponsiveModalPortal>
-    <ResponsiveModalOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(contentVariants({ size }), className)}
-      {...props}
-    >
-      {children}
-      {!hideClose && (
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Schließen</span>
+>(({ className, children, size, hideClose, ...props }, ref) => {
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  const overlayRef = React.useRef<HTMLDivElement>(null)
+  const grabberRef = React.useRef<HTMLButtonElement>(null)
+  React.useImperativeHandle(ref, () => contentRef.current as HTMLDivElement)
+  const dragHandlers = useSheetDrag({ contentRef, overlayRef, closeRef: grabberRef })
+
+  return (
+    <ResponsiveModalPortal>
+      <ResponsiveModalOverlay ref={overlayRef} />
+      <DialogPrimitive.Content
+        ref={contentRef}
+        className={cn(contentVariants({ size }), className)}
+        {...props}
+      >
+        {children}
+        {!hideClose && (
+          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Schließen</span>
+          </DialogPrimitive.Close>
+        )}
+        {/* Griff (nur mobil): ziehen oder antippen schließt. Für Tastatur und
+            Screenreader bleiben Escape und die Schließen-Buttons der Sheets. */}
+        <DialogPrimitive.Close
+          ref={grabberRef}
+          tabIndex={-1}
+          aria-hidden
+          {...dragHandlers}
+          className="group absolute left-1/2 top-0 z-20 flex h-6 w-28 -translate-x-1/2 cursor-grab touch-none items-start justify-center pt-2 focus:outline-none active:cursor-grabbing md:hidden"
+        >
+          <span className="h-[5px] w-9 rounded-pill bg-line-strong transition-colors duration-100 group-active:bg-ink-3" />
         </DialogPrimitive.Close>
-      )}
-    </DialogPrimitive.Content>
-  </ResponsiveModalPortal>
-))
+      </DialogPrimitive.Content>
+    </ResponsiveModalPortal>
+  )
+})
 ResponsiveModalContent.displayName = "ResponsiveModalContent"
 
 const ResponsiveModalHeader = ({

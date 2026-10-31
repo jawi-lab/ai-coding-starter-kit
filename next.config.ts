@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   // Sorgt für saubere Ordner-/index.html-Struktur, die die WebView zuverlässig
   // ausliefert.
   trailingSlash: true,
+  experimental: {
+    // Ein beschädigter Cache in .next/dev ließ Turbopack endlos PostCSS-Worker
+    // starten (809 Prozesse, Mac abgestürzt). Siehe scripts/dev-guard.mjs.
+    turbopackFileSystemCacheForDev: false,
+  },
 };
 
 export default nextConfig;

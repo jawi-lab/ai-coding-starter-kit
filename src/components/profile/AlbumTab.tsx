@@ -155,7 +155,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={`flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
-                  border-[1.5px] transition-all active:scale-[0.97]
+                  border-[1.5px] transition-[background-color,border-color,color,transform] active:scale-[0.97]
                   ${active
                     ? 'bg-primary text-white border-primary'
                     : 'bg-surface text-ink-2 border-line hover:border-primary/40'}`}

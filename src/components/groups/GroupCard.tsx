@@ -18,7 +18,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
       onClick={onClick}
       className="w-full bg-surface border border-line rounded-lg px-4 py-4
                  flex items-center gap-4 hover:border-primary/40 hover:shadow-md
-                 transition-all duration-150 active:scale-[0.99] text-left"
+                 transition-[background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.99] text-left"
     >
       {/* Avatar — Marken-Cover-Gradient (Mellon) */}
       <span className="flex-shrink-0 w-11 h-11 rounded-pill bg-cover-green flex items-center justify-center">

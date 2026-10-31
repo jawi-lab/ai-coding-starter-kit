@@ -38,7 +38,7 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
           <div className="space-y-3">
             <button
               onClick={() => setPanel('create')}
-              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-primary hover:shadow-md active:scale-[0.98]"
+              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-primary hover:shadow-md active:scale-[0.98]"
             >
               <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-pill bg-primary-soft transition-colors group-hover:bg-primary">
                 <Users className="h-5 w-5 text-primary transition-colors group-hover:text-white" />
@@ -54,7 +54,7 @@ export function GroupStep({ onSuccess }: GroupStepProps) {
 
             <button
               onClick={() => setPanel('join')}
-              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-all duration-150 hover:border-secondary hover:shadow-md active:scale-[0.98]"
+              className="group flex w-full items-center gap-4 rounded-lg border border-line bg-surface p-5 text-left transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-secondary hover:shadow-md active:scale-[0.98]"
             >
               <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-pill bg-secondary-soft transition-colors group-hover:bg-secondary">
                 <KeyRound className="h-5 w-5 text-secondary transition-colors group-hover:text-white" />

@@ -47,7 +47,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
               onClick={() => setPanel('create')}
               className="w-full bg-surface border border-line rounded-lg p-5 text-left
                          flex items-center gap-4 hover:border-primary hover:shadow-md
-                         transition-all duration-150 active:scale-[0.98] group"
+                         transition-[background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.98] group"
             >
               <span className="flex-shrink-0 w-11 h-11 rounded-pill bg-primary-soft flex items-center justify-center group-hover:bg-primary transition-colors">
                 <Users className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
@@ -64,7 +64,7 @@ export function OnboardingScreen({ onSuccess }: OnboardingScreenProps) {
               onClick={() => setPanel('join')}
               className="w-full bg-surface border border-line rounded-lg p-5 text-left
                          flex items-center gap-4 hover:border-secondary hover:shadow-md
-                         transition-all duration-150 active:scale-[0.98] group"
+                         transition-[background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.98] group"
             >
               <span className="flex-shrink-0 w-11 h-11 rounded-pill bg-secondary-soft flex items-center justify-center group-hover:bg-secondary transition-colors">
                 <UserPlus className="h-5 w-5 text-secondary group-hover:text-white transition-colors" />

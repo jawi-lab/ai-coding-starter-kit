@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 
 export interface KeyboardViewport {
   /** Pixels the on-screen keyboard overlaps the bottom of the layout viewport. */
@@ -10,6 +11,16 @@ export interface KeyboardViewport {
 }
 
 const EMPTY: KeyboardViewport = { inset: 0, height: 0 }
+
+/** Abstand nach oben, damit das Sheet nicht unter Statusleiste und Notch läuft. */
+function topClearance(): number {
+  const probe = document.createElement('div')
+  probe.style.cssText = 'position:fixed;visibility:hidden;height:env(safe-area-inset-top)'
+  document.body.appendChild(probe)
+  const safeArea = probe.offsetHeight
+  probe.remove()
+  return safeArea + 8
+}
 
 /**
  * Tracks the on-screen keyboard via the `visualViewport` API.
@@ -33,7 +44,42 @@ export function useKeyboardInset(enabled: boolean): KeyboardViewport {
   useEffect(() => {
     // Zurückgesetzt wird im Cleanup (siehe unten) — ein setState direkt im
     // Effect-Body löst eine zusätzliche Render-Runde aus.
-    if (!enabled || typeof window === 'undefined' || !window.visualViewport) return
+    if (!enabled || typeof window === 'undefined') return
+
+    // In der iOS-App entzieht das Keyboard-Plugin der WebView die Tastatur-
+    // Ereignisse, visualViewport schrumpft dort nie. Die Höhe kommt vom Plugin.
+    if (Capacitor.getPlatform() === 'ios') {
+      let cancelled = false
+      const removers: Array<() => void> = []
+
+      void (async () => {
+        const { Keyboard } = await import('@capacitor/keyboard')
+        const show = ({ keyboardHeight }: { keyboardHeight: number }) => {
+          setState({
+            inset: Math.round(keyboardHeight),
+            height: Math.round(window.innerHeight - keyboardHeight - topClearance()),
+          })
+        }
+        const handles = await Promise.all([
+          Keyboard.addListener('keyboardWillShow', show),
+          // Fängt Autofokus ab, falls die Tastatur vor dem ersten Listener startet.
+          Keyboard.addListener('keyboardDidShow', show),
+          Keyboard.addListener('keyboardWillHide', () => setState(EMPTY)),
+        ])
+        for (const handle of handles) {
+          if (cancelled) void handle.remove()
+          else removers.push(() => void handle.remove())
+        }
+      })()
+
+      return () => {
+        cancelled = true
+        for (const remove of removers) remove()
+        setState(EMPTY)
+      }
+    }
+
+    if (!window.visualViewport) return
 
     const vv = window.visualViewport
     // Below this, the gap is browser chrome / rounding rather than a keyboard.

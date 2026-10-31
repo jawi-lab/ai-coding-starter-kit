@@ -67,7 +67,7 @@ function NavLink({
       href={href}
       replace
       aria-current={active ? 'page' : undefined}
-      className={`flex flex-1 flex-col items-center justify-center gap-1 h-full transition-colors
+      className={`flex flex-1 flex-col items-center justify-center gap-1 h-full transition-[color,transform] duration-100 active:scale-[0.92]
         ${active ? 'text-primary' : 'text-ink-3 hover:text-ink-2'}`}
     >
       {inner}
@@ -87,7 +87,7 @@ function NavButton({
   return (
     <button
       onClick={onClick}
-      className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-ink-3 hover:text-ink-2 transition-colors"
+      className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-ink-3 hover:text-ink-2 transition-[color,transform] duration-100 active:scale-[0.92]"
     >
       <Icon className="h-[22px] w-[22px]" strokeWidth={2} />
       <span className="text-[10.5px] leading-none font-[600]">{label}</span>

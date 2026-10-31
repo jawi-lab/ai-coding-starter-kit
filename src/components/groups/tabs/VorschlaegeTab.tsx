@@ -108,7 +108,7 @@ export function VorschlaegeTab() {
               <button
                 key={chip.value ?? 'all'}
                 onClick={() => setActiveFilter(chip.value)}
-                className={`flex-shrink-0 text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill border-[1.5px] transition-all
+                className={`flex-shrink-0 text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill border-[1.5px] transition-colors
                   ${active
                     ? 'bg-primary text-white border-primary'
                     : 'bg-surface text-ink-2 border-line hover:border-primary/40'

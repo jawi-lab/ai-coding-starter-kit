@@ -35,7 +35,7 @@ function TermineCard({
     <button
       onClick={onOpen}
       className="w-full text-left bg-surface border border-line rounded-lg p-3.5 flex items-center gap-3.5
-                 hover:bg-surface-2 active:scale-[0.99] transition-all"
+                 hover:bg-surface-2 active:scale-[0.99] transition-[background-color,border-color,box-shadow,transform]"
     >
       {/* Datums-Block */}
       <div className="flex-shrink-0 w-14 h-14 rounded-md bg-primary-soft flex flex-col items-center justify-center">

@@ -15,6 +15,7 @@ import { Loader2, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useKeyboardInset } from '@/hooks/useKeyboardInset'
+import { DiscardDraftDialog } from '@/components/groups/DiscardDraftDialog'
 import {
   POLL_QUESTION_MAX,
   POLL_OPTION_MAX,
@@ -39,6 +40,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
   const [questionError, setQuestionError] = useState('')
   const [optionsError, setOptionsError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
 
   const isMobile = useIsMobile()
   const keyboard = useKeyboardInset(isMobile && open)
@@ -54,7 +56,15 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
       setOptions(['', ''])
       setQuestionError('')
       setOptionsError('')
+      setConfirmDiscard(false)
     }
+  }
+
+  const isDirty = question.trim() !== '' || options.some((o) => o.trim() !== '')
+
+  function requestClose() {
+    if (isDirty) setConfirmDiscard(true)
+    else onClose()
   }
 
   function setOption(index: number, value: string) {
@@ -115,7 +125,7 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
   }
 
   return (
-    <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
+    <ResponsiveModal open={open} onOpenChange={(o) => !o && requestClose()}>
       <ResponsiveModalContent
         size="md"
         className="rounded-t-[30px] bg-bg border-line p-0"
@@ -225,6 +235,14 @@ export function CreatePollSheet({ open, onClose, onSubmit }: CreatePollSheetProp
             </Button>
           </div>
         </form>
+        <DiscardDraftDialog
+          open={confirmDiscard}
+          onKeep={() => setConfirmDiscard(false)}
+          onDiscard={() => {
+            setConfirmDiscard(false)
+            onClose()
+          }}
+        />
       </ResponsiveModalContent>
     </ResponsiveModal>
   )

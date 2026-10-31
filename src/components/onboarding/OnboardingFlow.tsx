@@ -66,7 +66,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               {steps.map((s, i) => (
                 <span
                   key={s}
-                  className={`h-1.5 rounded-pill transition-all ${
+                  className={`h-1.5 rounded-pill transition-[width,background-color] ${
                     i === index ? 'w-5 bg-primary' : 'w-1.5 bg-line'
                   }`}
                 />

@@ -162,7 +162,7 @@ export function KanbanBoard({ groupId, currentUserId, isAdmin, onOpenDetail, onC
                     key={s}
                     value={s}
                     className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-[700] px-3.5 py-1.5 rounded-pill
-                               border-[1.5px] border-line bg-surface text-ink-2 transition-all
+                               border-[1.5px] border-line bg-surface text-ink-2 transition-colors
                                hover:border-primary/40
                                data-[state=active]:bg-primary data-[state=active]:text-white
                                data-[state=active]:border-primary data-[state=active]:shadow-none"

@@ -25,6 +25,7 @@ import { useCreateProposal } from '@/hooks/useCreateProposal'
 import { useEditProposal } from '@/hooks/useEditProposal'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useKeyboardInset } from '@/hooks/useKeyboardInset'
+import { DiscardDraftDialog } from '@/components/groups/DiscardDraftDialog'
 import type { ActivityWithInitiator, DurationCategory } from '@/lib/activity-types'
 import { DURATION_CATEGORY_LABELS, PLACEHOLDER_IMAGE } from '@/lib/activity-types'
 
@@ -67,6 +68,7 @@ export function ProposalFormSheet({
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
 
   // Sheet über die iOS-/Android-Tastatur heben, damit Felder & Button erreichbar bleiben.
   const isMobile = useIsMobile()
@@ -100,6 +102,26 @@ export function ProposalFormSheet({
     }
     setErrors({})
     setApiError(null)
+    setConfirmDiscard(false)
+  }
+
+  const initial: FormValues =
+    mode === 'edit' && proposal
+      ? {
+          name: proposal.name,
+          duration_category: proposal.duration_category,
+          required_votes: proposal.required_votes,
+          url: proposal.url ?? '',
+          description: proposal.description ?? '',
+        }
+      : EMPTY_FORM
+  const isDirty = (Object.keys(initial) as (keyof FormValues)[]).some(
+    (key) => values[key] !== initial[key]
+  )
+
+  function requestClose() {
+    if (isDirty) setConfirmDiscard(true)
+    else onClose()
   }
 
   function validate(): boolean {
@@ -172,7 +194,7 @@ export function ProposalFormSheet({
   const title = mode === 'create' ? 'Vorschlag erstellen' : 'Vorschlag bearbeiten'
 
   return (
-    <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
+    <ResponsiveModal open={open} onOpenChange={(o) => !o && requestClose()}>
       <ResponsiveModalContent
         size="md"
         className="rounded-t-[30px] bg-bg border-line p-0"
@@ -358,6 +380,14 @@ export function ProposalFormSheet({
             </Button>
           </div>
         </form>
+        <DiscardDraftDialog
+          open={confirmDiscard}
+          onKeep={() => setConfirmDiscard(false)}
+          onDiscard={() => {
+            setConfirmDiscard(false)
+            onClose()
+          }}
+        />
       </ResponsiveModalContent>
     </ResponsiveModal>
   )
