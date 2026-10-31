@@ -518,3 +518,15 @@ Gilt auch für die Einträge vom selben Tag in PROJ-4 und PROJ-18. Die Features 
 | Niedrig | Die Statusleiste bleibt auf der grünen Rückblick-Slide dunkel (PROJ-18). |
 
 **Nicht geprüft:** Echtes iPhone, Firefox und Safari (nur WebKit im Simulator), Dark Mode für diese Fixes, mehrere Mitglieder, Kommentar mit neuem Bild, E2E mit Dev-Server. Ob die neue Spec auf dem Stand vor den Fixes fehlschlägt, wurde nicht ausprobiert. Offen bleibt außerdem P2.
+
+## Nachtrag (2026-10-31): E2E-Specs, Schrift-Fehler und Befund P2
+
+**E2E-Specs PROJ-4 und PROJ-6:** Die Specs prüften `count()` sofort nach dem Seitenaufruf, also bevor die Karten geladen waren, und übersprangen sich dann selbst. Sie warten jetzt auf die Gruppenkarte und schlagen fehl, wenn sie fehlt. Außerdem nutzen sie die heutige Navigation (Board statt Planung, kein Archiv-Tab). Ergebnis gegen den Static Export: 47 von 47 bestanden, 0 übersprungen (vorher 4 bestanden, 43 übersprungen).
+
+**Dabei aufgedeckter Fehler (PROJ-4):** Ein Klick im Aktionsmenü einer Vorschlagskarte öffnete zusätzlich das Detail-Sheet. Details stehen im Spec von PROJ-4.
+
+**Schrift-Fehler `next/font` („queries have exactly one entry"):** Ursache geklärt. Google liefert zeitweise Font-URLs der Form `fonts.gstatic.com/l/font?kit=…&skey=…&v=…`. Das `&` zerlegt die interne Turbopack-Query. Betroffen war auch `npm run build` (1 von 4 Läufen), die frühere Aussage „Der Build ist nicht betroffen" stimmt also nicht. iCloud-Duplikate scheiden aus: Beim Fehler lagen in `.next` 0 Duplikate. Beide Schriften liegen jetzt in `src/fonts/` und werden über `next/font/local` geladen. Danach 8 von 8 Builds fehlerfrei, und `npm run dev` lieferte `/login/` und `/groups/` aus.
+
+**Testserver:** `scripts/serve-out.mjs` liefert den Static Export für E2E aus. Mit `python3 -m http.server` blieb `/login` in 2 von 40 Aufrufen leer (`ERR_CONNECTION_RESET`, fehlende Chunks). Das war kein App-Fehler.
+
+**Befund P2:** Weder `git log -S`/`-G` noch die Specs noch `docs/qa/` erklären ihn. Die Beschreibung stammt aus dem Protokoll der Sitzung, in der die Prüfung lief: „Goldener Fokusring beim Öffnen von Dialogen, ohne dass jemand die Tastatur benutzt: am X der Gruppen-Einstellungen und am Desktop an ‚Abbrechen'." Schwere: Mittel. Er wird zusammen mit dem Fokusring-Fehler im Aktivitäts-Sheet behoben.

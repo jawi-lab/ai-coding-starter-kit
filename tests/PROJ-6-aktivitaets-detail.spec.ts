@@ -7,21 +7,37 @@ const hasCredentials = Boolean(TEST_EMAIL && TEST_PASSWORD)
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto('/login')
-  await page.waitForSelector('form', { timeout: 5000 })
+  await page.waitForSelector('form', { timeout: 15000 })
   await page.getByLabel('E-Mail').fill(email)
   await page.getByLabel('Passwort').fill(password)
   await page.getByRole('button', { name: 'Einloggen', exact: true }).click()
-  await page.waitForURL(/\/(groups|onboarding)/, { timeout: 10000 })
+  await page.waitForURL(/\/(groups|onboarding)/, { timeout: 15000 })
 }
 
 async function openFirstGroup(page: Page): Promise<boolean> {
   await page.goto('/groups')
   await page.waitForSelector('main', { timeout: 5000 })
-  const firstCard = page.locator('button.rounded-lg').first()
-  if ((await firstCard.count()) === 0) return false
+  // Wartet auf die Karte: Fehlt sie, soll der Test fehlschlagen statt sich zu überspringen.
+  const firstCard = page.getByRole('button', { name: /Mitglied(er)? · / }).first()
+  await firstCard.waitFor({ state: 'visible', timeout: 10000 })
   await firstCard.click()
-  await page.waitForTimeout(600)
+  await page.waitForURL(/\/groups\/view\/?\?id=/, { timeout: 10000 })
+  await page.locator('div.rounded-lg.cursor-pointer').first().waitFor({ state: 'visible', timeout: 10000 })
   return true
+}
+
+// Karten aus den QA-Demo-Daten der Testgruppe (siehe reference: QA-Konto).
+const IN_PLANUNG_CARD = 'QA-Demo Hüttenwochenende'
+const ABGESCHLOSSEN_CARD = 'QA-Demo Grillabend am See'
+
+function navItem(page: Page, name: string) {
+  return page.getByRole('link', { name, exact: true }).or(page.getByRole('button', { name, exact: true })).first()
+}
+
+async function openBoard(page: Page) {
+  await navItem(page, 'Board').click()
+  // Das Board rendert Mobil- und Desktop-Spalten, eine davon ist ausgeblendet.
+  await page.locator('[class*="rounded-lg"][class*="cursor-pointer"]').locator('visible=true').first().waitFor({ timeout: 10000 })
 }
 
 async function openGroupAndClickFirstProposalCard(page: Page): Promise<boolean> {
@@ -67,20 +83,15 @@ test.describe('PROJ-6 Regression — Vorschläge & Kanban tabs', () => {
     if (page.url().includes('onboarding')) { test.skip(true, 'No group'); return }
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
-    const vorschlaegeBtn = page.getByRole('button', { name: 'Vorschläge' })
-    await expect(vorschlaegeBtn).toBeVisible({ timeout: 3000 })
-    await expect(vorschlaegeBtn).toHaveClass(/text-primary/)
+    await expect(navItem(page, 'Vorschläge')).toHaveAttribute('aria-current', 'page', { timeout: 3000 })
   })
 
   test('AC-REG-2: Planung tab still navigates to Kanban board', async ({ page }) => {
     if (page.url().includes('onboarding')) { test.skip(true, 'No group'); return }
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(500)
-    await expect(planungBtn).toHaveClass(/text-primary/)
+    await openBoard(page)
+    await expect(navItem(page, 'Board')).toHaveAttribute('aria-current', 'page')
   })
 })
 
@@ -118,16 +129,10 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
     // Find a Kanban card
-    const kanbanCards = page.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    const count = await kanbanCards.count()
-    if (count === 0) { test.skip(true, 'No kanban cards found'); return }
-
+    const kanbanCards = page.locator('[class*="rounded-lg"][class*="cursor-pointer"]').locator('visible=true')
     await kanbanCards.first().click()
     await page.waitForTimeout(800)
 
@@ -193,7 +198,7 @@ test.describe('PROJ-6 — Öffnen der Detailansicht', () => {
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
     await expect(sheet).toBeVisible({ timeout: 5000 })
 
-    const closeBtn = sheet.locator('button[aria-label="Schließen"]').first()
+    const closeBtn = sheet.getByRole('button', { name: 'Schließen' })
     await expect(closeBtn).toBeVisible()
     await closeBtn.click()
     await page.waitForTimeout(400)
@@ -220,7 +225,8 @@ test.describe('PROJ-6 — Kommentare', () => {
     await proposalCards.first().click()
     await page.waitForTimeout(800)
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    return (await sheet.isVisible())
+    await sheet.waitFor({ state: 'visible', timeout: 5000 })
+    return true
   }
 
   test('AC-COMMENT-1: "Kommentare" section is always visible in the sheet', async ({ page }) => {
@@ -314,7 +320,7 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     // Check the hero for "Vorschlag" badge
     const statusBadge = sheet.locator('span[class*="rounded-pill"][class*="tracking"]').first()
@@ -337,22 +343,13 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     if (!opened) { test.skip(true, 'No group cards'); return }
 
     // Navigate to Kanban and look for an in_planung card
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
-    // Look for "In Planung" column header and its first card
-    const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    const count = await kanbanCards.count()
-    if (count === 0) { test.skip(true, 'No in_planung cards found'); return }
-
-    await kanbanCards.first().click()
+    await page.getByText(IN_PLANUNG_CARD, { exact: true }).locator('visible=true').first().click()
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const respHeading = sheet.locator('h3', { hasText: /Verantwortlichkeiten/i })
     await expect(respHeading).toBeVisible({ timeout: 3000 })
@@ -363,20 +360,13 @@ test.describe('PROJ-6 — Status-based section visibility', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
-    const abgeschlossenColumn = page.locator('div', { hasText: /^Abgeschlossen$/ }).first()
-    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    if ((await kanbanCards.count()) === 0) { test.skip(true, 'No abgeschlossen cards found'); return }
-
-    await kanbanCards.first().click()
+    await page.getByText(ABGESCHLOSSEN_CARD, { exact: true }).locator('visible=true').first().click()
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     await expect(sheet.locator('h3', { hasText: /Verantwortlichkeiten/i })).toBeVisible({ timeout: 3000 })
     await expect(sheet.locator('h3', { hasText: /Erinnerungsfotos/i })).toBeVisible({ timeout: 3000 })
@@ -408,7 +398,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     await page.waitForTimeout(800)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     // If the test user is admin or initiator, the edit button should be visible
     const editBtn = sheet.locator('button[aria-label="Bearbeiten"]')
@@ -432,7 +422,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     await page.waitForTimeout(800)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const editBtn = sheet.locator('button[aria-label="Bearbeiten"]')
     if ((await editBtn.count()) === 0) { test.skip(true, 'Test user is not admin/initiator'); return }
@@ -464,7 +454,7 @@ test.describe('PROJ-6 — Aktivität bearbeiten', () => {
     await page.waitForTimeout(800)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const editBtn = sheet.locator('button[aria-label="Bearbeiten"]')
     if ((await editBtn.count()) === 0) { test.skip(true, 'Test user is not admin/initiator'); return }
@@ -498,24 +488,16 @@ test.describe('PROJ-6 — Verantwortlichkeiten', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
-    // Look for an in_planung card
-    const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    if ((await kanbanCards.count()) === 0) { test.skip(true, 'No in_planung cards'); return }
-
-    await kanbanCards.first().click()
+    await page.getByText(IN_PLANUNG_CARD, { exact: true }).locator('visible=true').first().click()
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const addRespBtn = sheet.locator('button', { hasText: /Verantwortlichkeit hinzufügen/i })
-    if ((await addRespBtn.count()) === 0) { test.skip(true, 'No add responsibility button'); return }
+    await expect(addRespBtn).toBeVisible({ timeout: 5000 })
 
     await addRespBtn.click()
     await page.waitForTimeout(400)
@@ -530,29 +512,22 @@ test.describe('PROJ-6 — Verantwortlichkeiten', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
-    const inPlanungColumn = page.locator('div', { hasText: /^In Planung$/ }).first()
-    const kanbanCards = inPlanungColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    if ((await kanbanCards.count()) === 0) { test.skip(true, 'No in_planung cards'); return }
-
-    await kanbanCards.first().click()
+    await page.getByText(IN_PLANUNG_CARD, { exact: true }).locator('visible=true').first().click()
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const addRespBtn = sheet.locator('button', { hasText: /Verantwortlichkeit hinzufügen/i })
-    if ((await addRespBtn.count()) === 0) { test.skip(true, 'No add responsibility button'); return }
+    await expect(addRespBtn).toBeVisible({ timeout: 5000 })
 
     await addRespBtn.click()
     await page.waitForTimeout(400)
 
     // "Hinzufügen" submit button should be disabled when label is empty
-    const hinzufuegenBtn = sheet.locator('button', { hasText: /Hinzufügen/i })
+    const hinzufuegenBtn = sheet.getByRole('button', { name: 'Hinzufügen', exact: true })
     await expect(hinzufuegenBtn).toBeDisabled({ timeout: 2000 })
   })
 })
@@ -579,7 +554,7 @@ test.describe('PROJ-6 — Foto-Galerie', () => {
     await page.waitForTimeout(1000)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const statusBadge = sheet.locator('span[class*="rounded-pill"][class*="tracking"]').first()
     const badgeText = (await statusBadge.textContent())?.trim()
@@ -598,23 +573,16 @@ test.describe('PROJ-6 — Foto-Galerie', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    await expect(planungBtn).toBeEnabled({ timeout: 3000 })
-    await planungBtn.click()
-    await page.waitForTimeout(800)
+    await openBoard(page)
 
-    const abgeschlossenColumn = page.locator('div', { hasText: /^Abgeschlossen$/ }).first()
-    const kanbanCards = abgeschlossenColumn.locator('[class*="rounded-lg"][class*="cursor-pointer"]')
-    if ((await kanbanCards.count()) === 0) { test.skip(true, 'No abgeschlossen cards'); return }
-
-    await kanbanCards.first().click()
+    await page.getByText(ABGESCHLOSSEN_CARD, { exact: true }).locator('visible=true').first().click()
     await page.waitForTimeout(1500)
 
     const sheet = page.locator('[role="dialog"]').filter({ hasText: /Kommentare/ })
-    if (!(await sheet.isVisible())) { test.skip(true, 'Sheet not visible'); return }
+    await expect(sheet).toBeVisible({ timeout: 5000 })
 
     const photoSection = sheet.locator('h3', { hasText: /Erinnerungsfotos/i })
-    if ((await photoSection.count()) === 0) { test.skip(true, 'No photo section — status might not be abgeschlossen'); return }
+    await expect(photoSection).toBeVisible({ timeout: 5000 })
 
     // Either empty state or existing photos
     const emptyState = sheet.locator('p', { hasText: /Noch keine Erinnerungsfotos/i })

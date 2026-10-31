@@ -7,29 +7,27 @@ const hasCredentials = Boolean(TEST_EMAIL && TEST_PASSWORD)
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto('/login')
-  await page.waitForSelector('form', { timeout: 5000 })
+  await page.waitForSelector('form', { timeout: 15000 })
   await page.getByLabel('E-Mail').fill(email)
   await page.getByLabel('Passwort').fill(password)
   await page.getByRole('button', { name: 'Einloggen', exact: true }).click()
-  await page.waitForURL(/\/(groups|onboarding)/, { timeout: 10000 })
+  await page.waitForURL(/\/(groups|onboarding)/, { timeout: 15000 })
 }
 
 async function openFirstGroup(page: Page): Promise<boolean> {
   await page.goto('/groups')
   await page.waitForSelector('main', { timeout: 5000 })
-  // GroupCard has a specific rounded style; look for any clickable group card
-  const groupCards = page.locator('div.space-y-3 > button, div.space-y-3 > div[role="button"]').first()
-  const cardCount = await page.locator('div.space-y-3').count()
-  if (cardCount === 0) return false
-
-  // Click first card-like element (the GroupCard button)
-  const firstCard = page.locator('button.rounded-\\[18px\\]').first()
-  const count = await firstCard.count()
-  if (count === 0) return false
-
+  // Wartet auf die Karte: Fehlt sie, soll der Test fehlschlagen statt sich zu überspringen.
+  const firstCard = page.getByRole('button', { name: /Mitglied(er)? · / }).first()
+  await firstCard.waitFor({ state: 'visible', timeout: 10000 })
   await firstCard.click()
-  await page.waitForTimeout(600)
+  await page.waitForURL(/\/groups\/view\/?\?id=/, { timeout: 10000 })
+  await page.locator('div.rounded-lg.cursor-pointer').first().waitFor({ state: 'visible', timeout: 10000 })
   return true
+}
+
+function navItem(page: Page, name: string) {
+  return page.getByRole('link', { name, exact: true }).or(page.getByRole('button', { name, exact: true })).first()
 }
 
 // ─── Auth Guard ────────────────────────────────────────────────────────────────
@@ -67,7 +65,7 @@ test.describe('GroupMainSheet — Shell', () => {
     if (!opened) { test.skip(true, 'No group cards found'); return }
 
     // GroupMainSheet header should contain a heading (the group name)
-    await expect(page.locator('h1').first()).toBeVisible({ timeout: 3000 })
+    await expect(page.getByText('QA Testgruppe').locator('visible=true').first()).toBeVisible({ timeout: 3000 })
   })
 
   test('AC-MAIN-2: GroupMainSheet shows "Vorschläge" tab as active', async ({ page }) => {
@@ -78,7 +76,7 @@ test.describe('GroupMainSheet — Shell', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards found'); return }
 
-    await expect(page.getByText('Vorschläge')).toBeVisible({ timeout: 3000 })
+    await expect(navItem(page, 'Vorschläge')).toHaveAttribute('aria-current', 'page', { timeout: 3000 })
   })
 
   test('AC-MAIN-3: "Planung" tab is enabled (PROJ-5), "Archiv" tab remains disabled', async ({ page }) => {
@@ -89,10 +87,10 @@ test.describe('GroupMainSheet — Shell', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards found'); return }
 
-    const planungBtn = page.getByRole('button', { name: 'Planung' })
-    const archivBtn = page.getByRole('button', { name: 'Archiv' })
-    await expect(planungBtn).not.toBeDisabled({ timeout: 3000 })
-    await expect(archivBtn).toBeDisabled({ timeout: 3000 })
+    await expect(navItem(page, 'Board')).toBeVisible({ timeout: 3000 })
+    await navItem(page, 'Board').click()
+    await expect(navItem(page, 'Board')).toHaveAttribute('aria-current', 'page')
+    await expect(navItem(page, 'Archiv')).toHaveCount(0)
   })
 
   test('AC-MAIN-4: Settings icon opens GroupDetailSheet (GroupSettingsSheet)', async ({ page }) => {
@@ -117,10 +115,8 @@ test.describe('GroupMainSheet — Shell', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards found'); return }
 
-    // Sheet is open — click close
-    await page.getByLabel('Schließen').click()
-    // After close, "Meine Gruppen" heading should be visible again
-    await expect(page.getByRole('heading', { name: 'Meine Gruppen' })).toBeVisible({ timeout: 2000 })
+    await navItem(page, 'Home').click()
+    await expect(page.getByRole('heading', { name: 'Meine Gruppen' })).toBeVisible({ timeout: 5000 })
   })
 })
 
@@ -221,7 +217,7 @@ test.describe('Vorschlag erstellen — Form Validation', () => {
     const opened = await openCreateForm(page)
     if (!opened) { test.skip(true, 'Cannot open create form (no groups or observer)'); return }
 
-    await expect(page.getByText('Vorschlag erstellen')).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: 'Vorschlag erstellen' })).toBeVisible({ timeout: 3000 })
     await expect(page.getByPlaceholder(/Klettern/i)).toBeVisible()
     await expect(page.getByText('Dauer-Kategorie')).toBeVisible()
     await expect(page.getByText('Benötigte Upvotes')).toBeVisible()
@@ -283,7 +279,7 @@ test.describe('Vorschlag erstellen — Form Validation', () => {
     await expect(page.getByLabel('Mehr')).toBeVisible({ timeout: 3000 })
     await expect(page.getByLabel('Weniger')).toBeVisible()
     // Default value should be 1
-    await expect(page.getByText('1')).toBeVisible()
+    await expect(page.getByRole('dialog').getByText('1', { exact: true })).toBeVisible()
   })
 
   test('AC-CREATE-6: URL field shows og:image preview after valid URL is entered', async ({ page }) => {
@@ -322,7 +318,7 @@ test.describe('Vorschläge — Empty State', () => {
     await page.waitForTimeout(1500)
 
     // Either proposals are visible OR the empty state is shown
-    const hasProposals = await page.locator('.rounded-\\[18px\\]').filter({ hasText: '/' }).count() > 0
+    const hasProposals = await page.locator('div.rounded-lg.cursor-pointer').filter({ hasText: '/' }).count() > 0
     const hasEmptyState = await page.getByText('Noch keine Vorschläge').isVisible()
     const hasFilter = await page.getByText('Keine Vorschläge in dieser Kategorie').isVisible()
 
@@ -491,7 +487,7 @@ test.describe('Responsive — PROJ-4', () => {
     const opened = await openFirstGroup(page)
     if (!opened) { test.skip(true, 'No group cards found'); return }
 
-    await expect(page.getByText('Vorschläge')).toBeVisible({ timeout: 3000 })
+    await expect(navItem(page, 'Vorschläge')).toHaveAttribute('aria-current', 'page', { timeout: 3000 })
     // FAB should still be visible at mobile
     const fab = page.getByRole('button', { name: /Vorschlag/i })
     // Sheet content should not overflow viewport horizontally

@@ -166,7 +166,7 @@ Infrastruktur-Schicht
 
 **QA Date:** 2026-06-21
 **QA Engineer:** /qa skill
-**Status:** In Review — NOT READY (2 High bugs must be fixed)
+**Status:** Approved — BUG-1 und BUG-2 behoben (Commit 6406065, am 2026-10-31 am aktuellen Code geprüft, siehe „Production-Ready Decision"). Die Bug-Beschreibungen unten zeigen den Stand vom 2026-06-21.
 
 ### Acceptance Criteria Results
 

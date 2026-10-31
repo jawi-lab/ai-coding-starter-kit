@@ -15,6 +15,7 @@ paths:
 - Run them with `--project=chromium --workers=1`. Every test logs in again, and parallel runs hit the Supabase auth rate limit. The resulting 429 looks like a login redirect bug. Wait about 5 minutes after a rate-limited run.
 - Skips that depend on data (e.g. "No zu_planen card") are normal after the QA group has been cleaned up.
 - After UI redesigns, check for outdated assertions before suspecting a bug.
+- To test the static export: `npm run build`, then `node scripts/serve-out.mjs` on port 3000 (Playwright reuses it). Don't use `python3 -m http.server`: it resets connections under load and pages stay blank.
 
 ## Browsers
 - Don't download WebKit. Test mobile with iPhone emulation on Chromium.

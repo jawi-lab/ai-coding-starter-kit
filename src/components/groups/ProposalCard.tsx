@@ -122,6 +122,8 @@ export function ProposalCard({
               <DropdownMenuContent
                 align="end"
                 className="w-48 bg-surface border-line rounded-md"
+                // Klicks laufen durchs React-Portal bis zur Karte und würden das Detail öffnen.
+                onClick={e => e.stopPropagation()}
               >
                 <DropdownMenuItem
                   onClick={() => onEdit(proposal)}

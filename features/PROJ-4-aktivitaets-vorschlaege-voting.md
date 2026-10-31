@@ -485,3 +485,7 @@ Befund P3 aus der Vorher-Nachher-Prüfung des Design-Polish in PROJ-6.
 - **Geprüft:** iPhone-17-Pro-Simulator in beiden Scrollrichtungen, Unit-Tests für den Hook.
 - **Grenze:** Am Listenanfang und nach dem Hochscrollen kann der Button weiterhin eine Karte überlappen. Ein schwebender Button lässt sich an fester Position nicht überall freihalten. Ganz vermeiden ließe sich das nur, wenn die Aktion aus der schwebenden Position in die Kopfzeile wandert; das wäre eine Styleguide-Änderung.
 - **Deployment:** 2026-10-31 per Push auf `main`. Live-Seite nicht geprüft.
+
+## Bug-Fix (2026-10-31): Aktionsmenü öffnet das Detail mit
+
+Ein Klick auf „Bearbeiten", „Erneut zur Abstimmung" oder „Löschen" lief durchs React-Portal bis zum `onClick` der Karte. Dadurch öffnete sich das Detail-Sheet hinter dem Dialog, und der Dialog war für Hilfstechnologien verdeckt. `DropdownMenuContent` stoppt den Klick jetzt. Aufgedeckt durch die reparierten E2E-Tests AC-ACTIONS-2 und AC-ACTIONS-3, die vor dem Fix fehlschlugen und danach bestehen.

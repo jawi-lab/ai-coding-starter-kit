@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NativeAuthListener } from "@/components/native/NativeAuthListener";
 import { NativeStatusBar } from "@/components/native/NativeStatusBar";
@@ -12,16 +12,16 @@ import { NativeUpdater } from "@/components/native/NativeUpdater";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const hanken = localFont({
+  src: "../fonts/HankenGrotesk-wght.woff2",
+  weight: "400 800",
   variable: "--font-hanken",
   display: "swap",
 });
 
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const sourceSerif = localFont({
+  src: "../fonts/SourceSerif4-wght.woff2",
+  weight: "400 600",
   variable: "--font-source-serif",
   display: "swap",
 });
