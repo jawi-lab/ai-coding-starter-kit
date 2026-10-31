@@ -3,7 +3,7 @@ import { getInitials } from './avatar'
 
 describe('getInitials', () => {
   it('takes the first letter of up to two words, uppercased', () => {
-    expect(getInitials('Janusz Wickbold')).toBe('JW')
+    expect(getInitials('Max Muster')).toBe('MM')
     expect(getInitials('anna')).toBe('A')
     expect(getInitials('Anna Maria Schmidt')).toBe('AM')
   })
@@ -16,7 +16,7 @@ describe('getInitials', () => {
   })
 
   it('skips empty segments from extra spaces (no undefined output)', () => {
-    expect(getInitials('Janusz  Wickbold')).toBe('JW')
+    expect(getInitials('Max  Muster')).toBe('MM')
     expect(getInitials('  Anna')).toBe('A')
   })
 

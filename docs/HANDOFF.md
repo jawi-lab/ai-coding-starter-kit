@@ -152,9 +152,9 @@ dann aber mit Begründung in der Config, nicht stillschweigend.
 - **Vercel-MCP:** nicht autorisiert. Deploy-Themen brauchen entweder `/mcp` in einer
   interaktiven Session oder die Vercel-CLI — die ist aktuell **nicht installiert**
   (`npm i -g vercel`).
-- **QA-Testaccount:** `qa-bot@zusammen.test` / `TestBot!2026`, eigene isolierte
-  Gruppe „QA Testgruppe". Immer diesen Account nutzen, **nie** die echte
-  „Test"-Gruppe von JaWi bearbeiten. Der Browser ist unter `localhost:3000` in der
+- **QA-Testaccount:** `qa-bot@zusammen.test`, Passwort in `TEST_USER_PASSWORD`, eigene
+  isolierte Gruppe „QA Testgruppe". Immer diesen Account nutzen, **nie** echte
+  Gruppen bearbeiten. Der Browser ist unter `localhost:3000` in der
   Regel schon eingeloggt.
 - **E2E:** credentialed Playwright-Läufe nur mit `--workers=1` — sonst greift ein
   Supabase-Auth-Rate-Limit, dessen 429 wie ein Login-Redirect-Bug aussieht.
