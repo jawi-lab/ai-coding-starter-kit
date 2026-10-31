@@ -1,6 +1,5 @@
 ---
 paths:
-  - "src/app/api/**"
   - ".env*"
   - "supabase/**"
   - "next.config.*"
@@ -15,13 +14,13 @@ paths:
 - Document all required env vars in `.env.local.example` with dummy values
 
 ## Input Validation
-- Validate ALL user input on the server side with Zod
-- Never trust client-side validation alone
+- Client code is public: enforce every rule in RLS, database functions or Edge Functions
+- Never trust client-side validation (Zod in forms) alone
 - Sanitize data before database insertion
 
 ## Authentication
-- Always verify authentication before processing API requests
-- Use Supabase RLS as a second line of defense
+- Always verify authentication in Edge Functions
+- Supabase RLS is the primary line of defense for all data access
 - Implement rate limiting on authentication endpoints
 
 ## Security Headers

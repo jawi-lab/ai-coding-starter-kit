@@ -19,12 +19,12 @@ module.exports = [
       'playwright-report/**',
       'test-results/**',
       'supabase/functions/**', // Deno-Runtime, eigene Globals
-      // Exportiertes Design-Bundle, kein Projektcode. Bewusst ohne den
-      // führenden '#' des Ordnernamens formuliert: ESLint liest ein Pattern,
-      // das mit '#' beginnt, wie einen .gitignore-Kommentar und verwirft es.
-      '**/*Icon-Set Design/**',
-      // Marketing-Website (lokal, gitignored) und Browser-Automations-Artefakte
+      // Exportiertes Design-Bundle, kein Projektcode.
+      'design/**',
+      // Marketing-Website, lokale Ausgaben (gitignored) und Browser-Automations-Artefakte
       'website/**',
+      '_local/**',
+      'brag-output*/**',
       '.playwright-mcp/**',
       'next-env.d.ts',
     ],

@@ -24,5 +24,6 @@ Key rules:
 - Ensure responsive design (mobile 375px, tablet 768px, desktop 1440px)
 - Use semantic HTML and ARIA labels for accessibility
 
+Use `docs/CODEMAP.md` to find a feature's files and `STYLEGUIDE.md` for design tokens.
 Read `.claude/rules/frontend.md` for detailed frontend rules.
 Read `.claude/rules/general.md` for project-wide conventions.

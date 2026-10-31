@@ -37,6 +37,9 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase"
+    "supabase",
+    "website",
+    "_local",
+    "brag-output*"
   ]
 }

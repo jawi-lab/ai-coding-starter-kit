@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/app/api/**"
   - "src/lib/supabase*"
+  - "src/lib/database.types.ts"
   - "supabase/**"
 ---
 
@@ -20,15 +20,13 @@ paths:
 - Use foreign keys with ON DELETE CASCADE where appropriate
 - Never skip RLS - security first
 
-## API Routes
-- Validate all inputs using Zod schemas before processing
-- Always check authentication: verify user session exists
-- Return meaningful error messages with appropriate HTTP status codes
-- Use `.limit()` on all list queries
+## Server Logic
+- The app has no API routes (static export). Server-side logic belongs in RLS policies, database functions or Edge Functions (`supabase/functions/`)
+- Edge Functions run on Deno and are deployed via the Supabase MCP. Validate all inputs, check authentication, and return meaningful errors with appropriate HTTP status codes
 
 ## Query Patterns
 - Use Supabase joins instead of N+1 query loops
-- Use `unstable_cache` from Next.js for rarely-changing data
+- Use `.limit()` on all list queries
 - Always handle errors from Supabase responses
 
 ## Security

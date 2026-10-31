@@ -48,12 +48,12 @@ Freundesgruppen (3–10 Personen), die regelmäßig gemeinsame Aktivitäten plan
 ## Constraints
 
 - Solo-Entwicklung mit KI-Unterstützung
-- Web-App vollständig vor Capacitor-Integration (Konzept Abschnitt 17 — verbindlich)
+- Web-App vollständig vor Capacitor-Integration (`docs/archive/konzept-freundes-planungs-app.md`, Abschnitt 17 — verbindlich)
 - Next.js Static Export (`output: 'export'`) — keine Server Components, kein SSR, keine Server Actions
 - Alle Datenoperationen client-seitig via Supabase JS Client; sensible Logik über RLS + Edge Functions
 - Supabase MCP Server bereits verbunden (`.mcp.json`), Supabase-Projekt eingerichtet
 - Vercel bereits eingerichtet
-- Design System: siehe `STYLEGUIDE.md` (Archivo-Font, Terracotta/Navy/Gold, Warm Cream, Light + Dark Mode)
+- Design System: siehe `STYLEGUIDE.md` (Hanken Grotesk + Source Serif 4, Waldgrün als einzige Aktionsfarbe, Honiggold, Blush, Cream, Light + Dark Mode)
 
 ## Non-Goals (diese Version)
 

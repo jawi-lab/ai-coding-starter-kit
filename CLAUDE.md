@@ -1,72 +1,75 @@
-# AI Coding Starter Kit
+# Mellon
 
-> A Next.js template with an AI-powered development workflow using specialized skills for Requirements, Architecture, Frontend, Backend, QA, and Deployment.
+> Mobile-first app for friend groups: vote on ideas, plan on a Kanban board, find dates, keep memories. Web (Vercel) plus iOS/Android via Capacitor. Formerly "ZUSAMMEN": old specs still use that name, and the repo and bundle ID (`com.zusammen.app`) keep their old names on purpose.
 
-## Tech Stack
+## Hard Constraints
 
-- **Framework:** Next.js 16 (App Router), TypeScript
-- **Styling:** Tailwind CSS + shadcn/ui (copy-paste components)
-- **Backend:** Supabase (PostgreSQL + Auth + Storage) - optional
-- **Deployment:** Vercel
-- **Validation:** Zod + react-hook-form
-- **State:** React useState / Context API
+- **Static export only** (`output: 'export'`): no SSR, Server Components, Server Actions or API routes. All data access is client-side through the Supabase JS client; sensitive logic lives in RLS and Edge Functions.
+- **Deploy = push to `main`.** Vercel builds from GitHub. Never deploy with the Vercel CLI, not even as a fallback.
+- **Start the dev server only with `npm run dev`** (`scripts/dev-guard.mjs`), never `next dev` directly. An unguarded server once crashed the 16 GB Mac. Supervise background runs and check that no processes remain afterwards.
+- **The repo is on GitHub:** keep real names, accounts and device IDs out of tracked files. Those belong in auto-memory.
+- **Project folder is in iCloud:** it creates `file 2.ext` duplicates that break native builds (see `.claude/rules/native.md`).
+
+## Where to Find What
+
+Open the narrowest source first; only widen when it doesn't answer the question.
+
+| Question | Source |
+|----------|--------|
+| Which files implement feature X? Tables, routes, hooks? | `docs/CODEMAP.md` |
+| Feature status | `features/INDEX.md` (wins over the PRD) |
+| Requirements and decisions for a feature | `features/PROJ-X-*.md`. Specs run 200–800 lines: list sections with `grep -n '^## '`, then read only what you need |
+| Colors, type, radii, components | `STYLEGUIDE.md` |
+| Rules per area | `.claude/rules/` (`frontend`, `backend`, `security`, `testing`, `native`, `general`) |
+| Current DB schema | `src/lib/database.types.ts`, or Supabase MCP `list_tables`. Old migrations may be superseded |
+| Production guides | `docs/production/` |
+| QA reports outside specs | `docs/qa/` |
+| System diagram data | `docs/architecture/mellon.architecture.json` |
+| Marketing website (WordPress) | `website/README.md` |
+
+**Don't read unless the task is about them:** `docs/architecture/mellon-architektur.html` (15k lines, use the JSON), `design/` (exported design bundle), `docs/archive/` (superseded), `_local/` and `website/` (local only), `ios/App/App/public/` and `android/app/src/main/assets/` (build copies of `out/`).
 
 ## Project Structure
 
 ```
-src/
-  app/              Pages (Next.js App Router)
-  components/
-    ui/             shadcn/ui components (NEVER recreate these)
-  hooks/            Custom React hooks
-  lib/              Utilities (supabase.ts, utils.ts)
-features/           Feature specifications (PROJ-X-name.md)
-  INDEX.md          Feature status overview
-supabase/
-  migrations/       1:1 mirror of the remote DB migration history (see .claude/rules/backend.md)
-  functions/        Edge Functions (deployed via Supabase MCP)
-docs/
-  PRD.md            Product Requirements Document
-  production/       Production guides (Sentry, security, performance)
-  architecture/     System architecture diagram
-website/            Marketing website mellon-app.de (WordPress) — local only, gitignored, not part of the app
+src/app/            Routes (static pages, client components)
+src/components/     ui/ = shadcn (never recreate), others by domain
+src/hooks/          Data and behavior hooks, one per concern
+src/lib/            Domain logic and helpers; lib/native/ = Capacitor wrappers
+tests/              Playwright E2E (unit tests sit next to their source)
+supabase/           migrations/ (1:1 mirror of remote history), functions/ (Edge Functions)
+android/, ios/      Capacitor native projects
+assets/             Source images for app icon and splash
+public/             Static web files
+features/           Specs and INDEX.md
+docs/               PRD, CODEMAP, production guides, QA, architecture, archive/
+design/             Exported icon-set design bundle (reference, not project code)
+_local/             Gitignored: videos, screenshots, backups
+website/            Gitignored: marketing website mellon-app.de
 ```
 
-## Development Workflow
+## Workflow
 
-1. `/init` - Initialize the project: PRD + feature map (run once at the start)
-2. `/write-spec` - Create a full feature spec for one feature
-3. `/architecture` - Design tech architecture (PM-friendly, no code)
-4. `/frontend` - Build UI components (shadcn/ui first!)
-5. `/backend` - Build APIs, database, RLS policies
-6. `/qa` - Test against acceptance criteria + security audit
-7. `/deploy` - Deploy to Vercel + production-ready checks
+`/write-spec` → `/architecture` → `/frontend` → `/backend` → `/qa` → `/deploy`. Use `/refine PROJ-X` to revisit a spec and `/help` when unsure. `/init` already ran, so don't run it again.
 
-Use `/refine PROJ-X` at any point to revisit and improve an existing feature spec.
+## Conventions
 
-## Feature Tracking
+- **Feature IDs:** PROJ-1, PROJ-2, … (sequential, see INDEX.md)
+- **Commits:** `type(PROJ-X): description`
+- **shadcn/ui first:** never build custom versions of installed components
+- **Human-in-the-loop:** user approval at workflow checkpoints
+- **Tests:** unit tests next to the source (`useHook.test.ts`), E2E in `tests/`
+- **Later design changes:** add a `## Design-Polish (YYYY-MM-DD)` section at the end of the spec
 
-All features tracked in `features/INDEX.md` — the single source of truth for feature status. Every skill reads it at start and updates it when done, and mirrors the change into the roadmap table in `docs/PRD.md`. Feature specs live in `features/PROJ-X-name.md`.
-
-## Key Conventions
-
-- **Feature IDs:** PROJ-1, PROJ-2, etc. (sequential)
-- **Commits:** `feat(PROJ-X): description`, `fix(PROJ-X): description`
-- **Single Responsibility:** One feature per spec file
-- **shadcn/ui first:** NEVER create custom versions of installed shadcn components
-- **Human-in-the-loop:** All workflows have user approval checkpoints
-- **Tests:** Unit tests co-located next to source files (`useHook.test.ts` next to `useHook.ts`). E2E tests in `tests/`.
-
-## Build & Test Commands
+## Commands
 
 ```bash
-npm run dev          # Development server (localhost:3000) mit Speicher-Wächter (scripts/dev-guard.mjs)
-npm run build        # Production build
+npm run dev          # Dev server (localhost:3000) with memory guard
+npm run build        # Static export to out/
 npm run lint         # ESLint
-npm run start        # Production server
-npm test             # Vitest unit/integration tests
-npm run test:e2e     # Playwright E2E tests
-npm run test:all     # Both test suites
+npm test             # Vitest unit/integration
+npm run test:e2e     # Playwright (with login: --project=chromium --workers=1)
+npm run test:all     # Both suites
 ```
 
 ## Product Context
