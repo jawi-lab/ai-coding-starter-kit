@@ -72,12 +72,9 @@ export function DesktopSidebar({
   targetGroupId,
   onProfile,
 }: DesktopSidebarProps) {
-  const { user } = useAuth()
+  const { profile } = useAuth()
   const tabsDisabled = !targetGroupId
-  const displayName =
-    (user?.user_metadata?.display_name as string | undefined) ??
-    user?.email ??
-    'Du'
+  const displayName = profile?.display_name ?? 'Du'
   const tab = (seg: GroupTab) => (targetGroupId ? groupHref(targetGroupId, seg) : '#')
 
   return (

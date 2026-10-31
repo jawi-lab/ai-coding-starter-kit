@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-06-22
-**Last Updated:** 2026-07-11
+**Last Updated:** 2026-10-31
 
 ## Änderung (2026-07-11) – Home mit "Meine Aufgaben"
 - Home (`/groups`) zeigt jetzt zusätzlich zur Gruppenliste den Abschnitt
@@ -479,3 +479,9 @@ fehlenden Description.
 - Repo-weit gegengeprüft: Alle übrigen `ResponsiveModalContent`/`DialogContent`/
   `SheetContent`-Verwendungen haben einen Titel. `src/components/ui/command.tsx` hat
   keinen, wird aber nirgends importiert.
+
+## Bug-Fix (2026-10-31): Name in der Desktop-Sidebar
+
+- **Symptom:** Die Sidebar zeigte nach einer Namensänderung weiter den alten Namen, Profil und Mitgliederliste den neuen.
+- **Ursache:** `DesktopSidebar` las `user_metadata.display_name`, das nur bei der Registrierung gesetzt wird.
+- **Fix:** Die Sidebar liest `profile.display_name` aus `useAuth()`. Ohne geladenes Profil steht dort „Du“, die E-Mail ist als Fallback entfallen. Tests in `DesktopSidebar.test.tsx`.
