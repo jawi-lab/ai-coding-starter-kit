@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-07-11
-**Last Updated:** 2026-07-12 (Deployed nach qt-voting-app.vercel.app; QA bestanden + alle 3 Low-Punkte behoben)
+**Last Updated:** 2026-10-31
 
 ## Dependencies
 - PROJ-1 (Supabase Infrastructure Setup) — Datenbank, RLS, Realtime
@@ -396,3 +396,8 @@ Alle 3 Low-Punkte auf Nutzerwunsch direkt behoben:
 - `npm run build` (Static Export) grün; `tsc --noEmit` sauber; Vitest 296/298 (2 rote `CreateGroupForm`-Tests vorbestehend, ohne PROJ-14-Bezug).
 - `npm run lint` projektweit defekt (`next lint` in Next 16 entfernt) — kein Deploy-Blocker; Typsicherheit über den Build-TS-Check abgedeckt.
 - Keine neuen Env-Variablen; kein committetes Secret.
+
+## Bug-Fix (2026-10-31): Leerzustand ohne Interaktion
+
+- **Symptom:** Bei abgeschlossenen Aktivitäten und im Album stand „Noch keine Umfragen – starte die erste!“, obwohl dort keine Umfrage gestartet werden kann.
+- **Fix:** Ohne `canInteract` steht „Keine Umfragen“. Die Aufforderung und der Erstell-Button gelten nur noch für aktive Aktivitäten. Tests in `PollSection.test.tsx`.

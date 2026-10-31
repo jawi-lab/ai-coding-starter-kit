@@ -95,7 +95,7 @@ export function PollSection({
         <div className="rounded-[16px] border border-dashed border-line bg-surface px-4 py-8 flex flex-col items-center text-center gap-3">
           <BarChart3 className="h-7 w-7 text-ink-3" />
           <p className="text-[13.5px] text-ink-2">
-            Noch keine Umfragen – starte die erste!
+            {canInteract ? 'Noch keine Umfragen – starte die erste!' : 'Keine Umfragen'}
           </p>
           {canInteract && (
             <button
