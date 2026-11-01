@@ -191,3 +191,32 @@ Personas, Interviews und Usability-Tests sind durchgehend **simuliert**.
 - Entscheidung: `tests/dod.cjs` mit `tests/dod.config.json` nutzt die vorinstallierte Playwright-Bibliothek; `playwright.config.ts` bleibt unverändert.
 - Grund: `@playwright/test` ist nicht installiert (`node_modules` fehlt), eine Installation hätte Browser nachgeladen (E-02).
 - Rolle: Technik. Einwände: Sicherheit & QA – kein Testbericht im Playwright-Format; Ergebnisse stehen in `tests/results.json` und `Pruefbericht.md`.
+
+## Phase 5 – Qualitätssicherung
+
+Korrekturrunden: **2 von höchstens 3** genutzt. Runde 1: Befunde aus Technik- und QA-Review sowie aus dem ersten automatischen Lauf. Runde 2: Befunde aus den simulierten Usability-Tests.
+
+**E-37 Kritischer Fehler: Inhalt ließ sich nicht scrollen (behoben)**
+- Entscheidung: `.app{grid-template-rows:minmax(0,1fr)}` und `.col{min-height:0}` in allen drei Mockups; der Prüf-Runner testet jetzt vertikales Scrollen per Mausrad (`verticalScroll`).
+- Grund: Design fand in den simulierten Tests, dass alles unterhalb des ersten Bildschirms nur per Tastatur erreichbar war. Die ersten automatischen Läufe prüften nur horizontales Scrollen – Lücke im Runner, jetzt geschlossen.
+- Rolle: Design (Befund), Technik (Fix und Test). Einwände: keine.
+
+**E-38 Rückgängig beim Abhaken, Fokus nach Feiern**
+- Entscheidung: Toast mit „Rückgängig“ (6 s), erledigte Zeile bleibt bis zum Screenwechsel; nach dem Schließen einer Feier springt der Fokus auf die Überschrift, wenn das auslösende Element fehlt.
+- Grund: Fehlbedienung ohne Ausweg (WCAG 3.3.4 sinngemäß), Fokusverlust auf `body` (2.4.3).
+- Rolle: Design. Einwände: keine.
+
+**E-39 „Beste Zeiträume“ in der Terminfindung**
+- Entscheidung: Über dem Kalender stehen die drei besten Wochenenden mit Text und Zahl („4 von 4 mit Kalender frei“); Mitglieder ohne Kalender sind ausdrücklich nicht eingerechnet.
+- Grund: Tobias (simuliert) musste 30 Felder absuchen; Farbe allein reicht nicht.
+- Rolle: Design. Einwände: Technik – Berechnung gehört in `get-group-availability` (Backlog).
+
+**E-40 B-Start: Aufgaben vor Spielmechanik**
+- Entscheidung: „Deine Missionen“ und „Als Nächstes“ stehen oben, Lagerfeuer kompakt, Saison-Ziel darunter.
+- Grund: Die eigene Aufgabe lag bei ca. 1.430 px; Nutzwert vor Spaß (Entscheidungsprinzip).
+- Rolle: Leitung. Einwände: Design – weniger Bühne fürs Lagerfeuer; akzeptiert.
+
+**E-41 Klickziele und Formular**
+- Entscheidung: Abhak-Checkbox 44 px; optionales Link-Feld im Vorschlag; in C führt „Idee teilen“ in den Fluss.
+- Grund: Zielgröße nach Styleguide (≥ 44 px); PROJ-4 kennt das Link-Feld; Nutzer:in soll die eigene Idee sehen.
+- Rolle: Design. Einwände: keine.

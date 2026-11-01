@@ -176,6 +176,25 @@ async function run() {
     }
     R.checks.noHorizontalScroll = { ok: ovs.length === 0, viewports: cfg.viewports, problems: ovs };
 
+    // 4b) Vertikales Scrollen per Mausrad/Touch (Inhalt darf nicht abgeschnitten sein)
+    const vs = []; let scrollTested = 0;
+    for (const w of [375, 1440]) {
+      await page.setViewportSize({ width: w, height: w < 500 ? 812 : 900 });
+      for (const r of routes) {
+        await go(r); await page.waitForTimeout(450); // Einblend-Animation abwarten
+        const g = await page.evaluate(() => { const s = document.querySelector('#app .sheet, #app .celebrate') || document.querySelector('#app [data-scroll]') || document.querySelector('#app .auth'); if (!s) return null; const fr = document.getElementById('frame').getBoundingClientRect(); const b = s.getBoundingClientRect(); return { sh: s.scrollHeight, ch: s.clientHeight, bottom: b.bottom, frameBottom: fr.bottom, x: b.left + b.width / 2, y: b.top + Math.min(b.height / 2, 300) }; });
+        if (!g) continue;
+        if (g.bottom > g.frameBottom + 1) { vs.push(w + 'px ' + r + ': Scrollbereich ragt ' + Math.round(g.bottom - g.frameBottom) + ' px aus dem Rahmen'); continue; }
+        if (g.sh > g.ch + 20) {
+          scrollTested++;
+          await page.mouse.move(g.x, g.y); await page.mouse.wheel(0, 600); await page.waitForTimeout(120);
+          const top = await page.evaluate(() => { const s = document.querySelector('#app .sheet, #app .celebrate') || document.querySelector('#app [data-scroll]') || document.querySelector('#app .auth'); return s.scrollTop; });
+          if (top <= 0) vs.push(w + 'px ' + r + ': Mausrad scrollt nicht');
+        }
+      }
+    }
+    R.checks.verticalScroll = { ok: vs.length === 0, scrollablePagesTested: scrollTested, problems: vs };
+
     // 5) Kontrast (Light + Dark, 375 und 1440, alle Routen + Zustände)
     const contrast = { light: { min: 99, checked: 0, fails: [] }, dark: { min: 99, checked: 0, fails: [] } };
     for (const w of [375, 1440]) {

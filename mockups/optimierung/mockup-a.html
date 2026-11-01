@@ -521,6 +521,20 @@ a.list-row:hover{background:var(--surface-2)}
 .mem{overflow:hidden}.mem-in strong,.mem-in small{overflow-wrap:anywhere}
 .stay,.stay .flip .mem.big{animation:none!important}
 .icon-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Korrekturrunde 2 */
+.app{grid-template-rows:minmax(0,1fr)}
+.col{min-height:0}
+.check{width:44px;height:44px;border-radius:12px}
+.mem-in strong,.mem-in small{overflow-wrap:break-word;hyphens:auto}
+.best{display:flex;flex-direction:column;gap:8px}
+.best-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;width:100%;min-height:52px;padding:8px 14px;border-radius:16px;border:1.5px solid var(--line-strong);background:var(--surface);text-align:left}
+.best-btn span{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.best-btn .ic{width:16px;height:16px}
+.best-btn[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.toast{display:flex;align-items:center;gap:12px}
+.toast-undo{pointer-events:auto;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.toast-undo:focus-visible{outline:3px solid #E0AC58;outline-offset:2px}
 </style>
 </head>
 <body>
@@ -855,7 +869,7 @@ a.list-row:hover{background:var(--surface-2)}
     if (V.routes && !V.routes.includes(p.route)) { p.route = V.routes[0]; }
     const changed = p.route !== S.route || JSON.stringify(p.params) !== JSON.stringify(S.params);
     S.route = p.route; S.params = p.params;
-    if (changed) { S.modal = null; S.celebrate = S.celebrate && !S.celebrate.preview && S.celebrate.kind === 'date' ? S.celebrate : null; S.errors = {}; S.dateSel = p.route === 'datefinder' ? S.dateSel : { start: null, end: null }; }
+    if (changed) { S.recentDone = []; S.modal = null; S.celebrate = S.celebrate && !S.celebrate.preview && S.celebrate.kind === 'date' ? S.celebrate : null; S.errors = {}; S.dateSel = p.route === 'datefinder' ? S.dateSel : { start: null, end: null }; }
     render({ scrollTop: changed });
   }
 
@@ -864,12 +878,14 @@ a.list-row:hover{background:var(--surface-2)}
 
   const root = () => document.getElementById('app');
   let toastTimer = null; let lastModalKey = '';
-  function toast(msg, kind) {
+  let undoFn = null;
+  function toast(msg, kind, undo) {
     const r = document.getElementById('toast-region');
     if (!r) return;
-    r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '">' + esc(msg) + '</div>';
+    undoFn = undo || null;
+    r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '"><span>' + esc(msg) + '</span>' + (undo ? '<button type="button" class="toast-undo" data-action="undoLast">Rückgängig</button>' : '') + '</div>';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { r.innerHTML = ''; }, 3600);
+    toastTimer = setTimeout(() => { r.innerHTML = ''; undoFn = null; }, undo ? 6000 : 3600);
   }
 
   function render(opts) {
@@ -900,7 +916,7 @@ a.list-row:hover{background:var(--surface-2)}
     } else {
       const el = findKey(keepKey);
       if (el) el.focus({ preventScroll: true });
-      else if (opts.scrollTop) { const h = app.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+      else if (opts.scrollTop || keepKey || opts.fallback) { const h = app.querySelector('h1') || document.getElementById('main'); if (h) { if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
     }
   }
   const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -920,8 +936,8 @@ a.list-row:hover{background:var(--surface-2)}
   reg('openModal', (el) => { S.modal = { type: el.dataset.modal, id: el.dataset.id, opener: focusKey(el) }; S.errors = {}; render(); });
   reg('closeModal', () => closeModal());
   const routeModal = () => V.routeModals && V.routeModals[S.route];
-  function closeModal() { const rm = routeModal(); const op = S.modal && S.modal.opener; S.modal = null; S.errors = {}; if (rm && rm.modal) { go(rm.back); return; } render({ focus: op }); }
-  reg('closeCelebrate', () => { const rm = routeModal(); const op = S.celebrate && S.celebrate.opener; S.celebrate = null; if (rm && rm.celebrate) { go(rm.back); return; } render({ focus: op }); });
+  function closeModal() { const rm = routeModal(); const op = S.modal && S.modal.opener; S.modal = null; S.errors = {}; if (rm && rm.modal) { go(rm.back); return; } render({ focus: op, fallback: true }); }
+  reg('closeCelebrate', () => { const rm = routeModal(); const op = S.celebrate && S.celebrate.opener; S.celebrate = null; if (rm && rm.celebrate) { go(rm.back); return; } render({ focus: op, fallback: true }); });
 
   reg('onboardNext', () => { S.onboardStep++; render({ focus: 'onb-next' }); });
   reg('onboardBack', () => { S.onboardStep = Math.max(0, S.onboardStep - 1); render(); });
@@ -959,8 +975,8 @@ a.list-row:hover{background:var(--surface-2)}
     const det = D(el.dataset.id); const t = det.tasks.find((x) => x.id === el.dataset.task);
     if (!t) return;
     if (!online()) { offlineToast(); return; }
-    t.done = !t.done; render();
-    if (t.done) { const open = det.tasks.filter((x) => !x.done).length; toast(open ? 'Erledigt! Noch ' + open + ' offen.' : 'Alles erledigt. Stark, Team!', 'success'); pop(el.dataset.k); }
+    t.done = !t.done; S.recentDone = S.recentDone || []; if (t.done) S.recentDone.push(t.id); render();
+    if (t.done) { const open = det.tasks.filter((x) => !x.done).length; toast(open ? 'Erledigt! Noch ' + open + ' offen.' : 'Alles erledigt. Stark, Team!', 'success', () => { t.done = false; render({ focus: el.dataset.k }); toast('Wieder offen.'); }); pop(el.dataset.k); }
   });
   reg('claimTask', (el) => {
     const det = D(el.dataset.id); const t = det.tasks.find((x) => x.id === el.dataset.task);
@@ -1034,6 +1050,8 @@ a.list-row:hover{background:var(--surface-2)}
   reg('markCardsSeen', () => { S.newCards = []; render(); });
   reg('demoReset', () => { const ui = S.ui; S = fresh(); S.ui = ui; S.route = V.home || 'home'; go(V.home || 'home'); toast('Demo zurückgesetzt.'); });
   reg('toast', (el) => toast(el.dataset.msg));
+  reg('undoLast', () => { const f = undoFn; undoFn = null; document.getElementById('toast-region').innerHTML = ''; if (f) f(); });
+  reg('pickRange', (el) => { S.dateSel = { start: el.dataset.start, end: el.dataset.end }; render({ focus: el.dataset.k }); toast('Zeitraum gewählt: ' + fmtRange(el.dataset.start, el.dataset.end)); });
   reg('exportData', () => toast('Demo: Dein Datenexport (JSON) würde jetzt erstellt und per E-Mail-Link bereitgestellt.', 'info'));
   reg('deleteAccount', () => { S.modal = null; toast('Demo: Konto gelöscht. In der echten App folgt eine Bestätigung per E-Mail.', 'info'); go('welcome'); });
   reg('report', (el) => { S.modal = null; render(); toast('Danke. Die Meldung geht vertraulich an die Admins der Gruppe. Der Inhalt bleibt für dich ausgeblendet.', 'success'); });
@@ -1075,10 +1093,10 @@ a.list-row:hover{background:var(--surface-2)}
     S.errors = e; S.formDraft = { title: t, need: f.need.value, dur, desc: f.desc ? f.desc.value : '' };
     if (Object.keys(e).length) { render({ focus: 'f-' + Object.keys(e)[0] }); return; }
     const id = 'n' + Date.now();
-    S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc });
+    S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc, link: f.link ? f.link.value.trim() : '' });
     S.modal = null; S.formDraft = {}; S.filter = 'alle';
     toast('Vorschlag ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
-    go('proposals');
+    go(V.groupHome || 'proposals');
   };
   forms.comment = (f) => {
     const txt = f.text.value.trim();
@@ -1310,7 +1328,7 @@ a.list-row:hover{background:var(--surface-2)}
     const g = group(); const lv = level(g.done);
     const a7 = A('a7'); const a8 = A('a8'); const det8 = D('a8');
     const myTasks = [];
-    Object.entries(S.detail).forEach(([aid, det]) => det.tasks.forEach((t) => { if (t.who === ME && !t.done) myTasks.push([aid, t]); }));
+    Object.entries(S.detail).forEach(([aid, det]) => det.tasks.forEach((t) => { if (t.who === ME && (!t.done || (S.recentDone || []).includes(t.id))) myTasks.push([aid, t]); }));
     const missing = myVoteMissing();
     let body = '<p class="lead">Hallo Mara. Das steht an:</p>';
     if (a7.status === 'planung_abgeschlossen') {
@@ -1478,6 +1496,11 @@ a.list-row:hover{background:var(--surface-2)}
     return shell(S, 'Termine', body, { kicker: 'Feierabend-Crew', wide: true });
   };
 
+  function bestRanges() {
+    const out = [];
+    for (let i = 0; i < 61; i++) { const dd = new Date(Date.UTC(2026, 10, 2 + i)); if (dd.getUTCDay() !== 6) continue; const a0 = dd.toISOString().slice(0, 10); const e0 = new Date(dd.getTime() + 86400000).toISOString().slice(0, 10); const sc = { free: 4, partial: 3, busy: 1 }; const v = Math.min(sc[M.availability(a0)] || 0, sc[M.availability(e0)] || 0); out.push({ a0, e0, v }); }
+    return out.sort((x, y) => y.v - x.v || x.a0.localeCompare(y.a0)).slice(0, 3);
+  }
   const AV = { free: ['Alle frei', 'check'], partial: ['Teilweise frei', 'help'], busy: ['Viele belegt', 'x'], past: ['Vergangen', ''], unknown: ['Unbekannt', 'help'] };
   SCREENS.datefinder = (S) => {
     const a = A(S.params.id || 'a5') || A('a5');
@@ -1500,6 +1523,7 @@ a.list-row:hover{background:var(--surface-2)}
     if (S.blockMode) body += '<p class="small">Tippe Tage an, an denen du nicht kannst. Die Gruppe sieht nur die Summe, nicht deinen Grund.</p>';
     else if (!allowed) body += deny('Den Zeitraum legen Admins oder ' + member(a.by).name + ' fest. Du kannst deine „Kann nicht“-Tage markieren.');
     else body += '<p class="small">Tippe auf den ersten und den letzten Tag. Ein Tag allein ist auch möglich.</p>';
+    if (!S.blockMode) body += '<section class="card" aria-labelledby="best-h"><h2 id="best-h">Beste Zeiträume</h2><p class="small">Wochenenden, an denen die meisten mit Kalender frei sind. 2 ohne Kalender sind nicht eingerechnet.</p><ul class="best">' + bestRanges().map((b, i) => '<li><button type="button" class="best-btn" data-action="pickRange" data-start="' + b.a0 + '" data-end="' + b.e0 + '" data-k="best-' + i + '" aria-pressed="' + (S.dateSel.start === b.a0 && S.dateSel.end === b.e0) + '"><strong>' + fmtRange(b.a0, b.e0) + '</strong><span>' + icon(b.v === 4 ? 'check' : 'help') + b.v + ' von 4 mit Kalender frei</span></button></li>').join('') + '</ul></section>';
     body += '<section class="card cal-card">' + monthView(S, { finder, minMonth: '2026-11' }) + '</section>';
     if (S.errors.date) body += '<p class="err" role="alert">' + icon('alert') + esc(S.errors.date) + '</p>';
     body += '<div class="sticky-cta"><p><span class="small">Gewählt</span><strong>' + (sel.start ? fmtRange(sel.start, sel.end || sel.start) : 'Noch nichts') + '</strong></p>' + (allowed && !S.blockMode ? btn('Termin festlegen', 'data-action="confirmDate" data-id="' + a.id + '" data-k="confirm"' + (online() ? '' : ' aria-disabled="true"'), 'default', 'check') : '') + '</div>';
@@ -1571,6 +1595,7 @@ a.list-row:hover{background:var(--surface-2)}
         field('f-title', 'Was wollt ihr machen?', '<input name="title" maxlength="80" autofocus value="' + esc(dft.title || '') + '" placeholder="z. B. Minigolf im Park" ' + inputAttrs('f-title', e.title) + '>', e.title) +
         '<fieldset class="field"><legend>Wie lange?</legend><div class="chips">' + [['spontan', 'Spontan'], ['wochenende', 'Wochenende'], ['laenger', 'Längerer Zeitraum']].map(([v, l]) => '<label class="chip-radio"><input type="radio" name="dur" value="' + v + '"' + ((dft.dur || 'spontan') === v ? ' checked' : '') + '><span>' + l + '</span></label>').join('') + '</div></fieldset>' +
         field('f-need', 'Ab wie vielen Stimmen geht’s in die Planung?', '<input name="need" type="number" inputmode="numeric" min="1" max="' + n + '" value="' + esc(dft.need || maj) + '" ' + inputAttrs('f-need', e.need, 'Vorbelegt mit der Mehrheit: ' + maj + ' von ' + n + ' Stimmen. Deine eigene zählt mit.') + '>', e.need, 'Vorbelegt mit der Mehrheit: ' + maj + ' von ' + n + ' Stimmen. Deine eigene zählt mit.') +
+        field('f-link', 'Link <span class="opt">(optional)</span>', '<input name="link" type="url" inputmode="url" placeholder="https://" ' + inputAttrs('f-link', null, 'Vorschaubild wird später automatisch geladen.') + '>', null, 'Vorschaubild wird später automatisch geladen.') +
         field('f-desc', 'Beschreibung <span class="opt">(optional)</span>', '<textarea name="desc" rows="2" ' + inputAttrs('f-desc') + '>' + esc(dft.desc || '') + '</textarea>') +
         '<div class="modal-actions"><button class="btn btn-default" type="submit" data-k="submit">Vorschlag teilen</button>' + btn('Abbrechen', 'data-action="closeModal"', 'ghost') + '</div></form>';
     } else if (m.type === 'task') {

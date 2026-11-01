@@ -534,3 +534,19 @@ a.list-row:hover{background:var(--surface-2)}
 .mem{overflow:hidden}.mem-in strong,.mem-in small{overflow-wrap:anywhere}
 .stay,.stay .flip .mem.big{animation:none!important}
 .icon-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Korrekturrunde 2 */
+.app{grid-template-rows:minmax(0,1fr)}
+.col{min-height:0}
+.check{width:44px;height:44px;border-radius:12px}
+.mem-in strong,.mem-in small{overflow-wrap:break-word;hyphens:auto}
+.best{display:flex;flex-direction:column;gap:8px}
+.best-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;width:100%;min-height:52px;padding:8px 14px;border-radius:16px;border:1.5px solid var(--line-strong);background:var(--surface);text-align:left}
+.best-btn span{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.best-btn .ic{width:16px;height:16px}
+.best-btn[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.toast{display:flex;align-items:center;gap:12px}
+.toast-undo{pointer-events:auto;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.toast-undo:focus-visible{outline:3px solid #E0AC58;outline-offset:2px}
+.campfire{padding:14px 16px}.cf-art{width:64px}.cf-title{font-size:20px}
+@container app (min-width:768px){.cf-art{width:84px}}

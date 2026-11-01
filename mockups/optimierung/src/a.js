@@ -117,7 +117,7 @@
     const g = group(); const lv = level(g.done);
     const a7 = A('a7'); const a8 = A('a8'); const det8 = D('a8');
     const myTasks = [];
-    Object.entries(S.detail).forEach(([aid, det]) => det.tasks.forEach((t) => { if (t.who === ME && !t.done) myTasks.push([aid, t]); }));
+    Object.entries(S.detail).forEach(([aid, det]) => det.tasks.forEach((t) => { if (t.who === ME && (!t.done || (S.recentDone || []).includes(t.id))) myTasks.push([aid, t]); }));
     const missing = myVoteMissing();
     let body = '<p class="lead">Hallo Mara. Das steht an:</p>';
     if (a7.status === 'planung_abgeschlossen') {
@@ -285,6 +285,11 @@
     return shell(S, 'Termine', body, { kicker: 'Feierabend-Crew', wide: true });
   };
 
+  function bestRanges() {
+    const out = [];
+    for (let i = 0; i < 61; i++) { const dd = new Date(Date.UTC(2026, 10, 2 + i)); if (dd.getUTCDay() !== 6) continue; const a0 = dd.toISOString().slice(0, 10); const e0 = new Date(dd.getTime() + 86400000).toISOString().slice(0, 10); const sc = { free: 4, partial: 3, busy: 1 }; const v = Math.min(sc[M.availability(a0)] || 0, sc[M.availability(e0)] || 0); out.push({ a0, e0, v }); }
+    return out.sort((x, y) => y.v - x.v || x.a0.localeCompare(y.a0)).slice(0, 3);
+  }
   const AV = { free: ['Alle frei', 'check'], partial: ['Teilweise frei', 'help'], busy: ['Viele belegt', 'x'], past: ['Vergangen', ''], unknown: ['Unbekannt', 'help'] };
   SCREENS.datefinder = (S) => {
     const a = A(S.params.id || 'a5') || A('a5');
@@ -307,6 +312,7 @@
     if (S.blockMode) body += '<p class="small">Tippe Tage an, an denen du nicht kannst. Die Gruppe sieht nur die Summe, nicht deinen Grund.</p>';
     else if (!allowed) body += deny('Den Zeitraum legen Admins oder ' + member(a.by).name + ' fest. Du kannst deine „Kann nicht“-Tage markieren.');
     else body += '<p class="small">Tippe auf den ersten und den letzten Tag. Ein Tag allein ist auch möglich.</p>';
+    if (!S.blockMode) body += '<section class="card" aria-labelledby="best-h"><h2 id="best-h">Beste Zeiträume</h2><p class="small">Wochenenden, an denen die meisten mit Kalender frei sind. 2 ohne Kalender sind nicht eingerechnet.</p><ul class="best">' + bestRanges().map((b, i) => '<li><button type="button" class="best-btn" data-action="pickRange" data-start="' + b.a0 + '" data-end="' + b.e0 + '" data-k="best-' + i + '" aria-pressed="' + (S.dateSel.start === b.a0 && S.dateSel.end === b.e0) + '"><strong>' + fmtRange(b.a0, b.e0) + '</strong><span>' + icon(b.v === 4 ? 'check' : 'help') + b.v + ' von 4 mit Kalender frei</span></button></li>').join('') + '</ul></section>';
     body += '<section class="card cal-card">' + monthView(S, { finder, minMonth: '2026-11' }) + '</section>';
     if (S.errors.date) body += '<p class="err" role="alert">' + icon('alert') + esc(S.errors.date) + '</p>';
     body += '<div class="sticky-cta"><p><span class="small">Gewählt</span><strong>' + (sel.start ? fmtRange(sel.start, sel.end || sel.start) : 'Noch nichts') + '</strong></p>' + (allowed && !S.blockMode ? btn('Termin festlegen', 'data-action="confirmDate" data-id="' + a.id + '" data-k="confirm"' + (online() ? '' : ' aria-disabled="true"'), 'default', 'check') : '') + '</div>';
@@ -378,6 +384,7 @@
         field('f-title', 'Was wollt ihr machen?', '<input name="title" maxlength="80" autofocus value="' + esc(dft.title || '') + '" placeholder="z. B. Minigolf im Park" ' + inputAttrs('f-title', e.title) + '>', e.title) +
         '<fieldset class="field"><legend>Wie lange?</legend><div class="chips">' + [['spontan', 'Spontan'], ['wochenende', 'Wochenende'], ['laenger', 'Längerer Zeitraum']].map(([v, l]) => '<label class="chip-radio"><input type="radio" name="dur" value="' + v + '"' + ((dft.dur || 'spontan') === v ? ' checked' : '') + '><span>' + l + '</span></label>').join('') + '</div></fieldset>' +
         field('f-need', 'Ab wie vielen Stimmen geht’s in die Planung?', '<input name="need" type="number" inputmode="numeric" min="1" max="' + n + '" value="' + esc(dft.need || maj) + '" ' + inputAttrs('f-need', e.need, 'Vorbelegt mit der Mehrheit: ' + maj + ' von ' + n + ' Stimmen. Deine eigene zählt mit.') + '>', e.need, 'Vorbelegt mit der Mehrheit: ' + maj + ' von ' + n + ' Stimmen. Deine eigene zählt mit.') +
+        field('f-link', 'Link <span class="opt">(optional)</span>', '<input name="link" type="url" inputmode="url" placeholder="https://" ' + inputAttrs('f-link', null, 'Vorschaubild wird später automatisch geladen.') + '>', null, 'Vorschaubild wird später automatisch geladen.') +
         field('f-desc', 'Beschreibung <span class="opt">(optional)</span>', '<textarea name="desc" rows="2" ' + inputAttrs('f-desc') + '>' + esc(dft.desc || '') + '</textarea>') +
         '<div class="modal-actions"><button class="btn btn-default" type="submit" data-k="submit">Vorschlag teilen</button>' + btn('Abbrechen', 'data-action="closeModal"', 'ghost') + '</div></form>';
     } else if (m.type === 'task') {

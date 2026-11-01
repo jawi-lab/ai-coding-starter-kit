@@ -316,7 +316,7 @@
     if (V.routes && !V.routes.includes(p.route)) { p.route = V.routes[0]; }
     const changed = p.route !== S.route || JSON.stringify(p.params) !== JSON.stringify(S.params);
     S.route = p.route; S.params = p.params;
-    if (changed) { S.modal = null; S.celebrate = S.celebrate && !S.celebrate.preview && S.celebrate.kind === 'date' ? S.celebrate : null; S.errors = {}; S.dateSel = p.route === 'datefinder' ? S.dateSel : { start: null, end: null }; }
+    if (changed) { S.recentDone = []; S.modal = null; S.celebrate = S.celebrate && !S.celebrate.preview && S.celebrate.kind === 'date' ? S.celebrate : null; S.errors = {}; S.dateSel = p.route === 'datefinder' ? S.dateSel : { start: null, end: null }; }
     render({ scrollTop: changed });
   }
 
@@ -325,12 +325,14 @@
 
   const root = () => document.getElementById('app');
   let toastTimer = null; let lastModalKey = '';
-  function toast(msg, kind) {
+  let undoFn = null;
+  function toast(msg, kind, undo) {
     const r = document.getElementById('toast-region');
     if (!r) return;
-    r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '">' + esc(msg) + '</div>';
+    undoFn = undo || null;
+    r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '"><span>' + esc(msg) + '</span>' + (undo ? '<button type="button" class="toast-undo" data-action="undoLast">Rückgängig</button>' : '') + '</div>';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { r.innerHTML = ''; }, 3600);
+    toastTimer = setTimeout(() => { r.innerHTML = ''; undoFn = null; }, undo ? 6000 : 3600);
   }
 
   function render(opts) {
@@ -361,7 +363,7 @@
     } else {
       const el = findKey(keepKey);
       if (el) el.focus({ preventScroll: true });
-      else if (opts.scrollTop) { const h = app.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+      else if (opts.scrollTop || keepKey || opts.fallback) { const h = app.querySelector('h1') || document.getElementById('main'); if (h) { if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
     }
   }
   const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -381,8 +383,8 @@
   reg('openModal', (el) => { S.modal = { type: el.dataset.modal, id: el.dataset.id, opener: focusKey(el) }; S.errors = {}; render(); });
   reg('closeModal', () => closeModal());
   const routeModal = () => V.routeModals && V.routeModals[S.route];
-  function closeModal() { const rm = routeModal(); const op = S.modal && S.modal.opener; S.modal = null; S.errors = {}; if (rm && rm.modal) { go(rm.back); return; } render({ focus: op }); }
-  reg('closeCelebrate', () => { const rm = routeModal(); const op = S.celebrate && S.celebrate.opener; S.celebrate = null; if (rm && rm.celebrate) { go(rm.back); return; } render({ focus: op }); });
+  function closeModal() { const rm = routeModal(); const op = S.modal && S.modal.opener; S.modal = null; S.errors = {}; if (rm && rm.modal) { go(rm.back); return; } render({ focus: op, fallback: true }); }
+  reg('closeCelebrate', () => { const rm = routeModal(); const op = S.celebrate && S.celebrate.opener; S.celebrate = null; if (rm && rm.celebrate) { go(rm.back); return; } render({ focus: op, fallback: true }); });
 
   reg('onboardNext', () => { S.onboardStep++; render({ focus: 'onb-next' }); });
   reg('onboardBack', () => { S.onboardStep = Math.max(0, S.onboardStep - 1); render(); });
@@ -420,8 +422,8 @@
     const det = D(el.dataset.id); const t = det.tasks.find((x) => x.id === el.dataset.task);
     if (!t) return;
     if (!online()) { offlineToast(); return; }
-    t.done = !t.done; render();
-    if (t.done) { const open = det.tasks.filter((x) => !x.done).length; toast(open ? 'Erledigt! Noch ' + open + ' offen.' : 'Alles erledigt. Stark, Team!', 'success'); pop(el.dataset.k); }
+    t.done = !t.done; S.recentDone = S.recentDone || []; if (t.done) S.recentDone.push(t.id); render();
+    if (t.done) { const open = det.tasks.filter((x) => !x.done).length; toast(open ? 'Erledigt! Noch ' + open + ' offen.' : 'Alles erledigt. Stark, Team!', 'success', () => { t.done = false; render({ focus: el.dataset.k }); toast('Wieder offen.'); }); pop(el.dataset.k); }
   });
   reg('claimTask', (el) => {
     const det = D(el.dataset.id); const t = det.tasks.find((x) => x.id === el.dataset.task);
@@ -495,6 +497,8 @@
   reg('markCardsSeen', () => { S.newCards = []; render(); });
   reg('demoReset', () => { const ui = S.ui; S = fresh(); S.ui = ui; S.route = V.home || 'home'; go(V.home || 'home'); toast('Demo zurückgesetzt.'); });
   reg('toast', (el) => toast(el.dataset.msg));
+  reg('undoLast', () => { const f = undoFn; undoFn = null; document.getElementById('toast-region').innerHTML = ''; if (f) f(); });
+  reg('pickRange', (el) => { S.dateSel = { start: el.dataset.start, end: el.dataset.end }; render({ focus: el.dataset.k }); toast('Zeitraum gewählt: ' + fmtRange(el.dataset.start, el.dataset.end)); });
   reg('exportData', () => toast('Demo: Dein Datenexport (JSON) würde jetzt erstellt und per E-Mail-Link bereitgestellt.', 'info'));
   reg('deleteAccount', () => { S.modal = null; toast('Demo: Konto gelöscht. In der echten App folgt eine Bestätigung per E-Mail.', 'info'); go('welcome'); });
   reg('report', (el) => { S.modal = null; render(); toast('Danke. Die Meldung geht vertraulich an die Admins der Gruppe. Der Inhalt bleibt für dich ausgeblendet.', 'success'); });
@@ -536,10 +540,10 @@
     S.errors = e; S.formDraft = { title: t, need: f.need.value, dur, desc: f.desc ? f.desc.value : '' };
     if (Object.keys(e).length) { render({ focus: 'f-' + Object.keys(e)[0] }); return; }
     const id = 'n' + Date.now();
-    S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc });
+    S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc, link: f.link ? f.link.value.trim() : '' });
     S.modal = null; S.formDraft = {}; S.filter = 'alle';
     toast('Vorschlag ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
-    go('proposals');
+    go(V.groupHome || 'proposals');
   };
   forms.comment = (f) => {
     const txt = f.text.value.trim();
