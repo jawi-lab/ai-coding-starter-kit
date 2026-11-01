@@ -144,3 +144,50 @@ Personas, Interviews und Usability-Tests sind durchgehend **simuliert**.
 - Entscheidung: Vorschlag: persönlicher Link mit 128-Bit-Token im URL-Fragment, 7 Tage gültig, widerrufbar, Vorschau ohne Mitgliedernamen; Code bleibt Fallback. Demo-Codes zehnstellig wie im Repo (seit 2026-10-30).
 - Grund: Nicht erratbar, nicht in Server-Logs, datensparsam.
 - Rolle: Sicherheit & QA. Einwände: Technik – Fragment plus Universal Links muss nativ getestet werden (Backlog BL-01).
+
+## Phase 4 – Umsetzung und Prüfung (Technik, Sicherheit & QA)
+
+**E-28 Rechte in A und B an das Ist angeglichen**
+- Entscheidung: Status verschieben, Abschließen und Termin festlegen dürfen Admin und Initiator:in; Umfragen und Aufgaben alle Mitglieder inkl. Beobachter:innen; Vorschlagen alle außer Beobachter:innen.
+- Grund: Sicherheit & QA fand Abweichungen vom Ist (PROJ-5 Entscheidung 2026-06-22, PROJ-14 Entscheidung 2026-07-11); am Spec bestätigt. Hinweistexte nennen jetzt die tatsächlich Berechtigten.
+- Rolle: Sicherheit & QA. Einwände: keine.
+
+**E-29 Melden, Ausblenden, Blockieren an allen Nutzerinhalten**
+- Entscheidung: ⋯-Menü an Aktivität/Vorschlag, Umfrage, Foto, Kommentar und Mitglied; „Für mich ausblenden“ ist eine eigene Aktion ohne Benachrichtigung; Admins sehen „Inhalt entfernen“.
+- Grund: Apple Guideline 1.2 (UGC), Google-Play-UGC-Richtlinie; vorher nur bei Kommentaren und mit irreführendem Toast.
+- Rolle: Sicherheit & QA. Einwände: Design – mehr Menüs; als kleines ⋯ ohne Text gelöst.
+
+**E-30 Fokus nie verdeckt, Hintergrund bei Dialogen gesperrt**
+- Entscheidung: Fokussierte Elemente werden über Tab-Bar, Plus-Button und feste Leisten gescrollt; bei offenem Dialog ist der Hintergrund `inert`; Alertdialoge erhalten den Fokus sofort.
+- Grund: WCAG 2.4.11 (an fünf Stellen verletzt), 2.4.3; in der App liefern Radix/`responsive-modal` die Sperre, die Scroll-Regel gehört ins Backlog.
+- Rolle: Sicherheit & QA, Technik. Einwände: keine.
+
+**E-31 Erinnerungen standardmäßig aus**
+- Entscheidung: Alle Erinnerungs-Schalter starten ausgeschaltet.
+- Grund: Opt-in für E-Mail und Erinnerungen (Anforderungen P7, DSGVO Art. 25).
+- Rolle: Sicherheit & QA. Einwände: Leitung – weniger Wirkung auf K1; akzeptiert.
+
+**E-32 Einladungs-Vorschau ohne Mitgliederzahl, mit QR-Code**
+- Entscheidung: Die Link-Vorschau zeigt nur den Gruppennamen; der Teilen-Vorschlag enthält einen QR-Code-Platzhalter.
+- Grund: Datensparsamkeit vor dem Beitritt; QR für Treffen vor Ort (Anforderungen P4).
+- Rolle: Sicherheit & QA. Einwände: Design – Zahl wäre einladender; Datensparsamkeit hat Vorrang.
+
+**E-33 Konto löschen mit Frist, rechtliche Links im Profil**
+- Entscheidung: Löschdialog nennt „innerhalb von 30 Tagen, inkl. Fotos und Kommentarbilder“ (Frist ist Annahme); Datenschutz, Impressum und Nutzungsbedingungen im Profil.
+- Grund: Apple 5.1.1(i) und 5.1.1(v).
+- Rolle: Sicherheit & QA. Einwände: Leitung – 30 Tage rechtlich prüfen; im Backlog vermerkt.
+
+**E-34 „Zurück“ bleibt im Mockup**
+- Entscheidung: Eigener Verlauf statt `history.back()`.
+- Grund: Beim Öffnen per `file://` konnte „Zurück“ die Datei verlassen (Testlauf brach ab).
+- Rolle: Technik. Einwände: keine.
+
+**E-35 Breitenanimationen bleiben im Mockup, Regel für die App**
+- Entscheidung: Fortschrittsbalken animieren im Mockup über `width`; in der App über `transform: scaleX()`. Skeleton-Schimmer läuft höchstens dreimal.
+- Grund: Im Mockup ohne Wirkung (Neuaufbau je Klick), Aufwand ohne Nutzen; für die App als Umsetzungshinweis im Backlog.
+- Rolle: Technik. Einwände: keine (niedrig).
+
+**E-36 Eigener Prüf-Runner statt `@playwright/test`**
+- Entscheidung: `tests/dod.cjs` mit `tests/dod.config.json` nutzt die vorinstallierte Playwright-Bibliothek; `playwright.config.ts` bleibt unverändert.
+- Grund: `@playwright/test` ist nicht installiert (`node_modules` fehlt), eine Installation hätte Browser nachgeladen (E-02).
+- Rolle: Technik. Einwände: Sicherheit & QA – kein Testbericht im Playwright-Format; Ergebnisse stehen in `tests/results.json` und `Pruefbericht.md`.

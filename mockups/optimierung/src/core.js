@@ -137,7 +137,7 @@
       detail: seedDetail(),
       notifications: seedNotifications(),
       prefs: Object.fromEntries(EVENTS.map((e) => [e.key, { push: true, email: false }])),
-      reminders: Object.fromEntries(REMINDERS.map((r) => [r.key, r.key === 'r_date'])),
+      reminders: Object.fromEntries(REMINDERS.map((r) => [r.key, false])),
       master: true,
       filter: 'alle',
       boardCol: 'in_planung',
@@ -247,6 +247,13 @@
     skip: 'M5 4l10 8-10 8z M19 5v14', image: 'M3 3h18v18H3z M9 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M21 15l-5-5L5 21', logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9', key: 'M15.5 7.5 19 4 M21 2l-9.6 9.6 M15.5 7.5l3 3L22 7l-3-3 M7.5 21a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z',
   };
   const icon = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + ICONS[n] + '"/></svg>';
+  function qr(seed) {
+    let h = '<svg class="qr" viewBox="0 0 25 25" role="img" aria-label="QR-Code-Platzhalter (Vorschlag)"><rect width="25" height="25" fill="#fff"/>'; let x = seed || 7;
+    const fin = (a, b) => '<path d="M' + a + ' ' + b + 'h7v7h-7zM' + (a + 1) + ' ' + (b + 1) + 'v5h5v-5zM' + (a + 2) + ' ' + (b + 2) + 'h3v3h-3z" fill="#111" fill-rule="evenodd"/>';
+    h += fin(0, 0) + fin(18, 0) + fin(0, 18);
+    for (let i = 0; i < 25; i++) for (let j = 0; j < 25; j++) { if ((i < 8 && j < 8) || (i > 16 && j < 8) || (i < 8 && j > 16)) continue; x = (x * 1103515245 + 12345) % 2147483648; if (x % 3 === 0) h += '<rect x="' + i + '" y="' + j + '" width="1" height="1" fill="#111"/>'; }
+    return h + '</svg>';
+  }
   function confetti(n) {
     let h = '<div class="confetti" aria-hidden="true">';
     for (let i = 0; i < (n || 22); i++) { const x = ((i * 47) % 100) - 50; const r = (i * 73) % 360; const dl = (i % 6) * 40; h += '<i style="--x:' + x + 'vw;--r:' + r + 'deg;--d:' + dl + 'ms;--c:' + (i % 4) + '"></i>'; }
@@ -270,12 +277,12 @@
       case 'vote': return true;
       case 'edit': return r === 'admin' || (act && act.by === ME);
       case 'findDate': return r === 'admin' || (act && act.by === ME);
-      case 'move': return r === 'admin' || r === 'editor';
-      case 'complete': return r === 'admin' || r === 'editor';
+      case 'move': return r === 'admin' || (act && act.by === ME);
+      case 'complete': return r === 'admin' || (act && act.by === ME);
       case 'manageMembers': return r === 'admin';
       case 'regenerate': return r === 'admin';
-      case 'addTask': return r !== 'observer';
-      case 'poll': return r !== 'observer';
+      case 'addTask': return true;
+      case 'poll': return true;
       default: return true;
     }
   }
@@ -283,7 +290,7 @@
   const online = () => S.ui.state !== 'offline';
 
   function parseHash() {
-    const h = decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
+    let h = ''; try { h = decodeURIComponent((location.hash || '').replace(/^#\/?/, '')); } catch (e) { h = ''; }
     if (!h) return null;
     const [route, q] = h.split('?');
     const params = {};
@@ -295,15 +302,17 @@
     return '#/' + route + (q ? '?' + q : '');
   }
   function go(route, params) {
+    if (V && V.routes && !V.routes.includes(route)) route = V.home || V.routes[0];
     const h = href(route, params || {});
     if (location.hash === h) { S.route = route; S.params = params || {}; render(); }
     else location.hash = h;
   }
 
-  let lastRoute = null;
+  const trail = []; // App-interner Verlauf, damit „Zurück“ nie die Datei verlässt
   function onHash() {
     const p = parseHash();
     if (!p) return;
+    if (trail[trail.length - 1] !== location.hash) trail.push(location.hash);
     if (V.routes && !V.routes.includes(p.route)) { p.route = V.routes[0]; }
     const changed = p.route !== S.route || JSON.stringify(p.params) !== JSON.stringify(S.params);
     S.route = p.route; S.params = p.params;
@@ -315,7 +324,7 @@
   function findKey(k) { if (!k) return null; if (k[0] === '#') return document.getElementById(k.slice(1)); return document.querySelector('[data-k="' + CSS.escape(k) + '"]'); }
 
   const root = () => document.getElementById('app');
-  let toastTimer = null;
+  let toastTimer = null; let lastModalKey = '';
   function toast(msg, kind) {
     const r = document.getElementById('toast-region');
     if (!r) return;
@@ -337,12 +346,16 @@
     const rm = routeModal();
     if (rm && rm.modal && !S.modal) S.modal = { type: rm.modal, id: rm.id };
     if (rm && rm.celebrate && !S.celebrate) S.celebrate = { kind: rm.celebrate, id: rm.id, level: rm.level, preview: true };
+    const mKey = S.modal ? 'm:' + S.modal.type + ':' + (S.modal.id || '') : S.celebrate ? 'c:' + S.celebrate.kind : '';
     app.innerHTML = V.render(S);
+    if (mKey && mKey === lastModalKey) app.querySelectorAll('.sheet, .scrim, .celebrate').forEach((x) => x.classList.add('stay'));
+    lastModalKey = mKey;
+    if (mKey) app.querySelectorAll('.app > :not(.sheet):not(.scrim):not(.celebrate):not(.confetti)').forEach((x) => x.setAttribute('inert', ''));
     syncPanel();
     const sc = app.querySelector('[data-scroll]');
     if (sc) sc.scrollTop = opts.scrollTop ? 0 : prevScroll;
     if (S.modal || S.celebrate) {
-      const dlg = app.querySelector('[role="dialog"]');
+      const dlg = app.querySelector('[role="dialog"], [role="alertdialog"]');
       const kk = keepKey && findKey(keepKey); const target = (kk && dlg && dlg.contains(kk) ? kk : null) || (dlg && (dlg.querySelector('[autofocus]') || dlg.querySelector(FOCUSABLE)));
       if (target) target.focus({ preventScroll: true });
     } else {
@@ -356,7 +369,7 @@
   /* ---------- Aktionen ---------- */
   function reg(name, fn) { actions[name] = fn; }
   reg('nav', (el) => { const p = {}; Object.entries(el.dataset).forEach(([k, v]) => { if (k.startsWith('p') && k.length > 1 && k !== 'pressed') p[k[1].toLowerCase() + k.slice(2)] = v; }); go(el.dataset.to, p); });
-  reg('back', () => history.length > 1 ? history.back() : go(V.home || 'home'));
+  reg('back', () => { trail.pop(); const prev = trail.pop(); if (prev) location.hash = prev; else go(V.home || 'home'); });
   reg('setUi', (el) => {
     const k = el.dataset.key, v = el.dataset.val;
     if (k === 'view' && v === 'desktop' && window.innerWidth < 768) { toast('Die Desktop-Ansicht braucht mindestens 768 px Fensterbreite. Vergrößere das Fenster.', 'info'); return; }
@@ -484,7 +497,10 @@
   reg('toast', (el) => toast(el.dataset.msg));
   reg('exportData', () => toast('Demo: Dein Datenexport (JSON) würde jetzt erstellt und per E-Mail-Link bereitgestellt.', 'info'));
   reg('deleteAccount', () => { S.modal = null; toast('Demo: Konto gelöscht. In der echten App folgt eine Bestätigung per E-Mail.', 'info'); go('welcome'); });
-  reg('report', (el) => { S.modal = null; render(); toast('Danke. Die Meldung geht an die Admins der Gruppe. Der Inhalt bleibt für dich ausgeblendet.', 'success'); });
+  reg('report', (el) => { S.modal = null; render(); toast('Danke. Die Meldung geht vertraulich an die Admins der Gruppe. Der Inhalt bleibt für dich ausgeblendet.', 'success'); });
+  reg('hideContent', () => { S.modal = null; render(); toast('Ausgeblendet. Niemand wird benachrichtigt.'); });
+  reg('block', () => { S.modal = null; render(); toast('Blockiert. Du siehst die Inhalte dieser Person nicht mehr; sie erfährt es nicht.'); });
+  reg('removeContent', () => { S.modal = null; render(); toast('Demo: Inhalt entfernt. Die Person erfährt den Grund.', 'success'); });
   reg('logout', () => { toast('Abgemeldet.'); go('login'); });
   reg('skipToMain', () => { const m = document.getElementById('main'); if (m) m.focus(); });
 
@@ -610,6 +626,15 @@
       if (V.onKey) V.onKey(ev, S);
     });
     window.addEventListener('hashchange', onHash);
+    // WCAG 2.4.11: Fokus nie unter Tab-Bar, Plus-Button oder Kopf verstecken
+    document.addEventListener('focusin', (ev) => {
+      const el = ev.target; const sc = el.closest && el.closest('[data-scroll]'); if (!sc) return;
+      const r = el.getBoundingClientRect(); const s = sc.getBoundingClientRect();
+      let bottom = s.bottom;
+      document.querySelectorAll('#app .tabbar, #app .fab, #app .sticky-cta').forEach((o) => { if (o.contains(el)) return; const q = o.getBoundingClientRect(); if (q.height && q.top < bottom && q.bottom > r.top && getComputedStyle(o).display !== 'none' && getComputedStyle(o).position !== 'static') bottom = Math.min(bottom, q.top); });
+      if (r.bottom > bottom - 8) sc.scrollTop += r.bottom - bottom + 24;
+      else if (r.top < s.top + 8) sc.scrollTop -= s.top - r.top + 24;
+    });
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) S.ui.theme = 'dark';
     const p = parseHash();
     if (p) { S.route = V.routes.includes(p.route) ? p.route : V.routes[0]; S.params = p.params; } else S.route = V.routes[0];
@@ -618,7 +643,7 @@
 
   Object.assign(M, {
     members, ME, EVENTS, REMINDERS, LEVELS, BADGES, TIERS, STATUS, BOARD, DUR, TODAY,
-    esc, member, st, icon, confetti, fmtDay, fmtRange, relDay, daysUntil, initials, level, tier, availability, busyNames, monthGrid, shiftMonth, href,
+    esc, member, st, icon, confetti, qr, fmtDay, fmtRange, relDay, daysUntil, initials, level, tier, availability, busyNames, monthGrid, shiftMonth, href,
     act: (n, el) => (actions[n] || V.actions[n])(el, null, S),
     A, D, group, can, online, go, toast, render, reg,
     actionNames: () => Object.keys(actions).concat(V && V.actions ? Object.keys(V.actions) : []),
