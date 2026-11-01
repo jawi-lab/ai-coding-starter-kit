@@ -92,3 +92,55 @@ Personas, Interviews und Usability-Tests sind durchgehend **simuliert**.
 - Entscheidung: `ink-3` nicht für Fließtext (nur Platzhalter/Deko), Fokusring Gold mit dunkler Innenkante (≥ 3:1), Gold-Text nur auf Gold-Tint oder groß, Status-Punkte immer mit Text.
 - Grund: Nachgerechnet: `ink-3` auf Creme 3,4:1, Gold-Ring auf Creme 2,2:1, Gold-Text auf Weiß 3,0:1 (Design). WCAG 2.2 AA ist Teil der Definition of Done.
 - Rolle: Design. Einwände: A soll den Styleguide strikt einhalten – Barrierefreiheit hat Vorrang; der Styleguide selbst bleibt unverändert, die Korrektur steht im Backlog (BL-12).
+
+## Phase 3 – Design-Sprint
+
+**E-18 Statusbegriffe**
+- Entscheidung: A „Zu planen · In Planung · Termin steht · Abgeschlossen“; B und C „… · Termin steht · Erlebt“.
+- Grund: „Termin steht“ beseitigt die Verwechslung mit „Abgeschlossen“ (BL-14); „Erlebt“ wird bewusst als Variable getestet.
+- Rolle: Leitung. Einwände: Sicherheit & QA – Tests nur eingeschränkt vergleichbar; im Prüfbericht genannt.
+
+**E-19 Pflichtergänzungen für alle drei Richtungen**
+- Entscheidung: Impuls nach dem Termin (BL-20), Gruppenvorschau beim Link-Beitritt (BL-15, Vorschlag), Konto löschen, Daten exportieren, Melden.
+- Grund: RICE-Rang 4 bzw. Ergänzung zu BL-01; Apple 5.1.1(v), Google Play Account-Deletion, Apple 1.2 (UGC), DSGVO Art. 15/17/20.
+- Rolle: Leitung, Sicherheit & QA. Einwände: Design – mehr Einträge im Profil; gebündelt unter „Konto & Datenschutz“.
+
+**E-20 Stapel-Abstimmung in B nur unter Bedingungen**
+- Entscheidung: „Später“ ist neutral, „Bin dafür“ zurücknehmbar, Stapel endet mit „Alles gesehen“, Einstieg über „Deine Stimme fehlt“, Liste bleibt Standard, Buttons statt Pflicht-Wischen.
+- Grund: Hebt die Abstimmungsbeteiligung (K2) ohne Druck oder Endlos-Feed.
+- Rolle: Leitung. Einwände: Design – Wischen erinnert an Dating-Apps; daher keine Wertung nach links.
+
+**E-21 C ohne Board, mit Fluss**
+- Entscheidung: Fluss-Stufen 1:1 die Status plus „Ideen“, keine eigene Stufe „Abstimmung“; Zähler und Statuswechsel-Buttons je Stufe; Desktop zeigt alle Stufen einklappbar.
+- Grund: Prüft die neue IA (BL-18) ohne Datenmodell-Änderung.
+- Rolle: Leitung. Einwände: Technik – keine.
+
+**E-22 Namenskonflikt „Erinnerungen“**
+- Entscheidung: Archiv heißt „Album“ (C-Navigation), Reminder heißen in C „Vorab-Hinweise“, in A/B „Termin-Erinnerungen“.
+- Grund: Drei Teams fanden die Kollision unabhängig; Verwechslung zwischen Fotoarchiv und Benachrichtigung.
+- Rolle: Design. Einwände: keine.
+
+**E-23 Gastgeber:in in C nur per Zuweisung oder bei freier Aktivität**
+- Entscheidung: Übernahme ist eine ausdrückliche Aktion mit Verlaufseintrag; Rechte wie heute die Initiator-Rechte; mindestens ein Admin bleibt erzwungen.
+- Grund: Sonst könnte jedes Mitglied fremde Planungsrechte an sich ziehen. Braucht `activities.host_id` (Technik).
+- Rolle: Sicherheit & QA. Einwände: Leitung – mehr Reibung beim Übernehmen; akzeptiert.
+
+**E-24 Gamification-Leitplanken (B, gilt sinngemäß für alle)**
+- Entscheidung: Kein Countdown, kein Scheitern-Zustand, keine Push für Ziele, Badges nur im eigenen Profil, Feiern ≤ 1 s, ≤ 3 Blitze/s, ohne Ton, bei reduzierter Bewegung Überblenden.
+- Grund: WCAG 2.3.1 und 2.3.3, Momentum-Prinzip aus PROJ-15 (kein Verfall), keine Dark Patterns.
+- Rolle: Sicherheit & QA, Design. Einwände: Design – B wirkt weniger „laut“; akzeptiert.
+
+**E-25 Marken „Vorschlag“ und „Neu“**
+- Entscheidung: „Vorschlag“ (gestrichelt) für Teilen-Link/Deep Link und Erinnerungen, wie im Auftrag gefordert; „Neu“ für sichtbare Funktionen ohne heutiges Datenmodell (Aufgabe übernehmen, Zusage, Reaktionen, Ziele, Terminabstimmung).
+- Grund: Technik fand, dass z. B. „Übernehmen“ und Fälligkeiten im Schema fehlen; ehrliche Kennzeichnung statt stiller Versprechen.
+- Rolle: Leitung. Einwände: Design – Marken kosten Ruhe im Layout; klein und nur einmal je Abschnitt.
+
+**E-26 Offline ohne Warteschlangen-Versprechen**
+- Entscheidung: Offline sind Schreibaktionen gesperrt und erklären sich („geht wieder, sobald die Verbindung zurück ist“); keine Aussage „wird später gesendet“.
+- Grund: Eine Offline-Warteschlange gibt es nicht und widerspricht dem heutigen Stack ohne Sync-Schicht (Backlog BL-17).
+- Rolle: Technik. Einwände: Design – weniger komfortabel; ehrlicher.
+
+**E-27 Einladungs-Link mit eigenem Token**
+- Entscheidung: Vorschlag: persönlicher Link mit 128-Bit-Token im URL-Fragment, 7 Tage gültig, widerrufbar, Vorschau ohne Mitgliedernamen; Code bleibt Fallback. Demo-Codes zehnstellig wie im Repo (seit 2026-10-30).
+- Grund: Nicht erratbar, nicht in Server-Logs, datensparsam.
+- Rolle: Sicherheit & QA. Einwände: Technik – Fragment plus Universal Links muss nativ getestet werden (Backlog BL-01).
