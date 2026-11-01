@@ -491,3 +491,5 @@ a.list-row:hover{background:var(--surface-2)}
 .toast{display:flex;align-items:center;gap:12px}
 .toast-undo{pointer-events:auto;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
 .toast-undo:focus-visible{outline:3px solid #E0AC58;outline-offset:2px}
+.mem-detail .quote{font-size:19px;line-height:1.35}
+.link-line{display:flex;align-items:center;gap:6px}.link-line .ic{width:16px;height:16px}

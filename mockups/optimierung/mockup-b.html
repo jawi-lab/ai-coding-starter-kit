@@ -594,6 +594,8 @@ a.list-row:hover{background:var(--surface-2)}
 .toast-undo:focus-visible{outline:3px solid #E0AC58;outline-offset:2px}
 .campfire{padding:14px 16px}.cf-art{width:64px}.cf-title{font-size:20px}
 @container app (min-width:768px){.cf-art{width:84px}}
+.mem-detail .quote{font-size:19px;line-height:1.35}
+.link-line{display:flex;align-items:center;gap:6px}.link-line .ic{width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -944,7 +946,9 @@ a.list-row:hover{background:var(--surface-2)}
     undoFn = undo || null;
     r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '"><span>' + esc(msg) + '</span>' + (undo ? '<button type="button" class="toast-undo" data-action="undoLast">Rückgängig</button>' : '') + '</div>';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { r.innerHTML = ''; undoFn = null; }, undo ? 6000 : 3600);
+    const hide = () => { r.innerHTML = ''; undoFn = null; };
+    toastTimer = setTimeout(hide, undo ? 10000 : 3600);
+    if (undo) { const t = r.querySelector('.toast'); t.addEventListener('mouseenter', () => clearTimeout(toastTimer)); t.addEventListener('focusin', () => clearTimeout(toastTimer)); t.addEventListener('mouseleave', () => { toastTimer = setTimeout(hide, 4000); }); }
   }
 
   function render(opts) {
@@ -1154,7 +1158,7 @@ a.list-row:hover{background:var(--surface-2)}
     const id = 'n' + Date.now();
     S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc, link: f.link ? f.link.value.trim() : '' });
     S.modal = null; S.formDraft = {}; S.filter = 'alle';
-    toast('Vorschlag ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
+    toast((V.ideaWord || 'Vorschlag') + ' ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
     go(V.groupHome || 'proposals');
   };
   forms.comment = (f) => {
@@ -1484,7 +1488,7 @@ a.list-row:hover{background:var(--surface-2)}
     let hero = '<div class="hero cover-' + a.cover + '"><span class="hero-ic" aria-hidden="true">' + icon(COVER_ICON[a.cover]) + '</span><div class="hero-in">' + statusChip(a.status) + '<h1 class="display-s hero-title">' + esc(a.title) + '</h1><p>' + icon('calendar') + fmtRange(a.start, a.end) + (a.place ? ' · ' + icon('pin') + esc(a.place) : '') + '</p></div></div>';
     let main = '';
     if (a.status === 'planung_abgeschlossen' && a.start < TODAY) main += '<section class="card impulse"><div><p class="overline">Vorbei</p><h2 class="serif">Wie war’s?</h2><p>Markiere sie als erlebt – das Feuer wächst und eure Memory Card dreht sich um.</p>' + (can('complete', a) ? btn('Als erlebt markieren', 'data-action="complete" data-id="' + a.id + '" data-k="act-complete"', 'default', 'check') : deny('Abschließen kann ein Admin oder die Initiator:in.')) + '</div></section>';
-    main += '<div class="title-row"><p class="lead">' + esc(a.desc || '') + '</p><button type="button" class="icon-btn sm" data-action="openModal" data-modal="reportMenu" data-id="' + (a.status === 'vorschlag' ? 'Vorschlag' : 'Aktivität') + '" data-k="act-menu" aria-label="Optionen: melden oder ausblenden">' + icon('more') + '</button></div><p class="small">Vorgeschlagen von ' + esc(member(a.by).name) + ' · ' + esc(M.DUR[a.dur]) + '</p>';
+    main += (a.link ? '<p class="small link-line">' + icon('link') + '<button type="button" class="link" data-action="toast" data-msg="Demo: öffnet ' + esc(a.link) + ' im Browser.">' + esc(a.link) + '</button></p>' : '') + '<div class="title-row"><p class="lead">' + esc(a.desc || '') + '</p><button type="button" class="icon-btn sm" data-action="openModal" data-modal="reportMenu" data-id="' + (a.status === 'vorschlag' ? 'Vorschlag' : 'Aktivität') + '" data-k="act-menu" aria-label="Optionen: melden oder ausblenden">' + icon('more') + '</button></div><p class="small">Vorgeschlagen von ' + esc(member(a.by).name) + ' · ' + esc(M.DUR[a.dur]) + '</p>';
     if (a.status === 'vorschlag') main += '<section class="card"><h2>Abstimmung</h2><div class="progress"><span class="bar bar-lg" aria-hidden="true"><span style="width:' + Math.min(100, Math.round(a.votes.length / a.need * 100)) + '%"></span></span><span><strong>' + a.votes.length + ' von ' + a.need + '</strong> Stimmen bis zur Planung</span></div>' + voteBtn(a) + '</section>';
     // Verantwortlichkeiten
     main += '<section class="card" aria-labelledby="t-h">' + sectionHead('<span id="t-h">Missionen</span>', det.tasks.length ? '<span class="small">' + done + ' von ' + det.tasks.length + ' erledigt</span>' : '') + (det.tasks.length ? '<p class="small">' + newTag() + ' Fälligkeit und „Übernehmen“ sind neu.</p>' : '') +
@@ -1495,6 +1499,7 @@ a.list-row:hover{background:var(--surface-2)}
     main += '<section class="card" aria-labelledby="p-h">' + sectionHead('<span id="p-h">Umfragen</span>') + (det.polls.length ? det.polls.map((p) => pollCard(a.id, p)).join('') : '<p class="small">Noch keine Umfrage. Fragt die Gruppe, was ihr lieber mögt.</p>') +
       (can('poll') ? btn('Umfrage starten', 'data-action="openModal" data-modal="poll" data-id="' + a.id + '" data-k="add-poll"', 'ghost', 'plus') : '') + '</section>';
     // Fotos
+    if (a.status === 'abgeschlossen') main += '<section class="card mem-detail"><p class="overline">Memory Card</p><p class="serif quote">„' + esc(a.quote || '') + '“</p>' + btn('Karte teilen', 'data-action="toast" data-msg="Demo: Die Memory Card würde als Bild über das Teilen-Menü verschickt."', 'outline btn-sm', 'share') + '</section>';
     if (a.status === 'abgeschlossen') main += '<section class="card"><h2>Erinnerungsfotos</h2><div class="photos">' + Array.from({ length: a.photos || 0 }, (_, i) => '<span class="photo cover-' + ['green', 'gold', 'blush'][i % 3] + '" role="img" aria-label="Foto ' + (i + 1) + ' (Platzhalter)">' + icon('image') + '</span>').join('') + '</div>' + '<div class="row-btns">' + btn('Fotos hinzufügen', 'data-action="toast" data-msg="Demo: Fotoauswahl öffnet sich (bis 5 Bilder)."', 'ghost', 'camera') + btn('Foto melden', 'data-action="openModal" data-modal="reportMenu" data-id="Foto" data-k="photo-rep"', 'ghost', 'alert') + '</div></section>';
     // Kommentare
     main += '<section class="card" aria-labelledby="c-h">' + sectionHead('<span id="c-h">Kommentare</span>', '<span class="small">' + det.comments.length + ' ' + newTag() + ' Reaktionen</span>') +

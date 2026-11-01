@@ -220,3 +220,23 @@ Korrekturrunden: **2 von höchstens 3** genutzt. Runde 1: Befunde aus Technik- u
 - Entscheidung: Abhak-Checkbox 44 px; optionales Link-Feld im Vorschlag; in C führt „Idee teilen“ in den Fluss.
 - Grund: Zielgröße nach Styleguide (≥ 44 px); PROJ-4 kennt das Link-Feld; Nutzer:in soll die eigene Idee sehen.
 - Rolle: Design. Einwände: keine.
+
+**E-42 Korrekturrunde 3 (letzte): kleine Restpunkte aus dem Nachtest**
+- Entscheidung: „Rückgängig“-Toast hält 10 s und pausiert bei Fokus oder Maus; Memory Card im Detail mit Zitat und „Karte teilen“; gespeicherter Link im Detail sichtbar; C sagt „Idee“ statt „Vorschlag“ und zeigt bei Gleichstand in der Terminabstimmung einen Hinweis.
+- Grund: Nachtest von Design (simuliert), T6 nur teilweise erfüllt; WCAG 2.2.1 (Zeitbegrenzung).
+- Rolle: Design, Leitung. Einwände: keine. Damit sind alle drei erlaubten Korrekturrunden genutzt.
+
+## Offene Mängel (nach drei Korrekturrunden)
+
+| Nr. | Mangel | Varianten | Schwere | Warum offen / Folge |
+|---|---|---|---|---|
+| M-1 | „Rückgängig“ im Toast ist per Tastatur erst nach 8–14 Tabs erreichbar (Timer pausiert inzwischen bei Fokus) | A, B, C | mittel | In der App: Toast-Aktion per Tastenkürzel oder Fokus auf den Toast setzen (sonner unterstützt Aktionen) – Backlog BL-12 |
+| M-2 | Eigene Aufgabe liegt in A/C knapp unter der Tab-Bar; in B steht „Als Nächstes“ erst bei ca. 1.040 px | A, B, C | niedrig | Reihenfolge der Startseite in `/write-spec` zu BL-05 festlegen |
+| M-3 | Schrift wächst nicht mit der Systemschrift (px statt rem) | A, B, C | mittel | Mockup-Technik; die App nutzt Tailwind (rem). Prüfpunkt für die Umsetzung (WCAG 1.4.4) |
+| M-4 | „Anstehend“ in C bietet nur „Zusagen“, nicht „Vielleicht/Kann nicht“ | C | niedrig | Zusage-Sheet in der Umsetzung |
+| M-5 | Wischen im Stimmen-Stapel nicht umgesetzt, nur Buttons | B | niedrig | Bewusst: Buttons sind die barrierefreie Pflicht-Alternative (E-20) |
+| M-6 | Fortschrittsbalken animieren `width`, Skeleton `background-position` | A, B, C | niedrig | E-35; Regel für die App im Backlog |
+| M-7 | Kontrast-Messung ist heuristisch: Verläufe nur über ihre Farbstopps, Pseudo-Elemente nicht gemessen | A, B, C | niedrig | Texte auf Verläufen liegen deshalb auf eigenen, messbaren Flächen; Rest manuell in Screenshots gesichtet |
+| M-8 | Nur Chromium geprüft (kein WebKit/Safari, kein Firefox), kein echter Screenreader | A, B, C | mittel | Umgebung (E-02); Screenreader-Nutzung nur simuliert (Persona Jonas) |
+| M-9 | Rechtliche Annahmen: Löschfrist 30 Tage, Mindestalter 16 | A, B, C | mittel | Rechtlich prüfen vor Umsetzung (BL-21) |
+| M-10 | Desktop-Schalter wirkt erst ab 768 px Fensterbreite | A, B, C | niedrig | E-07; Hinweis-Toast statt horizontalem Scrollen |

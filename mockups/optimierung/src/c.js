@@ -115,6 +115,8 @@
     if (a.status !== 'zu_planen') body += '<div class="note">' + icon('check') + '<span>Termin steht: <strong>' + fmtRange(a.start, a.end) + '</strong>.</span></div>';
     const opts = S.ui.state === 'empty' ? [] : (det.datePoll || []);
     if (!opts.length) body += emptyBlock('calendar', 'Noch keine Terminoptionen', 'Die Gastgeber:in schlägt zwei bis drei Zeiträume vor. Alle antworten mit Passt, Passt vielleicht oder Passt nicht.');
+    const scores = opts.map((o) => Object.values(o.ans).filter((v) => v === 'yes').length); const top = Math.max(0, ...scores);
+    if (scores.filter((x) => x === top).length > 1 && top > 0) body += '<div class="note">' + icon('help') + '<span><strong>Gleichstand:</strong> ' + scores.filter((x) => x === top).length + ' Optionen haben je ' + top + '-mal „Passt“. Die Gastgeber:in entscheidet; „Passt vielleicht“ hilft beim Abwägen.</span></div>';
     body += '<ul class="opts">' + opts.map((o) => {
       const vals = Object.values(o.ans); const y = vals.filter((v) => v === 'yes').length, m = vals.filter((v) => v === 'maybe').length, nn = vals.filter((v) => v === 'no').length;
       const mine = M.availability(o.start); const hint = mine === 'free' ? 'Dein Kalender: frei' : mine === 'partial' ? 'Dein Kalender: teilweise belegt' : 'Dein Kalender: belegt';
@@ -220,7 +222,7 @@
     let hero = '<div class="hero cover-' + a.cover + '"><span class="hero-ic" aria-hidden="true">' + icon(COVER_ICON[a.cover]) + '</span><div class="hero-in">' + statusChip(a.status) + '<' + hT + ' class="display-s hero-title">' + esc(a.title) + '</' + hT.split(' ')[0] + '><p>' + icon('calendar') + fmtRange(a.start, a.end) + (a.place ? ' · ' + icon('pin') + esc(a.place) : '') + '</p></div></div>';
     let main = '';
     if (a.status === 'planung_abgeschlossen' && a.start < TODAY) main += '<section class="card impulse"><div><p class="overline">Vorbei</p><h2 class="serif">Wie war’s?</h2><p>Markiere sie als erlebt – dann entsteht die Erinnerung im Album.</p>' + (can('complete', a) ? btn('Als erlebt markieren', 'data-action="complete" data-id="' + a.id + '" data-k="act-complete"', 'default', 'check') : deny('Als erlebt markiert es die Gastgeber:in oder ein Admin.')) + '</div></section>';
-    main += '<div class="title-row"><p class="lead">' + esc(a.desc || '') + '</p><button type="button" class="icon-btn sm" data-action="openModal" data-modal="reportMenu" data-id="' + (a.status === 'vorschlag' ? 'Vorschlag' : 'Aktivität') + '" data-k="act-menu" aria-label="Optionen: melden oder ausblenden">' + icon('more') + '</button></div><p class="small host-line">' + av(a.by, 'xs') + 'Gastgeber:in ' + esc(member(a.by).name) + ' · ' + esc(M.DUR[a.dur]) + '</p>' + (S.ui.role === 'member' ? '<p class="small">Gastgeber:in wird man, wenn die Rolle frei ist oder ein Admin dich einträgt.</p>' : '');
+    main += (a.link ? '<p class="small link-line">' + icon('link') + '<button type="button" class="link" data-action="toast" data-msg="Demo: öffnet ' + esc(a.link) + ' im Browser.">' + esc(a.link) + '</button></p>' : '') + '<div class="title-row"><p class="lead">' + esc(a.desc || '') + '</p><button type="button" class="icon-btn sm" data-action="openModal" data-modal="reportMenu" data-id="' + (a.status === 'vorschlag' ? 'Vorschlag' : 'Aktivität') + '" data-k="act-menu" aria-label="Optionen: melden oder ausblenden">' + icon('more') + '</button></div><p class="small host-line">' + av(a.by, 'xs') + 'Gastgeber:in ' + esc(member(a.by).name) + ' · ' + esc(M.DUR[a.dur]) + '</p>' + (S.ui.role === 'member' ? '<p class="small">Gastgeber:in wird man, wenn die Rolle frei ist oder ein Admin dich einträgt.</p>' : '');
     if (a.status === 'vorschlag') main += '<section class="card"><h2>Abstimmung</h2><div class="progress"><span class="bar bar-lg" aria-hidden="true"><span style="width:' + Math.min(100, Math.round(a.votes.length / a.need * 100)) + '%"></span></span><span><strong>' + a.votes.length + ' von ' + a.need + '</strong> Stimmen bis zur Planung</span></div>' + voteBtn(a) + '</section>';
     // Verantwortlichkeiten
     main += '<section class="card" aria-labelledby="t-h">' + sectionHead('<span id="t-h">Verantwortlichkeiten</span>', det.tasks.length ? '<span class="small">' + done + ' von ' + det.tasks.length + ' erledigt</span>' : '') + (det.tasks.length ? '<p class="small">' + newTag() + ' Fälligkeit und „Übernehmen“ sind neu.</p>' : '') +
@@ -231,6 +233,7 @@
     main += '<section class="card" aria-labelledby="p-h">' + sectionHead('<span id="p-h">Umfragen</span>') + (det.polls.length ? det.polls.map((p) => pollCard(a.id, p)).join('') : '<p class="small">Noch keine Umfrage. Fragt die Gruppe, was ihr lieber mögt.</p>') +
       (can('poll') ? btn('Umfrage starten', 'data-action="openModal" data-modal="poll" data-id="' + a.id + '" data-k="add-poll"', 'ghost', 'plus') : '') + '</section>';
     // Fotos
+    if (a.status === 'abgeschlossen') main += '<section class="card mem-detail"><p class="overline">Memory Card</p><p class="serif quote">„' + esc(a.quote || '') + '“</p>' + btn('Karte teilen', 'data-action="toast" data-msg="Demo: Die Memory Card würde als Bild über das Teilen-Menü verschickt."', 'outline btn-sm', 'share') + '</section>';
     if (a.status === 'abgeschlossen') main += '<section class="card"><h2>Erinnerungsfotos</h2><div class="photos">' + Array.from({ length: a.photos || 0 }, (_, i) => '<span class="photo cover-' + ['green', 'gold', 'blush'][i % 3] + '" role="img" aria-label="Foto ' + (i + 1) + ' (Platzhalter)">' + icon('image') + '</span>').join('') + '</div>' + '<div class="row-btns">' + btn('Fotos hinzufügen', 'data-action="toast" data-msg="Demo: Fotoauswahl öffnet sich (bis 5 Bilder)."', 'ghost', 'camera') + btn('Foto melden', 'data-action="openModal" data-modal="reportMenu" data-id="Foto" data-k="photo-rep"', 'ghost', 'alert') + '</div></section>';
     // Kommentare
     main += '<section class="card" aria-labelledby="c-h">' + sectionHead('<span id="c-h">Kommentare</span>', '<span class="small">' + det.comments.length + '</span>') +
@@ -423,7 +426,7 @@
 
   /* ---------- Variante registrieren ---------- */
   M.start({
-    routes: ROUTES, home: 'agenda', groupHome: 'flow', dateOwner: 'die Gastgeber:in oder ein Admin',
+    routes: ROUTES, home: 'agenda', groupHome: 'flow', ideaWord: 'Idee', dateOwner: 'die Gastgeber:in oder ein Admin',
     statusLabels: { vorschlag: 'Idee', zu_planen: 'Zu planen', in_planung: 'In Planung', planung_abgeschlossen: 'Termin steht', abgeschlossen: 'Erlebt' },
     routeModals: { newproposal: { modal: 'proposal', back: 'flow' }, celebrate: { celebrate: 'levelup', id: 'a7', level: 3, back: 'agenda' } },
     screenList: ROUTES.map((r) => [r, NAMES[r], r === 'activity' ? { id: 'a6' } : r === 'datefinder' || r === 'datepoll' ? { id: 'a5' } : null]),

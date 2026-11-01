@@ -550,3 +550,5 @@ a.list-row:hover{background:var(--surface-2)}
 .toast-undo:focus-visible{outline:3px solid #E0AC58;outline-offset:2px}
 .campfire{padding:14px 16px}.cf-art{width:64px}.cf-title{font-size:20px}
 @container app (min-width:768px){.cf-art{width:84px}}
+.mem-detail .quote{font-size:19px;line-height:1.35}
+.link-line{display:flex;align-items:center;gap:6px}.link-line .ic{width:16px;height:16px}

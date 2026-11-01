@@ -332,7 +332,9 @@
     undoFn = undo || null;
     r.innerHTML = '<div class="toast toast-' + (kind || 'info') + '"><span>' + esc(msg) + '</span>' + (undo ? '<button type="button" class="toast-undo" data-action="undoLast">Rückgängig</button>' : '') + '</div>';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { r.innerHTML = ''; undoFn = null; }, undo ? 6000 : 3600);
+    const hide = () => { r.innerHTML = ''; undoFn = null; };
+    toastTimer = setTimeout(hide, undo ? 10000 : 3600);
+    if (undo) { const t = r.querySelector('.toast'); t.addEventListener('mouseenter', () => clearTimeout(toastTimer)); t.addEventListener('focusin', () => clearTimeout(toastTimer)); t.addEventListener('mouseleave', () => { toastTimer = setTimeout(hide, 4000); }); }
   }
 
   function render(opts) {
@@ -542,7 +544,7 @@
     const id = 'n' + Date.now();
     S.activities.unshift({ id, title: t, status: 'vorschlag', dur, need, votes: [ME], by: ME, cover: ['green', 'gold', 'blush', 'ink'][S.activities.length % 4], created: TODAY, desc: S.formDraft.desc, link: f.link ? f.link.value.trim() : '' });
     S.modal = null; S.formDraft = {}; S.filter = 'alle';
-    toast('Vorschlag ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
+    toast((V.ideaWord || 'Vorschlag') + ' ist online. Deine Stimme zählt schon – noch ' + Math.max(0, need - 1) + ' bis zur Planung.', 'success');
     go(V.groupHome || 'proposals');
   };
   forms.comment = (f) => {

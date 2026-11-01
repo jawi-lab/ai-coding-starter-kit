@@ -114,3 +114,39 @@ Schweregrad: **kritisch** (blockiert) · **hoch** (Aufgabe gefährdet oder WCAG-
 | Tobias (Elternteil, Farbsehschwäche) | **C**, dann A | Große Antwort-Buttons, Zahlen mit Symbolen, keine Farbabhängigkeit. In B steht seine Aufgabe zu weit unten. Für alle gilt: Rückgängig (H-2) und 44 px (M-1) nachrüsten. |
 
 **Gesamt:** C löst die Kernaufgaben am schnellsten, A ist das risikoärmste Fundament, B liefert die besten Erfolgsmomente, aber die schwächste Ordnung auf der Startseite. Vor der nächsten Testrunde K-1, H-1 und H-2 in allen drei Mockups beheben.
+
+## 5. Nachtest nach Korrekturrunde 2 (simuliert)
+
+> **SIMULIERT.** Gleiche Methode wie in Abschnitt 1, Build vom 2026-11-01 01:12. **Diesmal ohne eingefügte CSS-Korrektur.** Zitate sind erfunden, die Messwerte sind gemessen.
+
+| Punkt | A | B | C | Ergebnis |
+|---|---|---|---|---|
+| 1 Scrollen per Mausrad und Touch (390 px und 1440 px) | ✓ | ✓ | ✓ | **Behoben** (K-1). Mausrad bewegt `main` (z. B. A: 983 px), Touch-Wischen ebenso (≈ 550 px). |
+| 2 Fokus nach `Esc` aus Feiern, nach Abhaken und nach Zusage | ✓ | ✓ | ✓ | **Behoben** (H-1). Die Schwellen-Feier fängt den Fokus, nach `Esc` landet er auf der H1 (A/B „Vorschläge“, C „Feierabend-Crew“). Nach „Termin steht“ auf der H1 der Aktivität. Nach dem Abhaken bleibt er auf der Checkbox, nach der Zusage auf der H1. |
+| 3 „Rückgängig“ beim Abhaken | ✓ | ✓ | ✓ | **Behoben** (H-2). Die Meldung zeigt „Rückgängig“ (6 s), klickbar; danach ist die Aufgabe wieder offen, Meldung „Wieder offen.“, Fokus auf der Checkbox. Die erledigte Zeile bleibt stehen. **Rest:** Per Tastatur liegt der Button 13 (A), 14 (B) bzw. 8 (C) Tabs entfernt und ist bei 6 s kaum erreichbar (WCAG 2.2.1). |
+| 4 „Beste Zeiträume“ über dem Kalender | ✓ | ✓ | ✓ | **Behoben** (A/B hoch). Top 3 als Text mit Zahl („4 von 4 mit Kalender frei“), Hinweis „2 ohne Kalender sind nicht eingerechnet“. Liegt vor dem Kalender (y ≈ 470 statt ≈ 930). T1 jetzt in 2 Klicks ab Terminfindung. |
+| 5 B-Start: Missionen oben, Lagerfeuer kompakt | – | ✓ | – | **Größtenteils behoben.** Die Mission liegt bei y ≈ 734 statt 1432, also im ersten Bildschirm (Tab-Bar bei 768). Saison-Ziel jetzt unten. **Rest:** „Als Nächstes“ mit der Zusage steht erst bei y ≈ 1041, hinter „Deine Stimme fehlt“. |
+| 6a Checkbox 44 px | ✓ | ✓ | ✓ | **Behoben** (M-1). Gemessen 44 × 44 px. |
+| 6b Link-Feld im Vorschlag | ✓ | ✓ | ✓ | **Behoben** (M-2). Das Feld „Link (optional)“ (`type="url"`) wird gespeichert. **Rest:** Der Link erscheint weder auf der Karte noch im Detail. |
+| 6c C: nach „Idee teilen“ in den Fluss | – | – | ✓ | **Behoben.** Die neue Idee steht oben unter „Ideen“. **Rest:** Die Meldung sagt weiter „Vorschlag ist online“ statt „Idee“. |
+
+Kurz wiederholt:
+
+| Aufgabe | A | B | C | Beobachtung (simuliert) |
+|---|---|---|---|---|
+| T1 Lena, Termin finden | ja, 4 Klicks (Termine → Termin finden → Bester Zeitraum → Festlegen) | ja, 4 | ja, 3 per Abstimmung oder 2 ab „Termin direkt festlegen“ | „Jetzt sagt mir die App, welcher Samstag passt.“ In C bleibt der Gleichstand in der Terminabstimmung ohne Marke. |
+| T2 Lena, Aufgaben verteilen | ja, 6 Klicks ab Detail | ja, 6 | ja, 6 | Unverändert gut, „1 von 7 erledigt“. |
+| T6 Mira, Erinnerung teilen | teilweise | teilweise | teilweise | **Offen** (M-3): Im Detail einer erlebten Aktivität fehlen weiterhin Zitat und „Karte teilen“. |
+| T8 Tobias, abhaken | ja | ja | ja (knapp: y ≈ 805, Tab-Bar ab 775) | 44 px und Rückgängig erfüllen das Kriterium. In A (y ≈ 873) und C liegt die Aufgabe noch unter der Tab-Bar, ein kurzes Scrollen ist nötig. |
+
+**Noch offen (als Mängel ins Entscheidungslog):**
+
+1. T6 und M-3: Memory Card ohne Teilen, Zitat fehlt im Detail (A/B/C).
+2. Der Link aus dem Vorschlag wird nicht angezeigt (A/B/C).
+3. Der Rückgängig-Button ist per Tastatur in 6 s praktisch nicht erreichbar. Vorschlag: Zeit bei Fokus oder Hover anhalten oder ein Kürzel anbieten.
+4. Ab Korrekturrunde 2 nicht nachgeprüft:
+   - C: kein Hinweis bei Gleichstand in der Terminabstimmung
+   - C: „Zusagen“ ohne „Vielleicht“ oder „Kann nicht“
+   - C: Meldung „Vorschlag“ statt „Idee“
+5. A/C: Die eigene Aufgabe liegt knapp unter der Tab-Bar. B: „Als Nächstes“ steht spät.
+6. M-4: Schrift in px, wächst nicht mit der Systemschrift (nicht erneut geprüft).
