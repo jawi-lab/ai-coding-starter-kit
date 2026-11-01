@@ -1,0 +1,24 @@
+{
+  "_comment": "Eigene Prüf-Konfiguration für die Mockups. Die Repo-Datei playwright.config.ts bleibt unverändert (sie zeigt auf ein lokales macOS-Chrome).",
+  "mockups": {
+    "a": { "file": "../mockup-a.html", "start": "welcome" },
+    "b": { "file": "../mockup-b.html", "start": "welcome" },
+    "c": { "file": "../mockup-c.html", "start": "welcome" }
+  },
+  "viewports": [375, 768, 1440],
+  "screenshotViewports": [375, 1440],
+  "themes": ["light", "dark"],
+  "states": ["normal", "empty", "loading", "error", "offline"],
+  "stateRoutes": {
+    "a": ["proposals", "activity?id=a6"],
+    "b": ["proposals", "activity?id=a6"],
+    "c": ["flow", "activity?id=a6"]
+  },
+  "required": {
+    "_comment": "Pflicht-Screens aus dem Auftrag, je Variante auf Routen abgebildet.",
+    "a": { "Onboarding": "welcome", "Login": "login", "Einladung (Code + Link-Vorschlag)": "join", "Gruppenübersicht": "home", "Gruppe & Einladen": "group", "Vorschläge mit Abstimmung": "proposals", "Vorschlag erstellen": "newproposal", "Aktivitäts-Detail": "activity", "Kanban-Board": "board", "Kalender": "calendar", "Terminfindung": "datefinder", "Benachrichtigungs-Center": "notifications", "Push/E-Mail-Schalter": "notifsettings", "Profil & Einstellungen": "profile", "Erinnerungs-Archiv": "album", "Erfolgsmoment": "celebrate" },
+    "b": { "Onboarding": "welcome", "Login": "login", "Einladung (Code + Link-Vorschlag)": "join", "Gruppenübersicht (Lagerfeuer)": "home", "Gruppe & Einladen": "group", "Vorschläge mit Abstimmung": "proposals", "Stimmen-Stapel": "stack", "Vorschlag erstellen": "newproposal", "Aktivitäts-Detail": "activity", "Kanban-Board (Spielfeld)": "board", "Kalender": "calendar", "Terminfindung": "datefinder", "Benachrichtigungs-Center": "notifications", "Push/E-Mail-Schalter": "notifsettings", "Profil & Einstellungen": "profile", "Erinnerungs-Archiv": "album", "Erfolgsmoment": "celebrate" },
+    "c": { "Onboarding": "welcome", "Login": "login", "Einladung (Code + Link-Vorschlag)": "join", "Gruppenübersicht (Anstehend)": "agenda", "Gruppe: Fluss mit Ideen und Abstimmung (Board-Ersatz)": "flow", "Gruppe & Einladen": "group", "Idee erstellen": "newproposal", "Aktivitäts-Detail": "activity", "Kalender": "calendar", "Terminabstimmung": "datepoll", "Terminfindung direkt": "datefinder", "Benachrichtigungs-Center": "notifications", "Push/E-Mail-Schalter": "notifsettings", "Profil & Einstellungen": "profile", "Album (Erinnerungs-Archiv)": "album", "Erfolgsmoment": "celebrate" }
+  },
+  "maxBytes": 1048576
+}

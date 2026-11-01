@@ -1,0 +1,356 @@
+{
+  "date": "2026-11-01T01:39:33.151Z",
+  "browser": "153.0.8010.12",
+  "mockups": {
+    "a": {
+      "file": "mockup-a.html",
+      "bytes": 363037,
+      "checks": {
+        "fileProtocol": {
+          "ok": true
+        },
+        "reachable": {
+          "ok": true,
+          "reached": [
+            "activity",
+            "album",
+            "board",
+            "calendar",
+            "celebrate",
+            "datefinder",
+            "group",
+            "home",
+            "join",
+            "login",
+            "newproposal",
+            "notifications",
+            "notifsettings",
+            "profile",
+            "proposals",
+            "welcome"
+          ],
+          "missing": []
+        },
+        "deadTargets": {
+          "ok": true,
+          "clicks": 342,
+          "dead": [],
+          "noEffect": []
+        },
+        "noHorizontalScroll": {
+          "ok": true,
+          "viewports": [
+            375,
+            768,
+            1440
+          ],
+          "problems": []
+        },
+        "verticalScroll": {
+          "ok": true,
+          "scrollablePagesTested": 20,
+          "problems": []
+        },
+        "contrast": {
+          "ok": true,
+          "light": {
+            "min": 5.45,
+            "checked": 1706,
+            "fails": []
+          },
+          "dark": {
+            "min": 5.13,
+            "checked": 1706,
+            "fails": []
+          },
+          "focusRing": {
+            "light": {
+              "ringOnBg": 2.15,
+              "innerOnBg": 15.64
+            },
+            "dark": {
+              "ringOnBg": 9.15,
+              "innerOnBg": 16.12
+            }
+          }
+        },
+        "keyboard": {
+          "ok": true,
+          "visibleFocus": 28,
+          "tabs": 30,
+          "invisible": [],
+          "enterActivates": true,
+          "dialogFocus": true,
+          "focusTrap": true,
+          "escCloses": true
+        },
+        "console": {
+          "ok": true,
+          "errors": []
+        },
+        "network": {
+          "ok": true,
+          "external": []
+        },
+        "size": {
+          "ok": true,
+          "bytes": 363037,
+          "kb": 354.5
+        }
+      },
+      "routes": [
+        "welcome",
+        "login",
+        "join",
+        "home",
+        "group",
+        "proposals",
+        "newproposal",
+        "activity?id=a6",
+        "board",
+        "calendar",
+        "datefinder?id=a5",
+        "notifications",
+        "notifsettings",
+        "profile",
+        "album",
+        "celebrate"
+      ],
+      "screenshots": 80
+    },
+    "b": {
+      "file": "mockup-b.html",
+      "bytes": 231059,
+      "checks": {
+        "fileProtocol": {
+          "ok": true
+        },
+        "reachable": {
+          "ok": true,
+          "reached": [
+            "activity",
+            "album",
+            "board",
+            "calendar",
+            "celebrate",
+            "datefinder",
+            "group",
+            "home",
+            "join",
+            "login",
+            "newproposal",
+            "notifications",
+            "notifsettings",
+            "profile",
+            "proposals",
+            "stack",
+            "welcome"
+          ],
+          "missing": []
+        },
+        "deadTargets": {
+          "ok": true,
+          "clicks": 359,
+          "dead": [],
+          "noEffect": []
+        },
+        "noHorizontalScroll": {
+          "ok": true,
+          "viewports": [
+            375,
+            768,
+            1440
+          ],
+          "problems": []
+        },
+        "verticalScroll": {
+          "ok": true,
+          "scrollablePagesTested": 21,
+          "problems": []
+        },
+        "contrast": {
+          "ok": true,
+          "light": {
+            "min": 5.71,
+            "checked": 1763,
+            "fails": []
+          },
+          "dark": {
+            "min": 5.02,
+            "checked": 1763,
+            "fails": []
+          },
+          "focusRing": {
+            "light": {
+              "ringOnBg": 2.07,
+              "innerOnBg": 15.13
+            },
+            "dark": {
+              "ringOnBg": 10.19,
+              "innerOnBg": 16.66
+            }
+          }
+        },
+        "keyboard": {
+          "ok": true,
+          "visibleFocus": 28,
+          "tabs": 30,
+          "invisible": [],
+          "enterActivates": true,
+          "dialogFocus": true,
+          "focusTrap": true,
+          "escCloses": true
+        },
+        "console": {
+          "ok": true,
+          "errors": []
+        },
+        "network": {
+          "ok": true,
+          "external": []
+        },
+        "size": {
+          "ok": true,
+          "bytes": 231059,
+          "kb": 225.6
+        }
+      },
+      "routes": [
+        "welcome",
+        "login",
+        "join",
+        "home",
+        "group",
+        "proposals",
+        "stack",
+        "newproposal",
+        "activity?id=a6",
+        "board",
+        "calendar",
+        "datefinder?id=a5",
+        "notifications",
+        "notifsettings",
+        "profile",
+        "album",
+        "celebrate"
+      ],
+      "screenshots": 84
+    },
+    "c": {
+      "file": "mockup-c.html",
+      "bytes": 299090,
+      "checks": {
+        "fileProtocol": {
+          "ok": true
+        },
+        "reachable": {
+          "ok": true,
+          "reached": [
+            "activity",
+            "agenda",
+            "album",
+            "calendar",
+            "celebrate",
+            "datefinder",
+            "datepoll",
+            "flow",
+            "group",
+            "join",
+            "login",
+            "newproposal",
+            "notifications",
+            "notifsettings",
+            "profile",
+            "welcome"
+          ],
+          "missing": []
+        },
+        "deadTargets": {
+          "ok": true,
+          "clicks": 334,
+          "dead": [],
+          "noEffect": []
+        },
+        "noHorizontalScroll": {
+          "ok": true,
+          "viewports": [
+            375,
+            768,
+            1440
+          ],
+          "problems": []
+        },
+        "verticalScroll": {
+          "ok": true,
+          "scrollablePagesTested": 23,
+          "problems": []
+        },
+        "contrast": {
+          "ok": true,
+          "light": {
+            "min": 5.04,
+            "checked": 1671,
+            "fails": []
+          },
+          "dark": {
+            "min": 5.13,
+            "checked": 1671,
+            "fails": []
+          },
+          "focusRing": {
+            "light": {
+              "ringOnBg": 2.76,
+              "innerOnBg": 16.12
+            },
+            "dark": {
+              "ringOnBg": 9.06,
+              "innerOnBg": 16.17
+            }
+          }
+        },
+        "keyboard": {
+          "ok": true,
+          "visibleFocus": 28,
+          "tabs": 30,
+          "invisible": [],
+          "enterActivates": true,
+          "dialogFocus": true,
+          "focusTrap": true,
+          "escCloses": true
+        },
+        "console": {
+          "ok": true,
+          "errors": []
+        },
+        "network": {
+          "ok": true,
+          "external": []
+        },
+        "size": {
+          "ok": true,
+          "bytes": 299090,
+          "kb": 292.1
+        }
+      },
+      "routes": [
+        "welcome",
+        "login",
+        "join",
+        "agenda",
+        "calendar",
+        "flow",
+        "newproposal",
+        "activity?id=a6",
+        "datepoll?id=a5",
+        "datefinder?id=a5",
+        "group",
+        "notifications",
+        "notifsettings",
+        "profile",
+        "album",
+        "celebrate"
+      ],
+      "screenshots": 80
+    }
+  }
+}
