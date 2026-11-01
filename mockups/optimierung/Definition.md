@@ -16,7 +16,7 @@ Das Backlog führt deshalb statt „Vorschlagslimit lockern“ den Eintrag BL-09
 Die Personas sind simuliert (siehe `Discovery.md`, Abschnitt 2). „Organisator:in“ meint die 1–2 Personen, die pro Gruppe planen, „Mitläufer:in“ die eher passiven Mitglieder.
 
 ### P1 – Einladen ohne Hürde
-- **Nutzer:in:** Organisator:in einer neuen Gruppe braucht einen Weg, Freund:innen mit einem Tippen in die Gruppe zu holen, weil das Abtippen eines 6-stelligen Codes aus dem Messenger Eingeladene schon beim ersten Kontakt verliert.
+- **Nutzer:in:** Organisator:in einer neuen Gruppe braucht einen Weg, Freund:innen mit einem Tippen in die Gruppe zu holen, weil das Abtippen eines 10-stelligen Codes aus dem Messenger Eingeladene schon beim ersten Kontakt verliert.
 - **Wie könnten wir** Einladen so einfach machen wie das Teilen eines Links, ohne den Rate-Limit-Schutz des Codes aufzugeben?
 - Schwäche 1. KPI: K3. Backlog: BL-01, BL-15.
 

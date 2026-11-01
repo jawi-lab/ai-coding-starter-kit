@@ -130,7 +130,7 @@ Quellen: Apple App Review Guidelines https://developer.apple.com/app-store/revie
 1. **Muss:** Eintrag „Hilfe & Feedback“ im Profil, auf allen Plattformen am selben Ort (WCAG 3.2.6): kurze FAQ (Einladen, Rollen, Kalender, Benachrichtigungen, Konto löschen), Kontakt-E-Mail als Platzhalter, „Problem melden“. Apple 1.2 verlangt veröffentlichte Kontaktdaten.
 2. **Soll:** „Problem melden“ öffnet eine vorausgefüllte E-Mail mit App-Version und Plattform, **ohne** Gruppeninhalte, Namen oder Tokens. Kein eingebautes Tracking-SDK.
 3. **Muss:** Jede Fehlermeldung sagt, was passiert ist und was als Nächstes zu tun ist, mit einer Aktion:
-   - Offline: „Keine Verbindung. Deine Änderung wird gesendet, sobald du wieder online bist.“ + „Erneut versuchen“
+   - Offline: „Du bist offline. Das geht wieder, sobald die Verbindung zurück ist.“ + „Erneut verbinden“ (keine Warteschlange, siehe E-26)
    - Link ungültig: „Dieser Link gilt nicht mehr. Bitte die Person, die dich eingeladen hat, um einen neuen.“
    - Rate-Limit: „Zu viele Versuche. Bitte versuch es in einer Stunde erneut.“
    - Keine Berechtigung: „Das darf nur der Admin oder wer die Idee eingebracht hat.“ (statt stillem Ausblenden, wo es Verwirrung stiftet)
